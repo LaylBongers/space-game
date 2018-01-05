@@ -1,0 +1,8 @@
+[package]
+name = "space-game"
+version = "0.1.0"
+authors = ["Layl <LaylConway@users.noreply.github.com>"]
+
+[dependencies]
+ggez = "0.4"
+nalgebra = "0.13"
