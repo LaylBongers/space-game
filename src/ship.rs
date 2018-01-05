@@ -17,12 +17,12 @@ impl Ship {
         self.size
     }
 
-    pub fn tiles_mut(&mut self) -> &mut [Tile] {
-        &mut self.tiles
-    }
-
     pub fn tile(&self, position: Point2<i32>) -> &Tile {
         &self.tiles[(position.x + (position.y * self.size.x)) as usize]
+    }
+
+    pub fn tile_mut(&mut self, position: Point2<i32>) -> &mut Tile {
+        &mut self.tiles[(position.x + (position.y * self.size.x)) as usize]
     }
 }
 
