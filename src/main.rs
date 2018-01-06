@@ -14,18 +14,24 @@ use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use nalgebra::{Vector2, Point2};
 
 use model::{Ship, Camera, InputState};
+use model::ui::{Button};
 
 struct MainState {
-    ship: Ship,
     camera: Camera,
     input_state: InputState,
+    ship: Ship,
+
+    build_wall_button: Button,
 }
 
 impl MainState {
     fn new(_ctx: &mut Context) -> GameResult<MainState> {
-        let mut ship = Ship::empty(Vector2::new(100, 100));
+        // Set up the game world camera
+        let mut camera = Camera::new(64, Vector2::new(1280, 720));
+        camera.set_position(Point2::new(50.0, 50.0));
 
         // Just create a pattern so we know rendering works
+        let mut ship = Ship::empty(Vector2::new(100, 100));
         let size = ship.size();
         for y in 0..size.y {
             for x in 0..size.x {
@@ -36,13 +42,18 @@ impl MainState {
             }
         }
 
-        let mut camera = Camera::new(64, Vector2::new(1280, 720));
-        camera.set_position(Point2::new(50.0, 50.0));
+        // Set up the UI
+        let build_wall_button = Button {
+            position: Point2::new(12.0, 12.0),
+            size: Vector2::new(12.0, 12.0),
+        };
 
         Ok(MainState {
-            ship,
             camera,
             input_state: InputState::new(),
+            ship,
+
+            build_wall_button,
         })
     }
 }
@@ -142,8 +153,8 @@ pub fn main() {
     };
     let ctx = &mut Context::load_from_conf("space-game", "carbidegames", c).unwrap();
 
-    // We add the CARGO_MANIFEST_DIR/resources do the filesystems paths so
-    // we we look in the cargo project for files.
+    // We add the CARGO_MANIFEST_DIR/resources do the filesystems paths so we we look in the cargo
+    // project for files.
     if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
         let mut path = path::PathBuf::from(manifest_dir);
         path.push("resources");
