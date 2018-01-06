@@ -18,11 +18,16 @@ impl Ship {
     }
 
     pub fn tile(&self, position: Point2<i32>) -> &Tile {
-        &self.tiles[(position.x + (position.y * self.size.x)) as usize]
+        &self.tiles[self.index(position)]
     }
 
     pub fn tile_mut(&mut self, position: Point2<i32>) -> &mut Tile {
-        &mut self.tiles[(position.x + (position.y * self.size.x)) as usize]
+        let index = self.index(position);
+        &mut self.tiles[index]
+    }
+
+    fn index(&self, position: Point2<i32>) -> usize {
+        (position.x + (position.y * self.size.x)) as usize
     }
 }
 

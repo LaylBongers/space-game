@@ -1,22 +1,23 @@
 extern crate ggez;
 extern crate nalgebra;
 
+mod model;
+mod view;
 mod camera;
-mod ship;
 
 use std::env;
 use std::path;
 
-use ggez::{event, graphics, timer, Context, GameResult};
+use ggez::{graphics, timer, Context, GameResult};
 use ggez::conf::{Conf, WindowMode, WindowSetup};
+use ggez::event::{self, EventHandler};
 use nalgebra::{Vector2, Point2};
 
+use model::{Ship};
 use camera::{Camera};
-use ship::{Ship};
 
 struct MainState {
     ship: Ship,
-    pos_y: f32,
 }
 
 impl MainState {
@@ -36,56 +37,35 @@ impl MainState {
 
         Ok(MainState {
             ship,
-            pos_y: 0.0,
         })
     }
 }
 
 
-impl event::EventHandler for MainState {
+impl EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         const DESIRED_FPS: u32 = 60;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            self.pos_y += 0.01;
         }
 
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
+        graphics::set_background_color(ctx, (5, 5, 10).into());
         graphics::clear(ctx);
 
         // Create the camera and give it the relevant values for the current frame
         let mut camera = Camera::new(64);
-        camera.set_position(Point2::new(0.0, self.pos_y));
+        camera.set_position(Point2::new(50.0, 50.0));
         let size = graphics::get_size(ctx);
         camera.set_screen_size(Vector2::new(size.0 as i32, size.1 as i32));
         graphics::set_projection(ctx, camera.projection());
-        graphics::apply_transformations(ctx).unwrap();
+        graphics::apply_transformations(ctx)?;
 
-        // Find the tiles we are drawing
-        let (start, end) = camera.world_bounds();
-        let size = self.ship.size();
-        let start_x = (start.x.floor() as i32).max(0);
-        let start_y = (start.y.floor() as i32).max(0);
-        let end_x = (end.x.ceil() as i32).min(size.x);
-        let end_y = (end.y.ceil() as i32).min(size.y);
-
-        // Draw the ship's tiles
-        graphics::set_color(ctx, (150, 150, 150).into())?;
-        for y in start_y..end_y {
-            for x in start_x..end_x {
-                let tile = self.ship.tile(Point2::new(x, y));
-
-                if !tile.floor {
-                    continue
-                }
-
-                let rect = graphics::Rect::new(x as f32, y as f32, 1.0, 1.0);
-                graphics::rectangle(ctx, graphics::DrawMode::Fill, rect)?;
-            }
-        }
+        // Draw the ship
+        view::draw_ship(ctx, &self.ship, &camera)?;
 
         graphics::present(ctx);
         Ok(())
