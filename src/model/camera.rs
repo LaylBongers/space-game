@@ -15,8 +15,16 @@ impl Camera {
         }
     }
 
+    pub fn position(&mut self) -> Point2<f32> {
+        self.position
+    }
+
     pub fn set_position(&mut self, position: Point2<f32>) {
         self.position = position;
+    }
+
+    pub fn pixels_per_tile(&self) -> i32 {
+        self.pixels_per_tile
     }
 
     pub fn set_screen_size(&mut self, screen_size: Vector2<i32>) {

@@ -1,5 +1,9 @@
 use nalgebra::{Vector2, Point2};
 
+mod camera;
+
+pub use self::camera::{Camera};
+
 pub struct Ship {
     tiles: Vec<Tile>,
     size: Vector2<i32>,

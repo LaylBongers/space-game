@@ -3,21 +3,21 @@ extern crate nalgebra;
 
 mod model;
 mod view;
-mod camera;
 
 use std::env;
 use std::path;
 
 use ggez::{graphics, timer, Context, GameResult};
 use ggez::conf::{Conf, WindowMode, WindowSetup};
-use ggez::event::{self, EventHandler};
+use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use nalgebra::{Vector2, Point2};
 
-use model::{Ship};
-use camera::{Camera};
+use model::{Ship, Camera};
 
 struct MainState {
     ship: Ship,
+    camera: Camera,
+    mouse_down: bool,
 }
 
 impl MainState {
@@ -35,8 +35,13 @@ impl MainState {
             }
         }
 
+        let mut camera = Camera::new(64);
+        camera.set_position(Point2::new(50.0, 50.0));
+
         Ok(MainState {
             ship,
+            camera,
+            mouse_down: false,
         })
     }
 }
@@ -57,18 +62,49 @@ impl EventHandler for MainState {
         graphics::clear(ctx);
 
         // Create the camera and give it the relevant values for the current frame
-        let mut camera = Camera::new(64);
-        camera.set_position(Point2::new(50.0, 50.0));
         let size = graphics::get_size(ctx);
-        camera.set_screen_size(Vector2::new(size.0 as i32, size.1 as i32));
-        graphics::set_projection(ctx, camera.projection());
+        self.camera.set_screen_size(Vector2::new(size.0 as i32, size.1 as i32));
+        graphics::set_projection(ctx, self.camera.projection());
         graphics::apply_transformations(ctx)?;
 
         // Draw the ship
-        view::draw_ship(ctx, &self.ship, &camera)?;
+        view::draw_ship(ctx, &self.ship, &self.camera)?;
 
         graphics::present(ctx);
         Ok(())
+    }
+
+    fn mouse_button_down_event(
+        &mut self, _ctx: &mut Context,
+        button: MouseButton, _x: i32, _y: i32
+    ) {
+        if button == MouseButton::Middle {
+            self.mouse_down = true;
+        }
+    }
+
+    fn mouse_button_up_event(
+        &mut self, _ctx: &mut Context,
+        button: MouseButton, _x: i32, _y: i32
+    ) {
+        if button == MouseButton::Middle {
+            self.mouse_down = false;
+        }
+    }
+
+    fn mouse_motion_event(
+        &mut self, _ctx: &mut Context,
+        _state: MouseState, _x: i32, _y: i32, xrel: i32, yrel: i32
+    ) {
+        if self.mouse_down {
+            let pixels_per_tile = self.camera.pixels_per_tile();
+            let new_position = self.camera.position()
+                + Vector2::new(
+                    -xrel as f32 / pixels_per_tile as f32,
+                    yrel as f32 / pixels_per_tile as f32
+                );
+            self.camera.set_position(new_position);
+        }
     }
 }
 
