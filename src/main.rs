@@ -21,7 +21,9 @@ struct MainState {
     input_state: InputState,
     ship: Ship,
 
+    build_floor_button: Button,
     build_wall_button: Button,
+    destroy_button: Button,
 }
 
 impl MainState {
@@ -43,9 +45,17 @@ impl MainState {
         }
 
         // Set up the UI
+        let build_floor_button = Button {
+            position: Point2::new(6.0, 6.0),
+            size: Vector2::new(36.0, 36.0),
+        };
         let build_wall_button = Button {
-            position: Point2::new(12.0, 12.0),
-            size: Vector2::new(12.0, 12.0),
+            position: Point2::new(48.0, 6.0),
+            size: Vector2::new(36.0, 36.0),
+        };
+        let destroy_button = Button {
+            position: Point2::new(90.0, 6.0),
+            size: Vector2::new(36.0, 36.0),
         };
 
         Ok(MainState {
@@ -53,7 +63,9 @@ impl MainState {
             input_state: InputState::new(),
             ship,
 
+            build_floor_button,
             build_wall_button,
+            destroy_button,
         })
     }
 }
@@ -73,24 +85,25 @@ impl EventHandler for MainState {
         graphics::set_background_color(ctx, (5, 5, 10).into());
         graphics::clear(ctx);
 
-        // Create the camera and give it the relevant values for the current frame
+        // Switch the projection to world rendering
         let size = graphics::get_size(ctx);
         self.camera.set_screen_size(Vector2::new(size.0 as i32, size.1 as i32));
+        let pixels_projection = graphics::get_projection(ctx);
         graphics::set_projection(ctx, self.camera.projection());
         graphics::apply_transformations(ctx)?;
 
-        // Draw the ship
+        // Draw everything in the world
         view::draw_ship(ctx, &self.ship, &self.camera)?;
+        view::draw_indicator(ctx, &self.input_state)?;
 
-        // Draw the tile selection indicator
-        graphics::set_color(ctx, (255, 255, 255, 100).into())?;
-        graphics::rectangle(
-            ctx, graphics::DrawMode::Fill,
-            graphics::Rect::new(
-                self.input_state.hovered_tile.x as f32, self.input_state.hovered_tile.y as f32,
-                1.0, 1.0
-            ),
-        )?;
+        // Swith the projection back to pixels rendering for UI
+        graphics::set_projection(ctx, pixels_projection);
+        graphics::apply_transformations(ctx)?;
+
+        // Draw the UI
+        view::draw_button(ctx, &self.build_floor_button)?;
+        view::draw_button(ctx, &self.build_wall_button)?;
+        view::draw_button(ctx, &self.destroy_button)?;
 
         graphics::present(ctx);
         Ok(())

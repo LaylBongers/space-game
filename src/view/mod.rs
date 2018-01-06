@@ -1,7 +1,8 @@
 use ggez::{graphics, Context, GameResult};
 use nalgebra::{Point2};
 
-use model::{Ship, Camera};
+use model::{Ship, Camera, InputState};
+use model::ui::{Button};
 
 pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<()> {
     // Find the tiles we are drawing
@@ -28,6 +29,32 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
             )?;
         }
     }
+
+    Ok(())
+}
+
+pub fn draw_indicator(ctx: &mut Context, input_state: &InputState) -> GameResult<()> {
+    graphics::set_color(ctx, (255, 255, 255, 100).into())?;
+    graphics::rectangle(
+        ctx, graphics::DrawMode::Fill,
+        graphics::Rect::new(
+            input_state.hovered_tile.x as f32, input_state.hovered_tile.y as f32,
+            1.0, 1.0,
+        ),
+    )?;
+
+    Ok(())
+}
+
+pub fn draw_button(ctx: &mut Context, button: &Button) -> GameResult<()> {
+    graphics::set_color(ctx, (255, 255, 255, 200).into())?;
+    graphics::rectangle(
+        ctx, graphics::DrawMode::Fill,
+        graphics::Rect::new(
+            button.position.x, button.position.y,
+            button.size.x, button.size.y,
+        ),
+    )?;
 
     Ok(())
 }
