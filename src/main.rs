@@ -1,4 +1,5 @@
 extern crate ggez;
+extern crate alga;
 extern crate nalgebra;
 
 mod model;
@@ -12,12 +13,12 @@ use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use nalgebra::{Vector2, Point2};
 
-use model::{Ship, Camera};
+use model::{Ship, Camera, InputState};
 
 struct MainState {
     ship: Ship,
     camera: Camera,
-    mouse_down: bool,
+    input_state: InputState,
 }
 
 impl MainState {
@@ -35,13 +36,13 @@ impl MainState {
             }
         }
 
-        let mut camera = Camera::new(64);
+        let mut camera = Camera::new(64, Vector2::new(1280, 720));
         camera.set_position(Point2::new(50.0, 50.0));
 
         Ok(MainState {
             ship,
             camera,
-            mouse_down: false,
+            input_state: InputState::new(),
         })
     }
 }
@@ -70,6 +71,16 @@ impl EventHandler for MainState {
         // Draw the ship
         view::draw_ship(ctx, &self.ship, &self.camera)?;
 
+        // Draw the tile selection indicator
+        graphics::set_color(ctx, (255, 255, 255, 100).into())?;
+        graphics::rectangle(
+            ctx, graphics::DrawMode::Fill,
+            graphics::Rect::new(
+                self.input_state.hovered_tile.x as f32, self.input_state.hovered_tile.y as f32,
+                1.0, 1.0
+            ),
+        )?;
+
         graphics::present(ctx);
         Ok(())
     }
@@ -79,7 +90,7 @@ impl EventHandler for MainState {
         button: MouseButton, _x: i32, _y: i32
     ) {
         if button == MouseButton::Middle {
-            self.mouse_down = true;
+            self.input_state.mouse_down = true;
         }
     }
 
@@ -88,15 +99,18 @@ impl EventHandler for MainState {
         button: MouseButton, _x: i32, _y: i32
     ) {
         if button == MouseButton::Middle {
-            self.mouse_down = false;
+            self.input_state.mouse_down = false;
         }
     }
 
     fn mouse_motion_event(
         &mut self, _ctx: &mut Context,
-        _state: MouseState, _x: i32, _y: i32, xrel: i32, yrel: i32
+        _state: MouseState, x: i32, y: i32, xrel: i32, yrel: i32
     ) {
-        if self.mouse_down {
+        // If the move button is held down, we need to move the camera
+        if self.input_state.mouse_down {
+            // Use the relative position the mouse is moved, then scale it to how much that is
+            // in in-game world coordinates
             let pixels_per_tile = self.camera.pixels_per_tile();
             let new_position = self.camera.position()
                 + Vector2::new(
@@ -105,6 +119,13 @@ impl EventHandler for MainState {
                 );
             self.camera.set_position(new_position);
         }
+
+        // Find the position of the cursor in-world
+        let world_position = self.camera.screen_to_world(Point2::new(x, y));
+        self.input_state.hovered_tile = Point2::new(
+            world_position.x.floor() as i32,
+            world_position.y.floor() as i32,
+        );
     }
 }
 

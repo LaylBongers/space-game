@@ -1,8 +1,7 @@
 use ggez::{graphics, Context, GameResult};
 use nalgebra::{Point2};
 
-use model::{Ship};
-use camera::{Camera};
+use model::{Ship, Camera};
 
 pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<()> {
     // Find the tiles we are drawing
@@ -23,8 +22,10 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
                 continue
             }
 
-            let rect = graphics::Rect::new(x as f32, y as f32, 1.0, 1.0);
-            graphics::rectangle(ctx, graphics::DrawMode::Fill, rect)?;
+            graphics::rectangle(
+                ctx, graphics::DrawMode::Fill,
+                graphics::Rect::new(x as f32, y as f32, 1.0, 1.0),
+            )?;
         }
     }
 

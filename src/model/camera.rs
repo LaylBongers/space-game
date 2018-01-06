@@ -1,4 +1,5 @@
-use nalgebra::{Vector2, Point2, Matrix4};
+use alga::linear::{Transformation};
+use nalgebra::{Vector2, Point2, Point3, Matrix4};
 
 pub struct Camera {
     position: Point2<f32>,
@@ -7,11 +8,11 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(pixels_per_tile: i32) -> Self {
+    pub fn new(pixels_per_tile: i32, screen_size: Vector2<i32>) -> Self {
         Camera {
             position: Point2::new(0.0, 0.0),
             pixels_per_tile,
-            half_screen_size: Vector2::new(0, 0)
+            half_screen_size: screen_size/2,
         }
     }
 
@@ -46,6 +47,22 @@ impl Camera {
     pub fn world_bounds(&self) -> (Point2<f32>, Point2<f32>) {
         let half_world_size = self.half_world_size();
         (self.position - half_world_size, self.position + half_world_size)
+    }
+
+    /// Converts a screen position to a world position
+    pub fn screen_to_world(&self, pixels: Point2<i32>) -> Point2<f32> {
+        // Start by calculating our screen position in clip space, so we can just use the matrix
+        // to convert to world coordinates
+        let clip = Point3::new(
+            (pixels.x as f32 / self.half_screen_size.x as f32) - 1.0,
+            -((pixels.y as f32 / self.half_screen_size.y as f32) - 1.0),
+            0.0,
+        );
+
+        // Do the actual conversion
+        let world = self.projection().try_inverse().unwrap().transform_point(&clip);
+
+        Point2::new(world.x, world.y)
     }
 
     fn half_world_size(&self) -> Vector2<f32> {
