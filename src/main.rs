@@ -76,7 +76,7 @@ impl EventHandler for MainState {
         const DESIRED_FPS: u32 = 60;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            self.ship_input.update(&mut self.ship);
+            // Update here
         }
 
         Ok(())
@@ -95,7 +95,7 @@ impl EventHandler for MainState {
 
         // Draw everything in the world
         view::draw_ship(ctx, &self.ship, &self.camera)?;
-        view::draw_indicator(ctx, &self.ship_input)?;
+        view::draw_build_indicator(ctx, &self.ship_input)?;
 
         // Swith the projection back to pixels rendering for UI
         graphics::set_projection(ctx, pixels_projection);
@@ -121,7 +121,7 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         button: MouseButton, _x: i32, _y: i32
     ) {
-        self.ship_input.handle_mouse_up(button);
+        self.ship_input.handle_mouse_up(button, &mut self.ship);
     }
 
     fn mouse_motion_event(

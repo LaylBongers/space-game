@@ -1,7 +1,7 @@
 use ggez::{graphics, Context, GameResult};
 use nalgebra::{Point2};
 
-use controller::{ShipInputController};
+use controller::{self, ShipInputController, BuildState};
 use model::{Ship, Camera};
 use model::ui::{Button};
 
@@ -34,16 +34,30 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
     Ok(())
 }
 
-pub fn draw_indicator(ctx: &mut Context, ship_input: &ShipInputController) -> GameResult<()> {
-    if let Some(hovered_tile) = ship_input.hovered_tile {
-        graphics::set_color(ctx, (255, 255, 255, 100).into())?;
-        graphics::rectangle(
-            ctx, graphics::DrawMode::Fill,
-            graphics::Rect::new(
-                hovered_tile.x as f32, hovered_tile.y as f32,
-                1.0, 1.0,
-            ),
-        )?;
+pub fn draw_build_indicator(ctx: &mut Context, ship_input: &ShipInputController) -> GameResult<()> {
+    graphics::set_color(ctx, (255, 255, 255, 100).into())?;
+
+    match ship_input.build_state {
+        BuildState::Hovering { position: Some(hovered_tile) } => {
+            graphics::rectangle(
+                ctx, graphics::DrawMode::Fill,
+                graphics::Rect::new(
+                    hovered_tile.x as f32, hovered_tile.y as f32,
+                    1.0, 1.0,
+                ),
+            )?;
+        },
+        BuildState::Dragging { start, end } => {
+            let (start, end) = controller::build_area(start, end);
+            graphics::rectangle(
+                ctx, graphics::DrawMode::Fill,
+                    graphics::Rect::new(
+                    start.x as f32, start.y as f32,
+                    (end.x - start.x) as f32, (end.y - start.y) as f32,
+                ),
+            )?;
+        },
+        _ => {},
     }
 
     Ok(())

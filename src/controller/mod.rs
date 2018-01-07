@@ -4,39 +4,54 @@ use nalgebra::{Point2, Vector2};
 use model::{Camera, Ship};
 
 pub struct ShipInputController {
-    build_down: bool,
     move_down: bool,
-    pub hovered_tile: Option<Point2<i32>>,
+    last_tile_position: Option<Point2<i32>>,
+    pub build_state: BuildState,
 }
 
 impl ShipInputController {
     pub fn new() -> Self {
         ShipInputController {
-            build_down: false,
             move_down: false,
-            hovered_tile: None,
-        }
-    }
-
-    pub fn update(&self, ship: &mut Ship) {
-        if self.build_down {
-            if let Some(hovered_tile) = self.hovered_tile {
-                ship.tile_mut(hovered_tile).unwrap().floor = true;
-            }
+            last_tile_position: None,
+            build_state: BuildState::Hovering { position: None },
         }
     }
 
     pub fn handle_mouse_down(&mut self, button: MouseButton) {
         match button {
-            MouseButton::Left => self.build_down = true,
+            MouseButton::Left => {
+                // If we were currently hovering, switch over to dragging
+                if let BuildState::Hovering { position: Some(hovered_tile) } = self.build_state {
+                    self.build_state = BuildState::Dragging {
+                        start: hovered_tile,
+                        end: hovered_tile,
+                    }
+                }
+            },
             MouseButton::Middle => self.move_down = true,
             _ => {}
         }
     }
 
-    pub fn handle_mouse_up(&mut self, button: MouseButton) {
+    pub fn handle_mouse_up(&mut self, button: MouseButton, ship: &mut Ship) {
         match button {
-            MouseButton::Left => self.build_down = false,
+            MouseButton::Left => {
+                // If we were currently dragging, switch back to hovering
+                if let BuildState::Dragging { start, end } = self.build_state {
+                    // This also means we finished a build, so let's apply it
+                    let (start, end) = build_area(start, end);
+                    for y in start.y..end.y {
+                        for x in start.x..end.x {
+                            let tile = Point2::new(x, y);
+                            ship.tile_mut(tile).unwrap().floor = true;
+                        }
+                    }
+
+                    // Actually switch back to hovering now
+                    self.build_state = BuildState::Hovering { position: self.last_tile_position }
+                }
+            },
             MouseButton::Middle => self.move_down = false,
             _ => {}
         }
@@ -69,9 +84,33 @@ impl ShipInputController {
 
         // Make sure it's a valid tile
         if ship.is_in_bounds(tile_position) {
-            self.hovered_tile = Some(tile_position);
+            self.last_tile_position = Some(tile_position);
+
+            match self.build_state {
+                BuildState::Hovering { ref mut position } => *position = Some(tile_position),
+                BuildState::Dragging { start: _, ref mut end } => *end = tile_position,
+             }
         } else {
-            self.hovered_tile = None;
+            self.last_tile_position = None;
+
+            // If this is an invalid tile, the dragging won't be interested but the hover should be
+            // set to None so it won't show up previewed
+            if let &mut BuildState::Hovering { ref mut position } = &mut self.build_state {
+                *position = None;
+            }
         }
     }
+}
+
+pub enum BuildState {
+    Hovering { position: Option<Point2<i32>> },
+    Dragging { start: Point2<i32>, end: Point2<i32> },
+}
+
+pub fn build_area(start: Point2<i32>, end: Point2<i32>) -> (Point2<i32>, Point2<i32>) {
+    let min_x = start.x.min(end.x);
+    let min_y = start.y.min(end.y);
+    let max_x = start.x.max(end.x);
+    let max_y = start.y.max(end.y);
+    (Point2::new(min_x, min_y), Point2::new(max_x + 1, max_y + 1))
 }
