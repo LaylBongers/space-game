@@ -2,6 +2,7 @@ extern crate ggez;
 extern crate alga;
 extern crate nalgebra;
 
+mod controller;
 mod model;
 mod view;
 
@@ -32,15 +33,11 @@ impl MainState {
         let mut camera = Camera::new(64, Vector2::new(1280, 720));
         camera.set_position(Point2::new(50.0, 50.0));
 
-        // Just create a pattern so we know rendering works
+        // Create the starter ship
         let mut ship = Ship::empty(Vector2::new(100, 100));
-        let size = ship.size();
-        for y in 0..size.y {
-            for x in 0..size.x {
-                let v = x + y;
-                if (v % 2) == 0 {
-                    ship.tile_mut(Point2::new(x, y)).floor = true;
-                }
+        for y in 47..53 {
+            for x in 48..52 {
+                ship.tile_mut(Point2::new(x, y)).unwrap().floor = true;
             }
         }
 
@@ -76,6 +73,11 @@ impl EventHandler for MainState {
         const DESIRED_FPS: u32 = 60;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
+            if self.input_state.build_down {
+                if let Some(hovered_tile) = self.input_state.hovered_tile {
+                    self.ship.tile_mut(hovered_tile).unwrap().floor = true;
+                }
+            }
         }
 
         Ok(())
@@ -113,8 +115,10 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         button: MouseButton, _x: i32, _y: i32
     ) {
-        if button == MouseButton::Middle {
-            self.input_state.mouse_down = true;
+        match button {
+            MouseButton::Left => self.input_state.build_down = true,
+            MouseButton::Middle => self.input_state.move_down = true,
+            _ => {}
         }
     }
 
@@ -122,8 +126,10 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         button: MouseButton, _x: i32, _y: i32
     ) {
-        if button == MouseButton::Middle {
-            self.input_state.mouse_down = false;
+        match button {
+            MouseButton::Left => self.input_state.build_down = false,
+            MouseButton::Middle => self.input_state.move_down = false,
+            _ => {}
         }
     }
 
@@ -131,24 +137,9 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         _state: MouseState, x: i32, y: i32, xrel: i32, yrel: i32
     ) {
-        // If the move button is held down, we need to move the camera
-        if self.input_state.mouse_down {
-            // Use the relative position the mouse is moved, then scale it to how much that is
-            // in in-game world coordinates
-            let pixels_per_tile = self.camera.pixels_per_tile();
-            let new_position = self.camera.position()
-                + Vector2::new(
-                    -xrel as f32 / pixels_per_tile as f32,
-                    yrel as f32 / pixels_per_tile as f32
-                );
-            self.camera.set_position(new_position);
-        }
-
-        // Find the position of the cursor in-world
-        let world_position = self.camera.screen_to_world(Point2::new(x, y));
-        self.input_state.hovered_tile = Point2::new(
-            world_position.x.floor() as i32,
-            world_position.y.floor() as i32,
+        controller::handle_mouse_move(
+            Point2::new(x, y), Vector2::new(xrel, yrel),
+            &mut self.input_state, &mut self.camera, &self.ship,
         );
     }
 }

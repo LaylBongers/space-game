@@ -17,7 +17,7 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
     graphics::set_color(ctx, (150, 150, 150).into())?;
     for y in start_y..end_y {
         for x in start_x..end_x {
-            let tile = ship.tile(Point2::new(x, y));
+            let tile = ship.tile(Point2::new(x, y)).unwrap();
 
             if !tile.floor {
                 continue
@@ -34,14 +34,16 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
 }
 
 pub fn draw_indicator(ctx: &mut Context, input_state: &InputState) -> GameResult<()> {
-    graphics::set_color(ctx, (255, 255, 255, 100).into())?;
-    graphics::rectangle(
-        ctx, graphics::DrawMode::Fill,
-        graphics::Rect::new(
-            input_state.hovered_tile.x as f32, input_state.hovered_tile.y as f32,
-            1.0, 1.0,
-        ),
-    )?;
+    if let Some(hovered_tile) = input_state.hovered_tile {
+        graphics::set_color(ctx, (255, 255, 255, 100).into())?;
+        graphics::rectangle(
+            ctx, graphics::DrawMode::Fill,
+            graphics::Rect::new(
+                hovered_tile.x as f32, hovered_tile.y as f32,
+                1.0, 1.0,
+            ),
+        )?;
+    }
 
     Ok(())
 }
