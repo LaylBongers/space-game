@@ -1,7 +1,8 @@
 use ggez::{graphics, Context, GameResult};
 use nalgebra::{Point2};
 
-use model::{Ship, Camera, InputState};
+use controller::{ShipInputController};
+use model::{Ship, Camera};
 use model::ui::{Button};
 
 pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<()> {
@@ -33,8 +34,8 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
     Ok(())
 }
 
-pub fn draw_indicator(ctx: &mut Context, input_state: &InputState) -> GameResult<()> {
-    if let Some(hovered_tile) = input_state.hovered_tile {
+pub fn draw_indicator(ctx: &mut Context, ship_input: &ShipInputController) -> GameResult<()> {
+    if let Some(hovered_tile) = ship_input.hovered_tile {
         graphics::set_color(ctx, (255, 255, 255, 100).into())?;
         graphics::rectangle(
             ctx, graphics::DrawMode::Fill,

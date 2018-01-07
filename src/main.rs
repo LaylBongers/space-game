@@ -14,13 +14,15 @@ use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use nalgebra::{Vector2, Point2};
 
-use model::{Ship, Camera, InputState};
+use controller::{ShipInputController};
+use model::{Ship, Camera};
 use model::ui::{Button};
 
 struct MainState {
     camera: Camera,
-    input_state: InputState,
     ship: Ship,
+
+    ship_input: ShipInputController,
 
     build_floor_button: Button,
     build_wall_button: Button,
@@ -57,8 +59,9 @@ impl MainState {
 
         Ok(MainState {
             camera,
-            input_state: InputState::new(),
             ship,
+
+            ship_input: ShipInputController::new(),
 
             build_floor_button,
             build_wall_button,
@@ -73,11 +76,7 @@ impl EventHandler for MainState {
         const DESIRED_FPS: u32 = 60;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            if self.input_state.build_down {
-                if let Some(hovered_tile) = self.input_state.hovered_tile {
-                    self.ship.tile_mut(hovered_tile).unwrap().floor = true;
-                }
-            }
+            self.ship_input.update(&mut self.ship);
         }
 
         Ok(())
@@ -96,7 +95,7 @@ impl EventHandler for MainState {
 
         // Draw everything in the world
         view::draw_ship(ctx, &self.ship, &self.camera)?;
-        view::draw_indicator(ctx, &self.input_state)?;
+        view::draw_indicator(ctx, &self.ship_input)?;
 
         // Swith the projection back to pixels rendering for UI
         graphics::set_projection(ctx, pixels_projection);
@@ -115,31 +114,23 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         button: MouseButton, _x: i32, _y: i32
     ) {
-        match button {
-            MouseButton::Left => self.input_state.build_down = true,
-            MouseButton::Middle => self.input_state.move_down = true,
-            _ => {}
-        }
+        self.ship_input.handle_mouse_down(button);
     }
 
     fn mouse_button_up_event(
         &mut self, _ctx: &mut Context,
         button: MouseButton, _x: i32, _y: i32
     ) {
-        match button {
-            MouseButton::Left => self.input_state.build_down = false,
-            MouseButton::Middle => self.input_state.move_down = false,
-            _ => {}
-        }
+        self.ship_input.handle_mouse_up(button);
     }
 
     fn mouse_motion_event(
         &mut self, _ctx: &mut Context,
         _state: MouseState, x: i32, y: i32, xrel: i32, yrel: i32
     ) {
-        controller::handle_mouse_move(
+        self.ship_input.handle_mouse_move(
             Point2::new(x, y), Vector2::new(xrel, yrel),
-            &mut self.input_state, &mut self.camera, &self.ship,
+            &mut self.camera, &self.ship,
         );
     }
 }
