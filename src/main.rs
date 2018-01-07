@@ -46,18 +46,18 @@ impl MainState {
         }
 
         // Set up the UI
-        let build_floor_button = Button {
-            position: Point2::new(6, 6),
-            size: Vector2::new(36, 36),
-        };
-        let build_wall_button = Button {
-            position: Point2::new(48, 6),
-            size: Vector2::new(36, 36),
-        };
-        let destroy_button = Button {
-            position: Point2::new(90, 6),
-            size: Vector2::new(36, 36),
-        };
+        let build_floor_button = Button::new(
+            Point2::new(6, 6),
+            Vector2::new(36, 36),
+        );
+        let build_wall_button = Button::new(
+            Point2::new(48, 6),
+            Vector2::new(36, 36),
+        );
+        let destroy_button = Button::new(
+            Point2::new(90, 6),
+            Vector2::new(36, 36),
+        );
 
         Ok(MainState {
             camera,
@@ -79,7 +79,18 @@ impl EventHandler for MainState {
         const DESIRED_FPS: u32 = 60;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            // Update here
+            if self.build_floor_button.pressed {
+                println!("Build Floor Pressed");
+                self.build_floor_button.pressed = false;
+            }
+            if self.build_wall_button.pressed {
+                println!("Build Wall Pressed");
+                self.build_wall_button.pressed = false;
+            }
+            if self.destroy_button.pressed {
+                println!("Destroy Pressed");
+                self.destroy_button.pressed = false;
+            }
         }
 
         Ok(())
@@ -122,8 +133,13 @@ impl EventHandler for MainState {
 
     fn mouse_button_up_event(
         &mut self, _ctx: &mut Context,
-        button: MouseButton, _x: i32, _y: i32
+        button: MouseButton, x: i32, y: i32
     ) {
+        self.ui_input.handle_mouse_up(button, Point2::new(x, y), &mut [
+            &mut self.build_floor_button,
+            &mut self.build_wall_button,
+            &mut self.destroy_button,
+        ]);
         self.ship_input.handle_mouse_up(button, &mut self.ship);
     }
 
