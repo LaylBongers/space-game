@@ -15,6 +15,7 @@ use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use nalgebra::{Vector2, Point2};
 
 use controller::{ShipInputController};
+use controller::ui::{UiInputController};
 use model::{Ship, Camera};
 use model::ui::{Button};
 
@@ -23,6 +24,7 @@ struct MainState {
     ship: Ship,
 
     ship_input: ShipInputController,
+    ui_input: UiInputController,
 
     build_floor_button: Button,
     build_wall_button: Button,
@@ -45,16 +47,16 @@ impl MainState {
 
         // Set up the UI
         let build_floor_button = Button {
-            position: Point2::new(6.0, 6.0),
-            size: Vector2::new(36.0, 36.0),
+            position: Point2::new(6, 6),
+            size: Vector2::new(36, 36),
         };
         let build_wall_button = Button {
-            position: Point2::new(48.0, 6.0),
-            size: Vector2::new(36.0, 36.0),
+            position: Point2::new(48, 6),
+            size: Vector2::new(36, 36),
         };
         let destroy_button = Button {
-            position: Point2::new(90.0, 6.0),
-            size: Vector2::new(36.0, 36.0),
+            position: Point2::new(90, 6),
+            size: Vector2::new(36, 36),
         };
 
         Ok(MainState {
@@ -62,6 +64,7 @@ impl MainState {
             ship,
 
             ship_input: ShipInputController::new(),
+            ui_input: UiInputController::new(),
 
             build_floor_button,
             build_wall_button,
@@ -128,9 +131,16 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         _state: MouseState, x: i32, y: i32, xrel: i32, yrel: i32
     ) {
+        let position = Point2::new(x, y);
+
+        self.ui_input.handle_mouse_move(position, &[
+            &self.build_floor_button,
+            &self.build_wall_button,
+            &self.destroy_button,
+        ]);
         self.ship_input.handle_mouse_move(
-            Point2::new(x, y), Vector2::new(xrel, yrel),
-            &mut self.camera, &self.ship,
+            position, Vector2::new(xrel, yrel),
+            &mut self.camera, &self.ship, &self.ui_input
         );
     }
 }

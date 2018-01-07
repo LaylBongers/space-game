@@ -37,7 +37,7 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
 pub fn draw_build_indicator(ctx: &mut Context, ship_input: &ShipInputController) -> GameResult<()> {
     graphics::set_color(ctx, (255, 255, 255, 100).into())?;
 
-    match ship_input.build_state {
+    match *ship_input.build_state() {
         BuildState::Hovering { position: Some(hovered_tile) } => {
             graphics::rectangle(
                 ctx, graphics::DrawMode::Fill,
@@ -68,8 +68,8 @@ pub fn draw_button(ctx: &mut Context, button: &Button) -> GameResult<()> {
     graphics::rectangle(
         ctx, graphics::DrawMode::Fill,
         graphics::Rect::new(
-            button.position.x, button.position.y,
-            button.size.x, button.size.y,
+            button.position.x as f32, button.position.y as f32,
+            button.size.x as f32, button.size.y as f32,
         ),
     )?;
 
