@@ -104,18 +104,21 @@ impl BuildInputController {
             let (start, end) = build_area(start, end);
             for y in start.y..end.y {
                 for x in start.x..end.x {
-                    let tile = Point2::new(x, y);
+                    let tile = ship.tile_mut(Point2::new(x, y)).unwrap();
                     match self.build_choice {
-                        BuildChoice::Floor =>
-                            ship.tile_mut(tile).unwrap().floor = true,
-                        BuildChoice::Wall =>
-                            ship.tile_mut(tile).unwrap().object = Some(ShipObject::new()),
+                        BuildChoice::Floor => {
+                            tile.floor = true;
+                        },
+                        BuildChoice::Wall => {
+                            // You can only build objects over floors
+                            if tile.floor == true {
+                                tile.object = Some(ShipObject::new());
+                            }
+                        },
                         BuildChoice::DestroyObject => {
-                            let tile = ship.tile_mut(tile).unwrap();
                             tile.object = None;
                         },
                         BuildChoice::DestroyAll => {
-                            let tile = ship.tile_mut(tile).unwrap();
                             tile.floor = false;
                             tile.object = None;
                         },
@@ -147,7 +150,7 @@ impl BuildInputController {
             match self.build_state {
                 BuildState::Hovering { ref mut position } => *position = Some(tile_position),
                 BuildState::Dragging { start: _, ref mut end } => *end = tile_position,
-             }
+            }
         } else {
             self.last_tile_position = None;
 
