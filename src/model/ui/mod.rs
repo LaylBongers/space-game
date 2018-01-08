@@ -37,8 +37,6 @@ impl Ui {
 #[derive(Clone, Copy)]
 pub struct ButtonId(usize);
 
-// TODO: Add function to button to check and reset pressed
-
 pub struct Button {
     pub position: Point2<i32>,
     pub size: Vector2<i32>,
@@ -54,5 +52,11 @@ impl Button {
             text,
             pressed: false,
         }
+    }
+
+    pub fn check_pressed(&mut self) -> bool {
+        let val = self.pressed;
+        self.pressed = false;
+        val
     }
 }

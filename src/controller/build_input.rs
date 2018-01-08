@@ -65,33 +65,17 @@ impl BuildInputController {
     }
 
     pub fn update(&mut self, ui: &mut Ui) {
-        {
-            let button = ui.get_mut(self.build_floor_button);
-            if button.pressed {
-                self.build_choice = BuildChoice::Floor;
-                button.pressed = false;
-            }
+        if ui.get_mut(self.build_floor_button).check_pressed() {
+            self.build_choice = BuildChoice::Floor;
         }
-        {
-            let button = ui.get_mut(self.build_wall_button);
-            if button.pressed {
-                self.build_choice = BuildChoice::Wall;
-                button.pressed = false;
-            }
+        if ui.get_mut(self.build_wall_button).check_pressed() {
+            self.build_choice = BuildChoice::Wall;
         }
-        {
-            let button = ui.get_mut(self.destroy_object_button);
-            if button.pressed {
-                self.build_choice = BuildChoice::DestroyObject;
-                button.pressed = false;
-            }
+        if ui.get_mut(self.destroy_object_button).check_pressed() {
+            self.build_choice = BuildChoice::DestroyObject;
         }
-        {
-            let button = ui.get_mut(self.destroy_all_button);
-            if button.pressed {
-                self.build_choice = BuildChoice::DestroyAll;
-                button.pressed = false;
-            }
+        if ui.get_mut(self.destroy_all_button).check_pressed() {
+            self.build_choice = BuildChoice::DestroyAll;
         }
     }
 
