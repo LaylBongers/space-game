@@ -1,4 +1,5 @@
 use ggez::{Context, GameResult};
+use ggez::audio::{Source};
 use ggez::event::{MouseButton};
 use ggez::graphics::{Text, Font};
 use nalgebra::{Point2, Vector2};
@@ -16,6 +17,9 @@ pub struct BuildInputController {
     build_wall_button: ButtonId,
     destroy_object_button: ButtonId,
     destroy_all_button: ButtonId,
+
+    build_sound_queued: bool,
+    place_sound: Source,
 }
 
 impl BuildInputController {
@@ -48,6 +52,9 @@ impl BuildInputController {
             Text::new(ctx, "Destroy All", font)?,
         ));
 
+        let mut place_sound = Source::new(ctx, "/object_placed.ogg")?;
+        place_sound.set_volume(0.2);
+
         Ok(BuildInputController {
             last_tile_position: None,
             build_state: BuildState::Hovering { position: None },
@@ -57,6 +64,9 @@ impl BuildInputController {
             build_wall_button,
             destroy_object_button,
             destroy_all_button,
+
+            build_sound_queued: false,
+            place_sound,
         })
     }
 
@@ -64,7 +74,7 @@ impl BuildInputController {
         &self.build_state
     }
 
-    pub fn update(&mut self, ui: &mut Ui) {
+    pub fn update(&mut self, ui: &mut Ui) -> GameResult<()> {
         if ui.get_mut(self.build_floor_button).check_pressed() {
             self.build_choice = BuildChoice::Floor;
         }
@@ -77,6 +87,13 @@ impl BuildInputController {
         if ui.get_mut(self.destroy_all_button).check_pressed() {
             self.build_choice = BuildChoice::DestroyAll;
         }
+
+        if self.build_sound_queued {
+            self.place_sound.play()?;
+            self.build_sound_queued = false;
+        }
+
+        Ok(())
     }
 
     pub fn handle_mouse_down(&mut self, button: MouseButton) {
@@ -127,7 +144,10 @@ impl BuildInputController {
             }
 
             // Actually switch back to hovering now
-            self.build_state = BuildState::Hovering { position: self.last_tile_position }
+            self.build_state = BuildState::Hovering { position: self.last_tile_position };
+
+            // And finally, make sure the build sound is played
+            self.build_sound_queued = true;
         }
     }
 

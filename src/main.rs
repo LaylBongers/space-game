@@ -9,7 +9,8 @@ mod view;
 use std::env;
 use std::path;
 
-use ggez::{timer, Context, GameResult};
+use ggez::{Context, GameResult};
+use ggez::timer;
 use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use ggez::graphics::{self, Font, Text};
@@ -74,7 +75,7 @@ impl EventHandler for MainState {
         const DESIRED_FPS: u32 = 60;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            self.build_input.update(&mut self.ui);
+            self.build_input.update(&mut self.ui)?;
         }
 
         Ok(())
