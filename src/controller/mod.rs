@@ -1,4 +1,6 @@
 pub mod ui;
-mod ship_input;
+mod build_input;
+mod camera_input;
 
-pub use self::ship_input::{ShipInputController, BuildState, BuildChoice, build_area};
+pub use self::build_input::{BuildInputController, BuildState, BuildChoice, build_area};
+pub use self::camera_input::{CameraInputController};

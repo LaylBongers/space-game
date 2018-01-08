@@ -1,7 +1,7 @@
 use ggez::{graphics, Context, GameResult};
 use nalgebra::{Point2};
 
-use controller::{self, ShipInputController, BuildState};
+use controller::{self, BuildInputController, BuildState};
 use model::{Ship, Camera};
 use model::ui::{Button};
 
@@ -34,10 +34,12 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
     Ok(())
 }
 
-pub fn draw_build_indicator(ctx: &mut Context, ship_input: &ShipInputController) -> GameResult<()> {
+pub fn draw_build_indicator(
+    ctx: &mut Context, build_input: &BuildInputController
+) -> GameResult<()> {
     graphics::set_color(ctx, (255, 255, 255, 100).into())?;
 
-    match *ship_input.build_state() {
+    match *build_input.build_state() {
         BuildState::Hovering { position: Some(hovered_tile) } => {
             graphics::rectangle(
                 ctx, graphics::DrawMode::Fill,

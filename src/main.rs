@@ -14,7 +14,7 @@ use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use nalgebra::{Vector2, Point2};
 
-use controller::{ShipInputController, BuildChoice};
+use controller::{BuildInputController, CameraInputController, BuildChoice};
 use controller::ui::{UiInputController};
 use model::{Ship, Camera};
 use model::ui::{Button};
@@ -23,7 +23,8 @@ struct MainState {
     camera: Camera,
     ship: Ship,
 
-    ship_input: ShipInputController,
+    build_input: BuildInputController,
+    camera_input: CameraInputController,
     ui_input: UiInputController,
 
     build_floor_button: Button,
@@ -63,7 +64,8 @@ impl MainState {
             camera,
             ship,
 
-            ship_input: ShipInputController::new(),
+            build_input: BuildInputController::new(),
+            camera_input: CameraInputController::new(),
             ui_input: UiInputController::new(),
 
             build_floor_button,
@@ -80,15 +82,15 @@ impl EventHandler for MainState {
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
             if self.build_floor_button.pressed {
-                self.ship_input.set_build_choice(BuildChoice::Floor);
+                self.build_input.set_build_choice(BuildChoice::Floor);
                 self.build_floor_button.pressed = false;
             }
             if self.build_wall_button.pressed {
-                self.ship_input.set_build_choice(BuildChoice::Wall);
+                self.build_input.set_build_choice(BuildChoice::Wall);
                 self.build_wall_button.pressed = false;
             }
             if self.destroy_button.pressed {
-                self.ship_input.set_build_choice(BuildChoice::Bulldoze);
+                self.build_input.set_build_choice(BuildChoice::Bulldoze);
                 self.destroy_button.pressed = false;
             }
         }
@@ -109,7 +111,7 @@ impl EventHandler for MainState {
 
         // Draw everything in the world
         view::draw_ship(ctx, &self.ship, &self.camera)?;
-        view::draw_build_indicator(ctx, &self.ship_input)?;
+        view::draw_build_indicator(ctx, &self.build_input)?;
 
         // Swith the projection back to pixels rendering for UI
         graphics::set_projection(ctx, pixels_projection);
@@ -128,7 +130,8 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         button: MouseButton, _x: i32, _y: i32
     ) {
-        self.ship_input.handle_mouse_down(button);
+        self.build_input.handle_mouse_down(button);
+        self.camera_input.handle_mouse_down(button);
     }
 
     fn mouse_button_up_event(
@@ -140,7 +143,8 @@ impl EventHandler for MainState {
             &mut self.build_wall_button,
             &mut self.destroy_button,
         ]);
-        self.ship_input.handle_mouse_up(button, &mut self.ship);
+        self.build_input.handle_mouse_up(button, &mut self.ship);
+        self.camera_input.handle_mouse_up(button);
     }
 
     fn mouse_motion_event(
@@ -148,16 +152,17 @@ impl EventHandler for MainState {
         _state: MouseState, x: i32, y: i32, xrel: i32, yrel: i32
     ) {
         let position = Point2::new(x, y);
+        let rel_position = Vector2::new(xrel, yrel);
 
         self.ui_input.handle_mouse_move(position, &[
             &self.build_floor_button,
             &self.build_wall_button,
             &self.destroy_button,
         ]);
-        self.ship_input.handle_mouse_move(
-            position, Vector2::new(xrel, yrel),
-            &mut self.camera, &self.ship, &self.ui_input
+        self.build_input.handle_mouse_move(
+            position, &mut self.camera, &self.ship, &self.ui_input
         );
+        self.camera_input.handle_mouse_move(rel_position, &mut self.camera);
     }
 }
 
