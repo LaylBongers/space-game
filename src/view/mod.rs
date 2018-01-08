@@ -16,31 +16,47 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
     let end_y = (end.y.ceil() as i32).min(size.y);
 
     // Draw the ship's tiles
-    let mut builder = MeshBuilder::new();
+    let mut floor_builder = MeshBuilder::new();
+    let mut object_builder = MeshBuilder::new();
     for y in start_y..end_y {
         for x in start_x..end_x {
             let tile = ship.tile(Point2::new(x, y)).unwrap();
 
-            if !tile.floor {
-                continue
+            let (fx, fy) = (x as f32, y as f32);
+
+            if tile.floor {
+                floor_builder.triangles(&[
+                    Point2::new(fx, fy),
+                    Point2::new(fx + 1.0, fy),
+                    Point2::new(fx, fy + 1.0),
+
+                    Point2::new(fx + 1.0, fy + 1.0),
+                    Point2::new(fx, fy + 1.0),
+                    Point2::new(fx + 1.0, fy),
+                ]);
             }
 
-            let (fx, fy) = (x as f32, y as f32);
-            builder.triangles(&[
-                Point2::new(fx, fy),
-                Point2::new(fx + 1.0, fy),
-                Point2::new(fx, fy + 1.0),
+            if let Some(_) = tile.object {
+                object_builder.triangles(&[
+                    Point2::new(fx + 0.05, fy + 0.05),
+                    Point2::new(fx + 0.95, fy + 0.05),
+                    Point2::new(fx + 0.05, fy + 0.95),
 
-                Point2::new(fx + 1.0, fy + 1.0),
-                Point2::new(fx, fy + 1.0),
-                Point2::new(fx + 1.0, fy),
-            ]);
+                    Point2::new(fx + 0.95, fy + 0.95),
+                    Point2::new(fx + 0.05, fy + 0.95),
+                    Point2::new(fx + 0.95, fy + 0.05),
+                ]);
+            }
         }
     }
-    let mesh = builder.build(ctx)?;
+    let floor_mesh = floor_builder.build(ctx)?;
+    let object_mesh = object_builder.build(ctx)?;
 
     graphics::set_color(ctx, (150, 150, 150).into())?;
-    graphics::draw(ctx, &mesh, Point2::new(0.0, 0.0), 0.0)?;
+    graphics::draw(ctx, &floor_mesh, Point2::new(0.0, 0.0), 0.0)?;
+
+    graphics::set_color(ctx, (50, 50, 50).into())?;
+    graphics::draw(ctx, &object_mesh, Point2::new(0.0, 0.0), 0.0)?;
 
     Ok(())
 }

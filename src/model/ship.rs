@@ -7,8 +7,12 @@ pub struct Ship {
 
 impl Ship {
     pub fn empty(size: Vector2<i32>) -> Self {
+        let amount = (size.x * size.y) as usize;
+        let mut tiles = Vec::with_capacity(amount);
+        for _ in 0..amount { tiles.push(Tile::empty()) }
+
         Ship {
-            tiles: vec![Tile::empty(); (size.x * size.y) as usize],
+            tiles,
             size,
         }
     }
@@ -17,20 +21,20 @@ impl Ship {
         self.size
     }
 
-    pub fn tile(&self, position: Point2<i32>) -> Result<&Tile, MapError> {
+    pub fn tile(&self, position: Point2<i32>) -> Result<&Tile, ShipError> {
         if self.is_in_bounds(position) {
             Ok(&self.tiles[self.index(position)])
         } else {
-            Err(MapError::OutOfBounds { position })
+            Err(ShipError::OutOfBounds { position })
         }
     }
 
-    pub fn tile_mut(&mut self, position: Point2<i32>) -> Result<&mut Tile, MapError> {
+    pub fn tile_mut(&mut self, position: Point2<i32>) -> Result<&mut Tile, ShipError> {
         if self.is_in_bounds(position) {
             let index = self.index(position);
             Ok(&mut self.tiles[index])
         } else {
-            Err(MapError::OutOfBounds { position })
+            Err(ShipError::OutOfBounds { position })
         }
     }
 
@@ -45,19 +49,30 @@ impl Ship {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum MapError {
+pub enum ShipError {
     OutOfBounds { position: Point2<i32> },
 }
 
-#[derive(Clone)]
 pub struct Tile {
     pub floor: bool,
+    pub object: Option<ShipObject>,
 }
 
 impl Tile {
     pub fn empty() -> Self {
         Tile {
             floor: false,
+            object: None,
+        }
+    }
+}
+
+pub struct ShipObject {
+}
+
+impl ShipObject {
+    pub fn new() -> Self {
+        ShipObject {
         }
     }
 }

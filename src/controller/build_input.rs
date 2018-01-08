@@ -4,7 +4,7 @@ use ggez::graphics::{Text, Font};
 use nalgebra::{Point2, Vector2};
 
 use controller::ui::{UiInputController};
-use model::{Camera, Ship};
+use model::{Camera, Ship, ShipObject};
 use model::ui::{Button, ButtonId, Ui};
 
 pub struct BuildInputController {
@@ -14,7 +14,8 @@ pub struct BuildInputController {
 
     build_floor_button: ButtonId,
     build_wall_button: ButtonId,
-    destroy_button: ButtonId,
+    destroy_object_button: ButtonId,
+    destroy_all_button: ButtonId,
 }
 
 impl BuildInputController {
@@ -26,16 +27,25 @@ impl BuildInputController {
             Text::new(ctx, "Floor", font)?,
         ));
         pos += 72 + 6;
+
         let build_wall_button = ui.add(Button::new(
             Point2::new(pos, 6),
             Vector2::new(72, 24),
             Text::new(ctx, "Wall", font)?,
         ));
         pos += 72 + 6;
-        let destroy_button = ui.add(Button::new(
+
+        let destroy_object_button = ui.add(Button::new(
+            Point2::new(pos, 6),
+            Vector2::new(84, 24),
+            Text::new(ctx, "Destroy Object", font)?,
+        ));
+        pos += 84 + 6;
+
+        let destroy_all_button = ui.add(Button::new(
             Point2::new(pos, 6),
             Vector2::new(72, 24),
-            Text::new(ctx, "Destroy", font)?,
+            Text::new(ctx, "Destroy All", font)?,
         ));
 
         Ok(BuildInputController {
@@ -45,7 +55,8 @@ impl BuildInputController {
 
             build_floor_button,
             build_wall_button,
-            destroy_button,
+            destroy_object_button,
+            destroy_all_button,
         })
     }
 
@@ -69,9 +80,16 @@ impl BuildInputController {
             }
         }
         {
-            let button = ui.get_mut(self.destroy_button);
+            let button = ui.get_mut(self.destroy_object_button);
             if button.pressed {
-                self.build_choice = BuildChoice::Bulldoze;
+                self.build_choice = BuildChoice::DestroyObject;
+                button.pressed = false;
+            }
+        }
+        {
+            let button = ui.get_mut(self.destroy_all_button);
+            if button.pressed {
+                self.build_choice = BuildChoice::DestroyAll;
                 button.pressed = false;
             }
         }
@@ -104,10 +122,19 @@ impl BuildInputController {
                 for x in start.x..end.x {
                     let tile = Point2::new(x, y);
                     match self.build_choice {
-                        BuildChoice::Floor | BuildChoice::Wall =>
+                        BuildChoice::Floor =>
                             ship.tile_mut(tile).unwrap().floor = true,
-                        BuildChoice::Bulldoze =>
-                            ship.tile_mut(tile).unwrap().floor = false,
+                        BuildChoice::Wall =>
+                            ship.tile_mut(tile).unwrap().object = Some(ShipObject::new()),
+                        BuildChoice::DestroyObject => {
+                            let tile = ship.tile_mut(tile).unwrap();
+                            tile.object = None;
+                        },
+                        BuildChoice::DestroyAll => {
+                            let tile = ship.tile_mut(tile).unwrap();
+                            tile.floor = false;
+                            tile.object = None;
+                        },
                     }
                 }
             }
@@ -157,7 +184,8 @@ pub enum BuildState {
 pub enum BuildChoice {
     Floor,
     Wall,
-    Bulldoze,
+    DestroyObject,
+    DestroyAll,
 }
 
 pub fn build_area(start: Point2<i32>, end: Point2<i32>) -> (Point2<i32>, Point2<i32>) {

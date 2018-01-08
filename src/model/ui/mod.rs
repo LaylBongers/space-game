@@ -37,6 +37,8 @@ impl Ui {
 #[derive(Clone, Copy)]
 pub struct ButtonId(usize);
 
+// TODO: Add function to button to check and reset pressed
+
 pub struct Button {
     pub position: Point2<i32>,
     pub size: Vector2<i32>,
