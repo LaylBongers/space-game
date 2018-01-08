@@ -9,9 +9,10 @@ mod view;
 use std::env;
 use std::path;
 
-use ggez::{graphics, timer, Context, GameResult};
+use ggez::{timer, Context, GameResult};
 use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
+use ggez::graphics::{self, Font, Text};
 use nalgebra::{Vector2, Point2};
 
 use controller::{BuildInputController, CameraInputController, BuildChoice};
@@ -30,10 +31,12 @@ struct MainState {
     build_floor_button: Button,
     build_wall_button: Button,
     destroy_button: Button,
+
+    font: Font,
 }
 
 impl MainState {
-    fn new(_ctx: &mut Context) -> GameResult<MainState> {
+    fn new(ctx: &mut Context) -> GameResult<MainState> {
         // Set up the game world camera
         let mut camera = Camera::new(64, Vector2::new(1280, 720));
         camera.set_position(Point2::new(50.0, 50.0));
@@ -60,6 +63,8 @@ impl MainState {
             Vector2::new(36, 36),
         );
 
+        let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
+
         Ok(MainState {
             camera,
             ship,
@@ -71,6 +76,8 @@ impl MainState {
             build_floor_button,
             build_wall_button,
             destroy_button,
+
+            font,
         })
     }
 }
@@ -121,6 +128,11 @@ impl EventHandler for MainState {
         view::draw_button(ctx, &self.build_floor_button)?;
         view::draw_button(ctx, &self.build_wall_button)?;
         view::draw_button(ctx, &self.destroy_button)?;
+
+        // Draw an FPS counter
+        let fps = timer::get_fps(ctx);
+        let text = Text::new(ctx, &format!("FPS: {}", fps), &self.font)?;
+        graphics::draw(ctx, &text, Point2::new(0.0, 710.0), 0.0)?;
 
         graphics::present(ctx);
         Ok(())

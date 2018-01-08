@@ -23,7 +23,7 @@ impl CameraInputController {
     }
 
     pub fn handle_mouse_up(&mut self, button: MouseButton) {
-        if button != MouseButton::Left {
+        if button != MouseButton::Middle {
             return
         }
 
