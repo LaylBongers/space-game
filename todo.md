@@ -2,8 +2,8 @@
 
 ## 0.1.0 Minimum Viable Product
 - The player is able to build floors (Done)
-- The player is able to build walls
-- The player can switch between building walls and floors
+- The player is able to build walls (Done)
+- The player can switch between building walls and floors (Done)
 - When building walls or floors resources are needed
 - The player is able to buy units
 - To build walls or floors, units must work on them

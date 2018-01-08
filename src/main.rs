@@ -21,14 +21,17 @@ use model::{Ship, Camera};
 use model::ui::{Ui};
 
 struct MainState {
+    // Models
     camera: Camera,
     ship: Ship,
     ui: Ui,
 
+    // Controllers
     build_input: BuildInputController,
     camera_input: CameraInputController,
     ui_input: UiInputController,
 
+    // View Data
     font: Font,
 }
 
@@ -78,7 +81,7 @@ impl EventHandler for MainState {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        graphics::set_background_color(ctx, (5, 5, 10).into());
+        graphics::set_background_color(ctx, (10, 10, 15).into());
         graphics::clear(ctx);
 
         // Switch the projection to world rendering
