@@ -1,30 +1,68 @@
+use ggez::{Context, GameResult};
 use ggez::event::{MouseButton};
-use nalgebra::{Point2};
+use ggez::graphics::{Text, Font};
+use nalgebra::{Point2, Vector2};
 
 use controller::ui::{UiInputController};
 use model::{Camera, Ship};
+use model::ui::{Button, ButtonId, Ui};
 
 pub struct BuildInputController {
     last_tile_position: Option<Point2<i32>>,
     build_state: BuildState,
     build_choice: BuildChoice,
+
+    build_floor_button: ButtonId,
+    build_wall_button: ButtonId,
+    destroy_button: ButtonId,
 }
 
 impl BuildInputController {
-    pub fn new() -> Self {
-        BuildInputController {
+    pub fn new(ctx: &mut Context, ui: &mut Ui, font: &Font) -> GameResult<Self> {
+        let build_floor_button = ui.add(Button::new(
+            Point2::new(6, 6),
+            Vector2::new(72, 24),
+            Text::new(ctx, "Floor", font)?,
+        ));
+        let build_wall_button = ui.add(Button::new(
+            Point2::new(84, 6),
+            Vector2::new(72, 24),
+            Text::new(ctx, "Wall", font)?,
+        ));
+        let destroy_button = ui.add(Button::new(
+            Point2::new(162, 6),
+            Vector2::new(72, 24),
+            Text::new(ctx, "Destroy", font)?,
+        ));
+
+        Ok(BuildInputController {
             last_tile_position: None,
             build_state: BuildState::Hovering { position: None },
             build_choice: BuildChoice::Floor,
-        }
+
+            build_floor_button,
+            build_wall_button,
+            destroy_button,
+        })
     }
 
     pub fn build_state(&self) -> &BuildState {
         &self.build_state
     }
 
-    pub fn set_build_choice(&mut self, build_choice: BuildChoice) {
-        self.build_choice = build_choice;
+    pub fn update(&mut self, ui: &mut Ui) {
+        if ui.get(self.build_floor_button).pressed {
+            self.build_choice = BuildChoice::Floor;
+            ui.get_mut(self.build_floor_button).pressed = false;
+        }
+        if ui.get(self.build_wall_button).pressed {
+            self.build_choice = BuildChoice::Wall;
+            ui.get_mut(self.build_wall_button).pressed = false;
+        }
+        if ui.get(self.destroy_button).pressed {
+            self.build_choice = BuildChoice::Bulldoze;
+            ui.get_mut(self.destroy_button).pressed = false;
+        }
     }
 
     pub fn handle_mouse_down(&mut self, button: MouseButton) {

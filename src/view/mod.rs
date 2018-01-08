@@ -4,7 +4,7 @@ use nalgebra::{Point2};
 
 use controller::{self, BuildInputController, BuildState};
 use model::{Ship, Camera};
-use model::ui::{Button};
+use model::ui::{Ui, Button};
 
 pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<()> {
     // Find the tiles we are drawing
@@ -76,7 +76,16 @@ pub fn draw_build_indicator(
     Ok(())
 }
 
-pub fn draw_button(ctx: &mut Context, button: &Button) -> GameResult<()> {
+pub fn draw_ui(ctx: &mut Context, ui: &Ui) -> GameResult<()> {
+    for button in ui.buttons() {
+        draw_button(ctx, button)?;
+    }
+
+    Ok(())
+}
+
+fn draw_button(ctx: &mut Context, button: &Button) -> GameResult<()> {
+    // Draw the background
     graphics::set_color(ctx, (255, 255, 255, 200).into())?;
     graphics::rectangle(
         ctx, graphics::DrawMode::Fill,
@@ -85,6 +94,15 @@ pub fn draw_button(ctx: &mut Context, button: &Button) -> GameResult<()> {
             button.size.x as f32, button.size.y as f32,
         ),
     )?;
+
+    // Draw the text
+    let x_offset = (button.size.x - button.text.width() as i32) / 2;
+    let y_offset = (button.size.y - button.text.height() as i32) / 2;
+    graphics::set_color(ctx, (0, 0, 0, 200).into())?;
+    graphics::draw(ctx, &button.text, Point2::new(
+        (button.position.x + x_offset) as f32,
+        (button.position.y + y_offset) as f32,
+    ), 0.0)?;
 
     Ok(())
 }

@@ -15,22 +15,19 @@ use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use ggez::graphics::{self, Font, Text};
 use nalgebra::{Vector2, Point2};
 
-use controller::{BuildInputController, CameraInputController, BuildChoice};
+use controller::{BuildInputController, CameraInputController};
 use controller::ui::{UiInputController};
 use model::{Ship, Camera};
-use model::ui::{Button};
+use model::ui::{Ui};
 
 struct MainState {
     camera: Camera,
     ship: Ship,
+    ui: Ui,
 
     build_input: BuildInputController,
     camera_input: CameraInputController,
     ui_input: UiInputController,
-
-    build_floor_button: Button,
-    build_wall_button: Button,
-    destroy_button: Button,
 
     font: Font,
 }
@@ -49,33 +46,19 @@ impl MainState {
             }
         }
 
-        // Set up the UI
-        let build_floor_button = Button::new(
-            Point2::new(6, 6),
-            Vector2::new(36, 36),
-        );
-        let build_wall_button = Button::new(
-            Point2::new(48, 6),
-            Vector2::new(36, 36),
-        );
-        let destroy_button = Button::new(
-            Point2::new(90, 6),
-            Vector2::new(36, 36),
-        );
-
+        let mut ui = Ui::new();
         let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
+
+        let build_input = BuildInputController::new(ctx, &mut ui, &font)?;
 
         Ok(MainState {
             camera,
             ship,
+            ui,
 
-            build_input: BuildInputController::new(),
+            build_input,
             camera_input: CameraInputController::new(),
             ui_input: UiInputController::new(),
-
-            build_floor_button,
-            build_wall_button,
-            destroy_button,
 
             font,
         })
@@ -88,18 +71,7 @@ impl EventHandler for MainState {
         const DESIRED_FPS: u32 = 60;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            if self.build_floor_button.pressed {
-                self.build_input.set_build_choice(BuildChoice::Floor);
-                self.build_floor_button.pressed = false;
-            }
-            if self.build_wall_button.pressed {
-                self.build_input.set_build_choice(BuildChoice::Wall);
-                self.build_wall_button.pressed = false;
-            }
-            if self.destroy_button.pressed {
-                self.build_input.set_build_choice(BuildChoice::Bulldoze);
-                self.destroy_button.pressed = false;
-            }
+            self.build_input.update(&mut self.ui);
         }
 
         Ok(())
@@ -125,13 +97,12 @@ impl EventHandler for MainState {
         graphics::apply_transformations(ctx)?;
 
         // Draw the UI
-        view::draw_button(ctx, &self.build_floor_button)?;
-        view::draw_button(ctx, &self.build_wall_button)?;
-        view::draw_button(ctx, &self.destroy_button)?;
+        view::draw_ui(ctx, &self.ui)?;
 
         // Draw an FPS counter
         let fps = timer::get_fps(ctx);
         let text = Text::new(ctx, &format!("FPS: {:.2}", fps), &self.font)?;
+        graphics::set_color(ctx, (255, 255, 255, 200).into())?;
         graphics::draw(ctx, &text, Point2::new(0.0, 710.0), 0.0)?;
 
         graphics::present(ctx);
@@ -150,11 +121,7 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         button: MouseButton, x: i32, y: i32
     ) {
-        self.ui_input.handle_mouse_up(button, Point2::new(x, y), &mut [
-            &mut self.build_floor_button,
-            &mut self.build_wall_button,
-            &mut self.destroy_button,
-        ]);
+        self.ui_input.handle_mouse_up(button, Point2::new(x, y), &mut self.ui);
         self.build_input.handle_mouse_up(button, &mut self.ship);
         self.camera_input.handle_mouse_up(button);
     }
@@ -166,11 +133,7 @@ impl EventHandler for MainState {
         let position = Point2::new(x, y);
         let rel_position = Vector2::new(xrel, yrel);
 
-        self.ui_input.handle_mouse_move(position, &[
-            &self.build_floor_button,
-            &self.build_wall_button,
-            &self.destroy_button,
-        ]);
+        self.ui_input.handle_mouse_move(position, &self.ui);
         self.build_input.handle_mouse_move(
             position, &mut self.camera, &self.ship, &self.ui_input
         );
