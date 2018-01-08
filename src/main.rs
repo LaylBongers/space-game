@@ -3,7 +3,7 @@ extern crate alga;
 extern crate nalgebra;
 
 mod controller;
-mod model;
+pub mod model;
 mod view;
 
 use std::env;

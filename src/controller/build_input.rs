@@ -19,18 +19,21 @@ pub struct BuildInputController {
 
 impl BuildInputController {
     pub fn new(ctx: &mut Context, ui: &mut Ui, font: &Font) -> GameResult<Self> {
+        let mut pos = 6;
         let build_floor_button = ui.add(Button::new(
-            Point2::new(6, 6),
+            Point2::new(pos, 6),
             Vector2::new(72, 24),
             Text::new(ctx, "Floor", font)?,
         ));
+        pos += 72 + 6;
         let build_wall_button = ui.add(Button::new(
-            Point2::new(84, 6),
+            Point2::new(pos, 6),
             Vector2::new(72, 24),
             Text::new(ctx, "Wall", font)?,
         ));
+        pos += 72 + 6;
         let destroy_button = ui.add(Button::new(
-            Point2::new(162, 6),
+            Point2::new(pos, 6),
             Vector2::new(72, 24),
             Text::new(ctx, "Destroy", font)?,
         ));
@@ -51,17 +54,26 @@ impl BuildInputController {
     }
 
     pub fn update(&mut self, ui: &mut Ui) {
-        if ui.get(self.build_floor_button).pressed {
-            self.build_choice = BuildChoice::Floor;
-            ui.get_mut(self.build_floor_button).pressed = false;
+        {
+            let button = ui.get_mut(self.build_floor_button);
+            if button.pressed {
+                self.build_choice = BuildChoice::Floor;
+                button.pressed = false;
+            }
         }
-        if ui.get(self.build_wall_button).pressed {
-            self.build_choice = BuildChoice::Wall;
-            ui.get_mut(self.build_wall_button).pressed = false;
+        {
+            let button = ui.get_mut(self.build_wall_button);
+            if button.pressed {
+                self.build_choice = BuildChoice::Wall;
+                button.pressed = false;
+            }
         }
-        if ui.get(self.destroy_button).pressed {
-            self.build_choice = BuildChoice::Bulldoze;
-            ui.get_mut(self.destroy_button).pressed = false;
+        {
+            let button = ui.get_mut(self.destroy_button);
+            if button.pressed {
+                self.build_choice = BuildChoice::Bulldoze;
+                button.pressed = false;
+            }
         }
     }
 
