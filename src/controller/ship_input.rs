@@ -8,6 +8,7 @@ pub struct ShipInputController {
     move_down: bool,
     last_tile_position: Option<Point2<i32>>,
     build_state: BuildState,
+    build_choice: BuildChoice,
 }
 
 impl ShipInputController {
@@ -16,11 +17,16 @@ impl ShipInputController {
             move_down: false,
             last_tile_position: None,
             build_state: BuildState::Hovering { position: None },
+            build_choice: BuildChoice::Floor,
         }
     }
 
     pub fn build_state(&self) -> &BuildState {
         &self.build_state
+    }
+
+    pub fn set_build_choice(&mut self, build_choice: BuildChoice) {
+        self.build_choice = build_choice;
     }
 
     pub fn handle_mouse_down(&mut self, button: MouseButton) {
@@ -49,7 +55,12 @@ impl ShipInputController {
                     for y in start.y..end.y {
                         for x in start.x..end.x {
                             let tile = Point2::new(x, y);
-                            ship.tile_mut(tile).unwrap().floor = true;
+                            match self.build_choice {
+                                BuildChoice::Floor | BuildChoice::Wall =>
+                                    ship.tile_mut(tile).unwrap().floor = true,
+                                BuildChoice::Bulldoze =>
+                                    ship.tile_mut(tile).unwrap().floor = false,
+                            }
                         }
                     }
 
@@ -110,6 +121,12 @@ impl ShipInputController {
 pub enum BuildState {
     Hovering { position: Option<Point2<i32>> },
     Dragging { start: Point2<i32>, end: Point2<i32> },
+}
+
+pub enum BuildChoice {
+    Floor,
+    Wall,
+    Bulldoze,
 }
 
 pub fn build_area(start: Point2<i32>, end: Point2<i32>) -> (Point2<i32>, Point2<i32>) {

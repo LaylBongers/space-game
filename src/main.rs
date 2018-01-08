@@ -14,7 +14,7 @@ use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use nalgebra::{Vector2, Point2};
 
-use controller::{ShipInputController};
+use controller::{ShipInputController, BuildChoice};
 use controller::ui::{UiInputController};
 use model::{Ship, Camera};
 use model::ui::{Button};
@@ -80,15 +80,15 @@ impl EventHandler for MainState {
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
             if self.build_floor_button.pressed {
-                println!("Build Floor Pressed");
+                self.ship_input.set_build_choice(BuildChoice::Floor);
                 self.build_floor_button.pressed = false;
             }
             if self.build_wall_button.pressed {
-                println!("Build Wall Pressed");
+                self.ship_input.set_build_choice(BuildChoice::Wall);
                 self.build_wall_button.pressed = false;
             }
             if self.destroy_button.pressed {
-                println!("Destroy Pressed");
+                self.ship_input.set_build_choice(BuildChoice::Bulldoze);
                 self.destroy_button.pressed = false;
             }
         }
