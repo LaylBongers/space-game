@@ -131,7 +131,7 @@ impl EventHandler for MainState {
 
         // Draw an FPS counter
         let fps = timer::get_fps(ctx);
-        let text = Text::new(ctx, &format!("FPS: {}", fps), &self.font)?;
+        let text = Text::new(ctx, &format!("FPS: {:.2}", fps), &self.font)?;
         graphics::draw(ctx, &text, Point2::new(0.0, 710.0), 0.0)?;
 
         graphics::present(ctx);
