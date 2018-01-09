@@ -5,7 +5,7 @@ pub struct Ship {
     tiles: Vec<Tile>,
     size: Vector2<i32>,
 
-    jobs: HashMap<i32, Point2<i32>>,
+    jobs: HashMap<i32, Job>,
     next_job_id: i32,
 }
 
@@ -51,9 +51,23 @@ impl Ship {
     }
 
     pub fn queue_job(&mut self, position: Point2<i32>) -> Result<(), ShipError> {
-        self.tile_mut(position)?.jobs += 1;
-        self.jobs.insert(self.next_job_id, position);
+        let id = JobId(self.next_job_id);
+        let job = Job::new(position, 1.0);
+        self.jobs.insert(self.next_job_id, job);
+
+        // Also add the job to the tile
+        self.tile_mut(position)?.build_job = Some(id);
+
         self.next_job_id += 1;
+        Ok(())
+    }
+
+    pub fn dequeue_job(&mut self, id: JobId) -> Result<(), ShipError> {
+        let job = self.jobs.remove(&id.0)
+            .ok_or(ShipError::InvalidJobId { id })?;
+
+        // Also remove the job from the tile
+        self.tile_mut(job.position).unwrap().build_job = None;
 
         Ok(())
     }
@@ -66,15 +80,16 @@ impl Ship {
 #[derive(Debug, PartialEq)]
 pub enum ShipError {
     OutOfBounds { position: Point2<i32> },
+    InvalidJobId { id: JobId }
 }
 
 pub struct Tile {
     pub floor: bool,
     pub object: Option<ShipObject>,
 
-    /// Counts how many jobs there are on this tile, do not edit this directly, this is managed by
+    /// Marks if there is a build job on this tile, do not edit this directly, this is managed by
     /// Ship's job queueing.
-    pub jobs: i32,
+    pub build_job: Option<JobId>,
 }
 
 impl Tile {
@@ -82,7 +97,7 @@ impl Tile {
         Tile {
             floor: false,
             object: None,
-            jobs: 0,
+            build_job: None,
         }
     }
 }
@@ -97,14 +112,19 @@ impl ShipObject {
     }
 }
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct JobId(i32);
+
 pub struct Job {
+    position: Point2<i32>,
     work_done: f32,
     work_target: f32,
 }
 
 impl Job {
-    pub fn new(work_target: f32) -> Self {
+    pub fn new(position: Point2<i32>, work_target: f32) -> Self {
         Job {
+            position,
             work_done: 0.0,
             work_target,
         }

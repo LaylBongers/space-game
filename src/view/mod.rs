@@ -39,7 +39,7 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
             }
 
             // Add graphic for objects
-            if let Some(_) = tile.object {
+            if tile.object.is_some() {
                 object_builder.triangles(&[
                     Point2::new(fx + 0.05, fy + 0.05),
                     Point2::new(fx + 0.95, fy + 0.05),
@@ -52,7 +52,7 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
             }
 
             // Add graphic for jobs
-            if tile.jobs > 0 {
+            if tile.build_job.is_some() {
                 jobs_builder.triangles(&[
                     Point2::new(fx + 0.25, fy + 0.25),
                     Point2::new(fx + 0.75, fy + 0.25),
