@@ -3,4 +3,4 @@ mod camera;
 mod ship;
 
 pub use self::camera::{Camera};
-pub use self::ship::{Ship, Tile, ShipObject};
+pub use self::ship::{Ship, Tile, ShipObject, Job};

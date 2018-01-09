@@ -5,7 +5,7 @@ use ggez::graphics::{Text, Font};
 use nalgebra::{Point2, Vector2};
 
 use controller::ui::{UiInputController};
-use model::{Camera, Ship, ShipObject};
+use model::{Camera, Ship};
 use model::ui::{Button, ButtonId, Ui};
 
 pub struct BuildInputController {
@@ -121,21 +121,30 @@ impl BuildInputController {
             let (start, end) = build_area(start, end);
             for y in start.y..end.y {
                 for x in start.x..end.x {
-                    let tile = ship.tile_mut(Point2::new(x, y)).unwrap();
+                    let tile_pos = Point2::new(x, y);
                     match self.build_choice {
                         BuildChoice::Floor => {
+                            let tile = ship.tile_mut(tile_pos).unwrap();
                             tile.floor = true;
                         },
                         BuildChoice::Wall => {
+                            let can_build = {
+                                let tile = ship.tile_mut(tile_pos).unwrap();
+                                tile.floor == true
+                            };
+
                             // You can only build objects over floors
-                            if tile.floor == true {
-                                tile.object = Some(ShipObject::new());
+                            if can_build {
+                                ship.queue_job(tile_pos).unwrap();
+                                //tile.object = Some(ShipObject::new());
                             }
                         },
                         BuildChoice::DestroyObject => {
+                            let tile = ship.tile_mut(tile_pos).unwrap();
                             tile.object = None;
                         },
                         BuildChoice::DestroyAll => {
+                            let tile = ship.tile_mut(tile_pos).unwrap();
                             tile.floor = false;
                             tile.object = None;
                         },
