@@ -1,9 +1,12 @@
 use std::collections::{HashMap};
+use alga::linear::{EuclideanSpace};
 use nalgebra::{Vector2, Point2};
 
 pub struct Ship {
     tiles: Vec<Tile>,
     size: Vector2<i32>,
+
+    units: Vec<Unit>,
 
     jobs: HashMap<i32, Job>,
     next_job_id: i32,
@@ -18,6 +21,8 @@ impl Ship {
         Ship {
             tiles,
             size,
+
+            units: Vec::new(),
 
             jobs: HashMap::new(),
             next_job_id: 0,
@@ -50,6 +55,14 @@ impl Ship {
             && position.x < self.size.x && position.y < self.size.y
     }
 
+    pub fn units(&self) -> &Vec<Unit> {
+        &self.units
+    }
+
+    pub fn add_unit(&mut self, unit: Unit) {
+        self.units.push(unit);
+    }
+
     pub fn queue_job(&mut self, position: Point2<i32>) -> Result<(), ShipError> {
         let id = JobId(self.next_job_id);
         let job = Job::new(position, 1.0);
@@ -70,6 +83,12 @@ impl Ship {
         self.tile_mut(job.position).unwrap().build_job = None;
 
         Ok(())
+    }
+
+    pub fn update(&mut self, delta: f32) {
+        for unit in &mut self.units {
+            unit.update(delta);
+        }
     }
 
     fn index(&self, position: Point2<i32>) -> usize {
@@ -117,16 +136,56 @@ pub struct JobId(i32);
 
 pub struct Job {
     position: Point2<i32>,
-    work_done: f32,
-    work_target: f32,
+    _work_done: f32,
+    _work_target: f32,
 }
 
 impl Job {
     pub fn new(position: Point2<i32>, work_target: f32) -> Self {
         Job {
             position,
-            work_done: 0.0,
-            work_target,
+            _work_done: 0.0,
+            _work_target: work_target,
+        }
+    }
+}
+
+pub struct Unit {
+    position: Point2<f32>,
+    move_target: Option<Point2<i32>>,
+}
+
+impl Unit {
+    pub fn new(position: Point2<f32>) -> Self {
+        Unit {
+            position,
+            move_target: Some(Point2::new(0, 0))
+        }
+    }
+
+    pub fn position(&self) -> Point2<f32> {
+        self.position
+    }
+
+    pub fn update(&mut self, delta: f32) {
+        if let Some(target) = self.move_target {
+            let speed = 1.0;
+            let target = Point2::new(target.x as f32 + 0.5, target.y as f32 + 0.5);
+
+            // Calculate how far away we are and how far we can travel
+            let distance = self.position.distance(&target);
+            let distance_possible = speed * delta;
+
+            // If we're within our travel distance, just arrive
+            if distance < distance_possible {
+                self.move_target = None;
+                self.position = target;
+            } else {
+                // If not, travel closer
+                let difference = target - self.position;
+                let move_amount = difference / distance * distance_possible;
+                self.position += move_amount;
+            }
         }
     }
 }

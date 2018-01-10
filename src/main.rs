@@ -18,7 +18,7 @@ use nalgebra::{Vector2, Point2};
 
 use controller::{BuildInputController, CameraInputController};
 use controller::ui::{UiInputController};
-use model::{Ship, Camera};
+use model::{Ship, Camera, Unit};
 use model::ui::{Ui};
 
 struct MainState {
@@ -49,6 +49,7 @@ impl MainState {
                 ship.tile_mut(Point2::new(x, y)).unwrap().floor = true;
             }
         }
+        ship.add_unit(Unit::new(Point2::new(50.5, 50.5)));
 
         let mut ui = Ui::new();
         let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
@@ -73,9 +74,11 @@ impl MainState {
 impl EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         const DESIRED_FPS: u32 = 60;
+        const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
             self.build_input.update(&mut self.ui)?;
+            self.ship.update(DELTA);
         }
 
         Ok(())
