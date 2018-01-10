@@ -120,13 +120,13 @@ fn draw_units(
     for unit in ship.units() {
         let pos = unit.position();
         units_builder.triangles(&[
-            Point2::new(pos.x + 0.1, pos.y + 0.1),
-            Point2::new(pos.x + 0.9, pos.y + 0.1),
-            Point2::new(pos.x + 0.1, pos.y + 0.9),
+            Point2::new(pos.x - 0.4, pos.y - 0.4),
+            Point2::new(pos.x + 0.4, pos.y - 0.4),
+            Point2::new(pos.x - 0.4, pos.y + 0.4),
 
-            Point2::new(pos.x + 0.9, pos.y + 0.9),
-            Point2::new(pos.x + 0.1, pos.y + 0.9),
-            Point2::new(pos.x + 0.9, pos.y + 0.1),
+            Point2::new(pos.x + 0.4, pos.y + 0.4),
+            Point2::new(pos.x - 0.4, pos.y + 0.4),
+            Point2::new(pos.x + 0.4, pos.y - 0.4),
         ]);
     }
     let units_mesh = units_builder.build(ctx)?;

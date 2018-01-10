@@ -159,7 +159,7 @@ impl Unit {
     pub fn new(position: Point2<f32>) -> Self {
         Unit {
             position,
-            move_target: Some(Point2::new(0, 0))
+            move_target: None,
         }
     }
 

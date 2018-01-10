@@ -50,6 +50,7 @@ impl MainState {
             }
         }
         ship.add_unit(Unit::new(Point2::new(50.5, 50.5)));
+        ship.add_unit(Unit::new(Point2::new(49.5, 49.5)));
 
         let mut ui = Ui::new();
         let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
