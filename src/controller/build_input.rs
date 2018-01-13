@@ -147,10 +147,10 @@ impl BuildInputController {
                                 tile.object = None;
                             }
 
-                            // TODO
-                            //if let Some(job) = job {
-                            //    ship.dequeue_job(job).unwrap();
-                            //}
+                            let queue = ship.job_queue_mut();
+                            if let Some(job_id) = queue.job_at(tile_pos) {
+                                queue.dequeue_job(job_id).unwrap();
+                            }
                         },
                         BuildChoice::DestroyAll => {
                             {
@@ -159,10 +159,10 @@ impl BuildInputController {
                                 tile.object = None;
                             }
 
-                            // TODO
-                            //if let Some(job) = job {
-                            //    ship.dequeue_job(job).unwrap();
-                            //}
+                            let queue = ship.job_queue_mut();
+                            if let Some(job_id) = queue.job_at(tile_pos) {
+                                queue.dequeue_job(job_id).unwrap();
+                            }
                         },
                     }
                 }
