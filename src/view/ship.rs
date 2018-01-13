@@ -2,7 +2,8 @@ use ggez::{Context, GameResult};
 use ggez::graphics::{self, MeshBuilder};
 use nalgebra::{Point2};
 
-use model::{Ship, Camera};
+use model::{Camera};
+use model::ship::{Ship};
 
 pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<()> {
     // Find the tiles we are drawing

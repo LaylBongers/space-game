@@ -7,6 +7,8 @@ authors = ["Layl <LaylConway@users.noreply.github.com>"]
 ggez = "0.4"
 alga = "0.5"
 nalgebra = "0.13"
+slog = "2"
+sloggers = "0.2"
 
 # Debug mode performance without any optimizations is way too slow for games
 [profile.dev]

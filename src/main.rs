@@ -1,6 +1,9 @@
 extern crate ggez;
 extern crate alga;
 extern crate nalgebra;
+#[macro_use]
+extern crate slog;
+extern crate sloggers;
 
 mod controller;
 pub mod model;
@@ -15,10 +18,15 @@ use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use ggez::graphics::{self, Font, Text};
 use nalgebra::{Vector2, Point2};
+use slog::{Logger};
+use sloggers::{Build};
+use sloggers::terminal::{TerminalLoggerBuilder};
+use sloggers::types::{Severity};
 
 use controller::{BuildInputController, CameraInputController};
 use controller::ui::{UiInputController};
-use model::{Ship, Camera, Unit};
+use model::{Camera};
+use model::ship::{Ship, Unit};
 use model::ui::{Ui};
 
 struct MainState {
@@ -37,12 +45,15 @@ struct MainState {
 }
 
 impl MainState {
-    fn new(ctx: &mut Context) -> GameResult<MainState> {
+    fn new(ctx: &mut Context, log: Logger) -> GameResult<MainState> {
+        info!(log, "Loading game");
+
         // Set up the game world camera
         let mut camera = Camera::new(64, Vector2::new(1280, 720));
         camera.set_position(Point2::new(50.0, 50.0));
 
         // Create the starter ship
+        info!(log, "Creating starter ship");
         let mut ship = Ship::empty(Vector2::new(100, 100));
         for y in 47..53 {
             for x in 48..52 {
@@ -56,6 +67,8 @@ impl MainState {
         let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
 
         let build_input = BuildInputController::new(ctx, &mut ui, &font)?;
+        let camera_input = CameraInputController::new();
+        let ui_input = UiInputController::new();
 
         Ok(MainState {
             camera,
@@ -63,14 +76,13 @@ impl MainState {
             ui,
 
             build_input,
-            camera_input: CameraInputController::new(),
-            ui_input: UiInputController::new(),
+            camera_input,
+            ui_input,
 
             font,
         })
     }
 }
-
 
 impl EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
@@ -150,6 +162,12 @@ impl EventHandler for MainState {
 }
 
 pub fn main() {
+    // Set up logging
+    let mut builder = TerminalLoggerBuilder::new();
+    builder.level(Severity::Debug);
+    let log = builder.build().unwrap();
+
+    // Set up the ggez context
     let mut c = Conf::new();
     c.window_mode = WindowMode {
         width: 1280,
@@ -170,7 +188,10 @@ pub fn main() {
         ctx.filesystem.mount(&path, true);
     }
 
-    let state = &mut MainState::new(ctx).unwrap();
+    // Set up the game's state
+    let state = &mut MainState::new(ctx, log).unwrap();
+
+    // Actually run the game and see if it runs successfully
     if let Err(e) = event::run(ctx, state) {
         println!("Error encountered: {}", e);
     } else {
