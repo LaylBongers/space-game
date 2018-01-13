@@ -130,8 +130,9 @@ impl BuildInputController {
                         },
                         BuildChoice::Wall => {
                             let can_build = {
-                                let tile = ship.tile_mut(tile_pos).unwrap();
-                                tile.floor == true || !tile.build_job.is_some()
+                                let has_tile = ship.tile_mut(tile_pos).unwrap().floor;
+                                let has_job = ship.job_queue().job_at(tile_pos).is_some();
+                                has_tile && !has_job
                             };
 
                             // You can only build objects over floors
@@ -141,11 +142,10 @@ impl BuildInputController {
                             }
                         },
                         BuildChoice::DestroyObject => {
-                            let job = {
+                            {
                                 let tile = ship.tile_mut(tile_pos).unwrap();
                                 tile.object = None;
-                                tile.build_job
-                            };
+                            }
 
                             // TODO
                             //if let Some(job) = job {
@@ -153,12 +153,11 @@ impl BuildInputController {
                             //}
                         },
                         BuildChoice::DestroyAll => {
-                            let job = {
+                            {
                                 let tile = ship.tile_mut(tile_pos).unwrap();
                                 tile.floor = false;
                                 tile.object = None;
-                                tile.build_job
-                            };
+                            }
 
                             // TODO
                             //if let Some(job) = job {

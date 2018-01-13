@@ -15,6 +15,7 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
     let end_y = (end.y.ceil() as i32).min(size.y);
 
     draw_tiles(ctx, ship, start_x, start_y, end_x, end_y)?;
+    draw_jobs(ctx, ship)?;
     draw_grid(ctx, start_x, start_y, end_x, end_y)?;
     draw_units(ctx, ship)?;
 
@@ -26,7 +27,6 @@ fn draw_tiles(
 ) -> GameResult<()> {
     let mut floor_builder = MeshBuilder::new();
     let mut object_builder = MeshBuilder::new();
-    let mut jobs_builder = MeshBuilder::new();
     for y in start_y..end_y {
         for x in start_x..end_x {
             let tile = ship.tile(Point2::new(x, y)).unwrap();
@@ -58,30 +58,40 @@ fn draw_tiles(
                     Point2::new(fx + 0.95, fy + 0.05),
                 ]);
             }
-
-            // Add graphic for jobs
-            if tile.build_job.is_some() {
-                jobs_builder.triangles(&[
-                    Point2::new(fx + 0.25, fy + 0.25),
-                    Point2::new(fx + 0.75, fy + 0.25),
-                    Point2::new(fx + 0.25, fy + 0.75),
-
-                    Point2::new(fx + 0.75, fy + 0.75),
-                    Point2::new(fx + 0.25, fy + 0.75),
-                    Point2::new(fx + 0.75, fy + 0.25),
-                ]);
-            }
         }
     }
     let floor_mesh = floor_builder.build(ctx)?;
     let object_mesh = object_builder.build(ctx)?;
-    let jobs_mesh = jobs_builder.build(ctx)?;
 
     graphics::set_color(ctx, (150, 150, 150).into())?;
     graphics::draw(ctx, &floor_mesh, Point2::new(0.0, 0.0), 0.0)?;
 
     graphics::set_color(ctx, (50, 50, 50).into())?;
     graphics::draw(ctx, &object_mesh, Point2::new(0.0, 0.0), 0.0)?;
+
+    Ok(())
+}
+
+fn draw_jobs(
+    ctx: &mut Context, ship: &Ship
+) -> GameResult<()> {
+    let mut jobs_builder = MeshBuilder::new();
+    for (_, job) in ship.job_queue().jobs() {
+        let (fx, fy) = (job.position().x as f32, job.position().y as f32);
+
+        // Add graphic for the job
+        jobs_builder.triangles(&[
+            Point2::new(fx + 0.25, fy + 0.25),
+            Point2::new(fx + 0.75, fy + 0.25),
+            Point2::new(fx + 0.25, fy + 0.75),
+
+            Point2::new(fx + 0.75, fy + 0.75),
+            Point2::new(fx + 0.25, fy + 0.75),
+            Point2::new(fx + 0.75, fy + 0.25),
+        ]);
+    }
+
+    let jobs_mesh = jobs_builder.build(ctx)?;
 
     graphics::set_color(ctx, (255, 255, 255, 16).into())?;
     graphics::draw(ctx, &jobs_mesh, Point2::new(0.0, 0.0), 0.0)?;

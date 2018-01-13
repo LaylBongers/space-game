@@ -14,24 +14,33 @@ impl JobQueue {
         }
     }
 
+    pub fn jobs(&self) -> &HashMap<i32, Job> {
+        &self.jobs
+    }
+
+    pub fn job_at(&self, position: Point2<i32>) -> Option<JobId> {
+        for (key, job) in &self.jobs {
+            if job.position == position {
+                return Some(JobId(*key))
+            }
+        }
+
+        None
+    }
+
     pub fn queue_job(&mut self, position: Point2<i32>) -> Result<(), JobQueueError> {
         let id = JobId(self.next_job_id);
-        let job = Job::new(position, 1.0);
-        self.jobs.insert(self.next_job_id, job);
-
-        // Also add the job to the tile TODO
-        //self.tile_mut(position)?.build_job = Some(id);
-
         self.next_job_id += 1;
+
+        let job = Job::new(position, 1.0);
+        self.jobs.insert(id.0, job);
+
         Ok(())
     }
 
     pub fn dequeue_job(&mut self, id: JobId) -> Result<(), JobQueueError> {
-        let job = self.jobs.remove(&id.0)
+        self.jobs.remove(&id.0)
             .ok_or(JobQueueError::InvalidJobId { id })?;
-
-        // Also remove the job from the tile TODO
-        //self.tile_mut(job.position).unwrap().build_job = None;
 
         Ok(())
     }
@@ -62,5 +71,9 @@ impl Job {
             _work_done: 0.0,
             _work_target: work_target,
         }
+    }
+
+    pub fn position(&self) -> Point2<i32> {
+        self.position
     }
 }

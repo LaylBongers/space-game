@@ -1,6 +1,6 @@
 use nalgebra::{Vector2, Point2};
 
-use model::ship::{Unit, JobQueue, JobId};
+use model::ship::{Unit, JobQueue};
 
 pub struct Ship {
     tiles: Vec<Tile>,
@@ -86,10 +86,6 @@ pub enum ShipError {
 pub struct Tile {
     pub floor: bool,
     pub object: Option<ShipObject>,
-
-    /// Marks if there is a build job on this tile, do not edit this directly, this is managed by
-    /// Ship's job queueing.
-    pub build_job: Option<JobId>,
 }
 
 impl Tile {
@@ -97,7 +93,6 @@ impl Tile {
         Tile {
             floor: false,
             object: None,
-            build_job: None,
         }
     }
 }
