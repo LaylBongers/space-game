@@ -76,7 +76,7 @@ impl JobQueue {
 
         for (key, job) in &self.jobs {
             if job.is_done() {
-                info!(log, "Job {} done", key.0);
+                info!(log, "Removing job {} from queue, it's done", key.0);
                 done.push(*key);
             }
         }

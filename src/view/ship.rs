@@ -8,7 +8,7 @@ use model::ship::{Ship};
 pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<()> {
     // Find the tiles we are drawing
     let (start, end) = camera.world_bounds();
-    let size = ship.size();
+    let size = ship.tiles().size();
     let start_x = (start.x.floor() as i32).max(0);
     let start_y = (start.y.floor() as i32).max(0);
     let end_x = (end.x.ceil() as i32).min(size.x);
@@ -29,7 +29,7 @@ fn draw_tiles(
     let mut object_builder = MeshBuilder::new();
     for y in start_y..end_y {
         for x in start_x..end_x {
-            let tile = ship.tile(Point2::new(x, y)).unwrap();
+            let tile = ship.tiles().tile(Point2::new(x, y)).unwrap();
 
             let (fx, fy) = (x as f32, y as f32);
 

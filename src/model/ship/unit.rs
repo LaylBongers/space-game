@@ -2,7 +2,7 @@ use alga::linear::{EuclideanSpace};
 use nalgebra::{Point2};
 use slog::{Logger};
 
-use model::ship::{JobId, JobQueue};
+use model::ship::{JobId, JobQueue, ShipObject, Tiles};
 
 pub struct Unit {
     position: Point2<f32>,
@@ -23,12 +23,16 @@ impl Unit {
         self.position
     }
 
-    pub fn update(&mut self, log: &Logger, delta: f32, job_queue: &mut JobQueue) {
-        self.update_job(log, delta, job_queue);
+    pub fn update(
+        &mut self, log: &Logger, delta: f32, tiles: &mut Tiles, job_queue: &mut JobQueue
+    ) {
+        self.update_job(log, delta, tiles, job_queue);
         self.update_move_to_target(delta);
     }
 
-    fn update_job(&mut self, log: &Logger, delta: f32, job_queue: &mut JobQueue) {
+    fn update_job(
+        &mut self, log: &Logger, delta: f32, tiles: &mut Tiles, job_queue: &mut JobQueue
+    ) {
         // A lot of the functionality in here is sequential steps to complete a job checked every
         // frame. For performance it may be beneficial to restructure it into something else that
         // lets a unit sequantially go through the actions needed (find job -> move to -> work).
@@ -44,6 +48,11 @@ impl Unit {
             if self.position.distance_squared(&job_center) < 0.5 * 0.5 {
                 // We're there, apply work
                 job.apply_work(delta);
+
+                // If the work's done, we can add an object to the tile
+                if job.is_done() {
+                    tiles.tile_mut(job.position()).unwrap().object = Some(ShipObject::new());
+                }
             } else {
                 // We're not there yet, go to the job
                 self.move_target = Some(job.position());
