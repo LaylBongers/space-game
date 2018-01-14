@@ -1,4 +1,5 @@
 use nalgebra::{Vector2, Point2};
+use slog::{Logger};
 
 use model::ship::{Unit, JobQueue};
 
@@ -67,9 +68,9 @@ impl Ship {
         &mut self.job_queue
     }
 
-    pub fn update(&mut self, delta: f32) {
+    pub fn update(&mut self, log: &Logger, delta: f32) {
         for unit in &mut self.units {
-            unit.update(delta, &mut self.job_queue);
+            unit.update(log, delta, &mut self.job_queue);
         }
     }
 

@@ -1,5 +1,6 @@
 use alga::linear::{EuclideanSpace};
 use nalgebra::{Point2};
+use slog::{Logger};
 
 use model::ship::{JobId, JobQueue};
 
@@ -22,10 +23,10 @@ impl Unit {
         self.position
     }
 
-    pub fn update(&mut self, delta: f32, job_queue: &mut JobQueue) {
+    pub fn update(&mut self, log: &Logger, delta: f32, job_queue: &mut JobQueue) {
         // Try to find a job to do if we don't have one yet
         if self.assigned_job.is_none() {
-            self.assigned_job = job_queue.assign_job();
+            self.assigned_job = job_queue.assign_job(log);
         }
 
         // Update movement

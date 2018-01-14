@@ -4,6 +4,7 @@ extern crate nalgebra;
 #[macro_use]
 extern crate slog;
 extern crate sloggers;
+extern crate metrohash;
 
 mod controller;
 pub mod model;
@@ -30,6 +31,8 @@ use model::ship::{Ship, Unit};
 use model::ui::{Ui};
 
 struct MainState {
+    log: Logger,
+
     // Models
     camera: Camera,
     ship: Ship,
@@ -71,6 +74,8 @@ impl MainState {
         let ui_input = UiInputController::new();
 
         Ok(MainState {
+            log,
+
             camera,
             ship,
             ui,
@@ -91,7 +96,7 @@ impl EventHandler for MainState {
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
             self.build_input.update(&mut self.ui)?;
-            self.ship.update(DELTA);
+            self.ship.update(&self.log, DELTA);
         }
 
         Ok(())
@@ -159,6 +164,11 @@ impl EventHandler for MainState {
         );
         self.camera_input.handle_mouse_move(rel_position, &mut self.camera);
     }
+
+    fn quit_event(&mut self, _ctx: &mut Context) -> bool {
+        info!(self.log, "quit_event() callback called, quitting");
+        false
+    }
 }
 
 pub fn main() {
@@ -189,12 +199,12 @@ pub fn main() {
     }
 
     // Set up the game's state
-    let state = &mut MainState::new(ctx, log).unwrap();
+    let state = &mut MainState::new(ctx, log.clone()).unwrap();
 
     // Actually run the game and see if it runs successfully
     if let Err(e) = event::run(ctx, state) {
-        println!("Error encountered: {}", e);
+        error!(log, "Error encountered: {}", e);
     } else {
-        println!("Game exited cleanly.");
+        info!(log, "Game exited cleanly");
     }
 }

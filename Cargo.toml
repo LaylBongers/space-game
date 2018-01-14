@@ -9,6 +9,7 @@ alga = "0.5"
 nalgebra = "0.13"
 slog = "2"
 sloggers = "0.2"
+metrohash = "1.0.5"
 
 # Debug mode performance without any optimizations is way too slow for games
 [profile.dev]
