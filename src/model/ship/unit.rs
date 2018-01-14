@@ -24,15 +24,30 @@ impl Unit {
     }
 
     pub fn update(&mut self, log: &Logger, delta: f32, job_queue: &mut JobQueue) {
-        self.update_job(log, job_queue);
+        self.update_job(log, delta, job_queue);
         self.update_move_to_target(delta);
     }
 
-    fn update_job(&mut self, log: &Logger, job_queue: &mut JobQueue) {
+    fn update_job(&mut self, log: &Logger, delta: f32, job_queue: &mut JobQueue) {
+        // A lot of the functionality in here is sequential steps to complete a job checked every
+        // frame. For performance it may be beneficial to restructure it into something else that
+        // lets a unit sequantially go through the actions needed (find job -> move to -> work).
+
         // Try to find a job to do if we don't have one yet, or the old one was removed
-        if let Some(job) = self.assigned_job.and_then(|j| job_queue.job(j)) {
-            // We have a job, go to it
-            self.move_target = Some(job.position());
+        if let Some(job) = self.assigned_job.and_then(|j| job_queue.job_mut(j)) {
+            let job_center = Point2::new(
+                job.position().x as f32 + 0.5,
+                job.position().y as f32 + 0.5
+            );
+
+            // Check if we're at the destination
+            if self.position.distance_squared(&job_center) < 0.5 * 0.5 {
+                // We're there, apply work
+                job.apply_work(delta);
+            } else {
+                // We're not there yet, go to the job
+                self.move_target = Some(job.position());
+            }
 
             return
         }
@@ -44,7 +59,7 @@ impl Unit {
 
     fn update_move_to_target(&mut self, delta: f32) {
         if let Some(target) = self.move_target {
-            let speed = 1.0;
+            let speed = 1.5;
             let target = Point2::new(target.x as f32 + 0.5, target.y as f32 + 0.5);
 
             // Calculate how far away we are and how far we can travel

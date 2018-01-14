@@ -24,6 +24,10 @@ impl JobQueue {
         self.jobs.get(&id)
     }
 
+    pub fn job_mut(&mut self, id: JobId) -> Option<&mut Job> {
+        self.jobs.get_mut(&id)
+    }
+
     pub fn job_at(&self, position: Point2<i32>) -> Option<JobId> {
         for (key, job) in &self.jobs {
             if job.position == position {
@@ -66,6 +70,21 @@ impl JobQueue {
         // Nothing found to do
         None
     }
+
+    pub fn update(&mut self, log: &Logger) {
+        let mut done = Vec::new();
+
+        for (key, job) in &self.jobs {
+            if job.is_done() {
+                info!(log, "Job {} done", key.0);
+                done.push(*key);
+            }
+        }
+
+        for key in done {
+            self.jobs.remove(&key);
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -79,8 +98,8 @@ pub struct JobId(i32);
 pub struct Job {
     position: Point2<i32>,
     assigned: bool,
-    _work_done: f32,
-    _work_target: f32,
+    work_done: f32,
+    work_target: f32,
 }
 
 impl Job {
@@ -88,8 +107,8 @@ impl Job {
         Job {
             position,
             assigned: false,
-            _work_done: 0.0,
-            _work_target: work_target,
+            work_done: 0.0,
+            work_target,
         }
     }
 
@@ -103,5 +122,13 @@ impl Job {
 
     pub fn set_assigned(&mut self, value: bool) {
         self.assigned = value;
+    }
+
+    pub fn apply_work(&mut self, amount: f32) {
+        self.work_done += amount;
+    }
+
+    pub fn is_done(&self) -> bool {
+        self.work_done > self.work_target
     }
 }

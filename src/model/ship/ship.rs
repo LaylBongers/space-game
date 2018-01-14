@@ -72,6 +72,8 @@ impl Ship {
         for unit in &mut self.units {
             unit.update(log, delta, &mut self.job_queue);
         }
+
+        self.job_queue.update(log);
     }
 
     fn index(&self, position: Point2<i32>) -> usize {
