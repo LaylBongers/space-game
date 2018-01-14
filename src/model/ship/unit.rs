@@ -62,7 +62,7 @@ impl Unit {
         }
 
         // We don't have a job, stand in place while finding a new one
-        self.assigned_job = job_queue.assign_job(log);
+        self.assigned_job = job_queue.assign_job(log, self.position);
         self.move_target = None;
     }
 

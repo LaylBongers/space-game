@@ -1,3 +1,4 @@
+use alga::linear::{EuclideanSpace};
 use nalgebra::{Point2};
 use metrohash::{MetroHashMap};
 use slog::{Logger};
@@ -55,20 +56,35 @@ impl JobQueue {
         Ok(())
     }
 
-    pub fn assign_job(&mut self, log: &Logger) -> Option<JobId> {
-        // Pick the first unassigned job, later we can add support for finding the closest job
+    pub fn assign_job(&mut self, log: &Logger, closest_to: Point2<f32>) -> Option<JobId> {
+        let mut found_distance_squared = ::std::f32::INFINITY;
+        let mut found_job = None;
+
+        // Find the closest job that isn't assigned
         for (key, job) in &mut self.jobs {
             if job.assigned() {
                 continue
             }
 
-            job.set_assigned(true);
-            info!(log, "Assigned job {}", key.0);
-            return Some(*key)
+            // Check if this job is closer than what we found
+            let job_center = Point2::new(
+                job.position().x as f32 + 0.5,
+                job.position().y as f32 + 0.5
+            );
+            let distance_squared = closest_to.distance_squared(&job_center);
+            if distance_squared < found_distance_squared {
+                found_distance_squared = distance_squared;
+                found_job = Some(*key)
+            }
         }
 
-        // Nothing found to do
-        None
+        // If we found a job, assign it
+        if let Some(job_id) = found_job {
+            self.job_mut(job_id).unwrap().set_assigned(true);
+            info!(log, "Assigned job {}", job_id.0);
+        }
+
+        found_job
     }
 
     pub fn update(&mut self, log: &Logger) {
