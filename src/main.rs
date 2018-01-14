@@ -60,7 +60,7 @@ impl MainState {
         let mut ship = Ship::empty(Vector2::new(100, 100));
         for y in 47..53 {
             for x in 48..52 {
-                ship.tiles_mut().tile_mut(Point2::new(x, y)).unwrap().floor = true;
+                ship.tiles.tile_mut(Point2::new(x, y)).unwrap().floor = true;
             }
         }
         ship.add_unit(Unit::new(Point2::new(50.5, 50.5)));

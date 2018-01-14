@@ -125,41 +125,41 @@ impl BuildInputController {
                     let tile_pos = Point2::new(x, y);
                     match self.build_choice {
                         BuildChoice::Floor => {
-                            let tile = ship.tiles_mut().tile_mut(tile_pos).unwrap();
+                            let tile = ship.tiles.tile_mut(tile_pos).unwrap();
                             tile.floor = true;
                         },
                         BuildChoice::Wall => {
                             let can_build = {
-                                let has_tile = ship.tiles_mut().tile_mut(tile_pos).unwrap().floor;
-                                let has_job = ship.job_queue().job_at(tile_pos).is_some();
-                                has_tile && !has_job
+                                let tile = ship.tiles.tile_mut(tile_pos).unwrap();
+                                let has_tile = tile.floor;
+                                let has_object = tile.object.is_some();
+                                let has_job = ship.job_queue.job_at(tile_pos).is_some();
+                                has_tile && !has_object && !has_job
                             };
 
                             if can_build {
-                                ship.job_queue_mut().queue_job(tile_pos).unwrap();
+                                ship.job_queue.queue_job(tile_pos).unwrap();
                             }
                         },
                         BuildChoice::DestroyObject => {
                             {
-                                let tile = ship.tiles_mut().tile_mut(tile_pos).unwrap();
+                                let tile = ship.tiles.tile_mut(tile_pos).unwrap();
                                 tile.object = None;
                             }
 
-                            let queue = ship.job_queue_mut();
-                            if let Some(job_id) = queue.job_at(tile_pos) {
-                                queue.dequeue_job(job_id).unwrap();
+                            if let Some(job_id) = ship.job_queue.job_at(tile_pos) {
+                                ship.job_queue.dequeue_job(job_id).unwrap();
                             }
                         },
                         BuildChoice::DestroyAll => {
                             {
-                                let tile = ship.tiles_mut().tile_mut(tile_pos).unwrap();
+                                let tile = ship.tiles.tile_mut(tile_pos).unwrap();
                                 tile.floor = false;
                                 tile.object = None;
                             }
 
-                            let queue = ship.job_queue_mut();
-                            if let Some(job_id) = queue.job_at(tile_pos) {
-                                queue.dequeue_job(job_id).unwrap();
+                            if let Some(job_id) = ship.job_queue.job_at(tile_pos) {
+                                ship.job_queue.dequeue_job(job_id).unwrap();
                             }
                         },
                     }
@@ -187,7 +187,7 @@ impl BuildInputController {
         );
 
         // Make sure we're not over UI, and the tile we're hovering over is valid
-        if !ui_input.mouse_over_ui() && ship.tiles().is_in_bounds(tile_position) {
+        if !ui_input.mouse_over_ui() && ship.tiles.is_in_bounds(tile_position) {
             self.last_tile_position = Some(tile_position);
 
             match self.build_state {
