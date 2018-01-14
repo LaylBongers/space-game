@@ -20,6 +20,10 @@ impl JobQueue {
         &self.jobs
     }
 
+    pub fn job(&self, id: JobId) -> Option<&Job> {
+        self.jobs.get(&id)
+    }
+
     pub fn job_at(&self, position: Point2<i32>) -> Option<JobId> {
         for (key, job) in &self.jobs {
             if job.position == position {

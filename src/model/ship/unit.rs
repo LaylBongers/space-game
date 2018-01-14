@@ -24,13 +24,22 @@ impl Unit {
     }
 
     pub fn update(&mut self, log: &Logger, delta: f32, job_queue: &mut JobQueue) {
-        // Try to find a job to do if we don't have one yet
-        if self.assigned_job.is_none() {
-            self.assigned_job = job_queue.assign_job(log);
+        self.update_job(log, job_queue);
+        self.update_move_to_target(delta);
+    }
+
+    fn update_job(&mut self, log: &Logger, job_queue: &mut JobQueue) {
+        // Try to find a job to do if we don't have one yet, or the old one was removed
+        if let Some(job) = self.assigned_job.and_then(|j| job_queue.job(j)) {
+            // We have a job, go to it
+            self.move_target = Some(job.position());
+
+            return
         }
 
-        // Update movement
-        self.update_move_to_target(delta);
+        // We don't have a job, stand in place while finding a new one
+        self.assigned_job = job_queue.assign_job(log);
+        self.move_target = None;
     }
 
     fn update_move_to_target(&mut self, delta: f32) {
