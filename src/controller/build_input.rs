@@ -129,37 +129,30 @@ impl BuildInputController {
                             tile.floor = true;
                         },
                         BuildChoice::Wall => {
-                            let can_build = {
-                                let tile = ship.tiles.tile_mut(tile_pos).unwrap();
-                                let has_tile = tile.floor;
-                                let has_object = tile.object.is_some();
-                                let has_job = ship.job_queue.job_at(tile_pos).is_some();
-                                has_tile && !has_object && !has_job
-                            };
+                            let tile = ship.tiles.tile_mut(tile_pos).unwrap();
+                            let has_tile = tile.floor;
+                            let has_object = tile.object.is_some();
+                            let has_task = ship.task_queue.task_at(tile_pos).is_some();
 
-                            if can_build {
-                                ship.job_queue.queue_job(tile_pos).unwrap();
+                            if has_tile && !has_object && !has_task {
+                                ship.task_queue.queue_task(tile_pos).unwrap();
                             }
                         },
                         BuildChoice::DestroyObject => {
-                            {
-                                let tile = ship.tiles.tile_mut(tile_pos).unwrap();
-                                tile.object = None;
-                            }
+                            let tile = ship.tiles.tile_mut(tile_pos).unwrap();
+                            tile.object = None;
 
-                            if let Some(job_id) = ship.job_queue.job_at(tile_pos) {
-                                ship.job_queue.dequeue_job(job_id).unwrap();
+                            if let Some(task_id) = ship.task_queue.task_at(tile_pos) {
+                                ship.task_queue.dequeue_task(task_id).unwrap();
                             }
                         },
                         BuildChoice::DestroyAll => {
-                            {
-                                let tile = ship.tiles.tile_mut(tile_pos).unwrap();
-                                tile.floor = false;
-                                tile.object = None;
-                            }
+                            let tile = ship.tiles.tile_mut(tile_pos).unwrap();
+                            tile.floor = false;
+                            tile.object = None;
 
-                            if let Some(job_id) = ship.job_queue.job_at(tile_pos) {
-                                ship.job_queue.dequeue_job(job_id).unwrap();
+                            if let Some(task_id) = ship.task_queue.task_at(tile_pos) {
+                                ship.task_queue.dequeue_task(task_id).unwrap();
                             }
                         },
                     }

@@ -1,13 +1,13 @@
 use nalgebra::{Vector2};
 use slog::{Logger};
 
-use model::ship::{Tiles, Unit, JobQueue};
+use model::ship::{Tiles, Unit, TaskQueue};
 
 pub struct Ship {
     units: Vec<Unit>,
 
     pub tiles: Tiles,
-    pub job_queue: JobQueue,
+    pub task_queue: TaskQueue,
 }
 
 impl Ship {
@@ -16,7 +16,7 @@ impl Ship {
             units: Vec::new(),
 
             tiles: Tiles::empty(size),
-            job_queue: JobQueue::new(),
+            task_queue: TaskQueue::new(),
         }
     }
 
@@ -30,9 +30,9 @@ impl Ship {
 
     pub fn update(&mut self, log: &Logger, delta: f32) {
         for unit in &mut self.units {
-            unit.update(log, delta, &mut self.tiles, &mut self.job_queue);
+            unit.update(log, delta, &mut self.tiles, &mut self.task_queue);
         }
 
-        self.job_queue.update(log);
+        self.task_queue.update(log);
     }
 }

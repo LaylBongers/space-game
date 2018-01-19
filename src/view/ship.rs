@@ -15,7 +15,7 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
     let end_y = (end.y.ceil() as i32).min(size.y);
 
     draw_tiles(ctx, ship, start_x, start_y, end_x, end_y)?;
-    draw_jobs(ctx, ship)?;
+    draw_tasks(ctx, ship)?;
     draw_grid(ctx, start_x, start_y, end_x, end_y)?;
     draw_units(ctx, ship)?;
 
@@ -72,15 +72,15 @@ fn draw_tiles(
     Ok(())
 }
 
-fn draw_jobs(
+fn draw_tasks(
     ctx: &mut Context, ship: &Ship
 ) -> GameResult<()> {
-    let mut jobs_builder = MeshBuilder::new();
-    for (_, job) in ship.job_queue.jobs() {
-        let (fx, fy) = (job.position().x as f32, job.position().y as f32);
+    let mut tasks_builder = MeshBuilder::new();
+    for (_, task) in ship.task_queue.tasks() {
+        let (fx, fy) = (task.position().x as f32, task.position().y as f32);
 
-        // Add graphic for the job
-        jobs_builder.triangles(&[
+        // Add graphic for the task
+        tasks_builder.triangles(&[
             Point2::new(fx + 0.25, fy + 0.25),
             Point2::new(fx + 0.75, fy + 0.25),
             Point2::new(fx + 0.25, fy + 0.75),
@@ -91,10 +91,10 @@ fn draw_jobs(
         ]);
     }
 
-    let jobs_mesh = jobs_builder.build(ctx)?;
+    let tasks_mesh = tasks_builder.build(ctx)?;
 
     graphics::set_color(ctx, (255, 255, 255, 16).into())?;
-    graphics::draw(ctx, &jobs_mesh, Point2::new(0.0, 0.0), 0.0)?;
+    graphics::draw(ctx, &tasks_mesh, Point2::new(0.0, 0.0), 0.0)?;
 
     Ok(())
 }
