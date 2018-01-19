@@ -5,6 +5,7 @@ extern crate nalgebra;
 extern crate slog;
 extern crate sloggers;
 extern crate metrohash;
+extern crate pathfinding;
 
 mod controller;
 pub mod model;

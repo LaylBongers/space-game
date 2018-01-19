@@ -1,6 +1,7 @@
 use alga::linear::{EuclideanSpace};
 use nalgebra::{Point2};
 use slog::{Logger};
+use pathfinding;
 
 use model::ship::{TaskId, TaskQueue, ShipObject, Tiles};
 
@@ -53,7 +54,8 @@ impl Unit {
             }
 
             // Check if we're at the destination
-            if self.position.distance_squared(&task_center) < 1.0 * 1.0 {
+            if (task_center.x - self.position.x).abs() < 1.1 &&
+               (task_center.y - self.position.y).abs() < 1.1 {
                 // We're there, apply work
                 task.apply_work(delta);
 
@@ -62,8 +64,77 @@ impl Unit {
                     tiles.tile_mut(task.position()).unwrap().object = Some(ShipObject::new());
                 }
             } else {
-                // We're not there yet, go to the task
-                self.path = Some(vec!(task.position()));
+                // We're not there, find a path to our destination
+
+                // Calculate some advance values relevant to pathfinding
+                let straight = 100; // Can only use Ord cost, f32 isn't Ord
+                let diagonal = (f32::sqrt(2.0) * straight as f32) as i32;
+                let mut start = Point2::new(self.position.x as i32, self.position.y as i32);
+                let mut goal = task.position();
+
+                // Our path following wants the path in reverse
+                ::std::mem::swap(&mut start, &mut goal);
+
+                // Now do the actual pathfinding
+                let result = pathfinding::astar(
+                    &start,
+                    |node| {
+                        let mut neighbors = Vec::new();
+
+                        for y in node.y-1..node.y+2 {
+                            for x in node.x-1..node.x+2 {
+                                let neighbor = Point2::new(x, y);
+
+                                // If this is the same one, skip it
+                                if *node == neighbor {
+                                    continue
+                                }
+
+                                // Retrieve the tile data itself, if we can't, bail
+                                let tile = if let Ok(tile) = tiles.tile(neighbor) {
+                                    tile
+                                } else {
+                                    continue
+                                };
+
+                                // Make sure we can walk over this tile, but we always allow the
+                                // goal because that's where we're moving form and even if it's
+                                // blocked it might move out
+                                // Check the performance if we don't include the start there and
+                                // instead reverse the path after the fact
+                                if (!tile.floor || tile.object.is_some()) && neighbor != goal {
+                                    continue
+                                }
+
+                                // Diagonal costs are somewhat bigger
+                                let cost = if x == node.x || y == node.y {
+                                    straight
+                                } else {
+                                    diagonal
+                                };
+
+                                neighbors.push((neighbor, cost));
+                            }
+                        }
+
+                        neighbors
+                    },
+                    |node| {
+                        let dx = (node.x - goal.x).abs();
+                        let dy = (node.y - goal.y).abs();
+                        straight*(dx + dy) + (diagonal - 2*straight) * dx.min(dy)
+                    },
+                    |node| *node == goal,
+                );
+
+                if let Some((mut path, _cost)) = result {
+                    // We found a path, remove the first entry, we want to stop next to the goal
+                    // not on it
+                    path.remove(0);
+                    self.path = Some(path)
+                } else {
+                    // We didn't find a path, perhaps mark this task unreachable?
+                }
             }
 
             return
