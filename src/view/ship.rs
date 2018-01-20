@@ -76,11 +76,19 @@ fn draw_tasks(
     ctx: &mut Context, ship: &Ship
 ) -> GameResult<()> {
     let mut tasks_builder = MeshBuilder::new();
+    let mut unreachable_tasks_builder = MeshBuilder::new();
+
     for (_, task) in ship.task_queue.tasks() {
         let (fx, fy) = (task.position().x as f32, task.position().y as f32);
 
+        let builder = if !task.unreachable() {
+            &mut tasks_builder
+        } else {
+            &mut unreachable_tasks_builder
+        };
+
         // Add graphic for the task
-        tasks_builder.triangles(&[
+        builder.triangles(&[
             Point2::new(fx + 0.25, fy + 0.25),
             Point2::new(fx + 0.75, fy + 0.25),
             Point2::new(fx + 0.25, fy + 0.75),
@@ -92,9 +100,13 @@ fn draw_tasks(
     }
 
     let tasks_mesh = tasks_builder.build(ctx)?;
+    let unreachable_tasks_mesh = unreachable_tasks_builder.build(ctx)?;
 
-    graphics::set_color(ctx, (255, 255, 255, 16).into())?;
+    graphics::set_color(ctx, (255, 255, 255, 25).into())?;
     graphics::draw(ctx, &tasks_mesh, Point2::new(0.0, 0.0), 0.0)?;
+
+    graphics::set_color(ctx, (255, 120, 120, 50).into())?;
+    graphics::draw(ctx, &unreachable_tasks_mesh, Point2::new(0.0, 0.0), 0.0)?;
 
     Ok(())
 }

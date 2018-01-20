@@ -60,9 +60,10 @@ impl TaskQueue {
         let mut found_distance_squared = ::std::f32::INFINITY;
         let mut found_task = None;
 
-        // Find the closest task that isn't assigned
+        // Find the closest valid task
         for (key, task) in &mut self.tasks {
-            if task.assigned() {
+            // We don't want a task that's already assigned, or one we can't reach
+            if task.assigned() || task.unreachable() {
                 continue
             }
 
@@ -114,6 +115,8 @@ pub struct TaskId(i32);
 pub struct Task {
     position: Point2<i32>,
     assigned: bool,
+    unreachable: bool,
+
     work_done: f32,
     work_target: f32,
 }
@@ -123,6 +126,7 @@ impl Task {
         Task {
             position,
             assigned: false,
+            unreachable: false,
             work_done: 0.0,
             work_target,
         }
@@ -138,6 +142,14 @@ impl Task {
 
     pub fn set_assigned(&mut self, value: bool) {
         self.assigned = value;
+    }
+
+    pub fn unreachable(&self) -> bool {
+        self.unreachable
+    }
+
+    pub fn set_unreachable(&mut self, value: bool) {
+        self.unreachable = value;
     }
 
     pub fn apply_work(&mut self, amount: f32) {

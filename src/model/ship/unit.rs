@@ -65,18 +65,23 @@ impl Unit {
                 }
             } else {
                 // We're not there, find a path to our destination
-                self.path_to(task.position(), tiles, false);
+                if !self.path_to(task.position(), tiles, false) {
+                    // We couldn't find a path, mark the task as unreachable
+                    task.set_unreachable(true);
+                    self.assigned_task = None;
+                }
             }
 
             return
         }
 
-        // We don't have a task, stand in place while finding a new one
+        // We don't have a task, or the task we had is gone, stand in place while finding a new one
         self.assigned_task = task_queue.assign_task(log, self.position);
         self.path = None;
     }
 
-    fn path_to(&mut self, mut goal: Point2<i32>, tiles: &Tiles, goal_inclusive: bool) {
+    /// Finds a path to the goal, returns false if no path could be found.
+    fn path_to(&mut self, mut goal: Point2<i32>, tiles: &Tiles, goal_inclusive: bool) -> bool {
         // Calculate some advance values relevant to pathfinding
         let costs = Costs {
             straight: 100,
@@ -99,9 +104,13 @@ impl Unit {
             if !goal_inclusive {
                 path.remove(0);
             }
-            self.path = Some(path)
+            self.path = Some(path);
+
+            // Everything's set for path following, return that we found a path
+            true
         } else {
-            // We didn't find a path, perhaps mark this destination unreachable?
+            // We didn't find a path, return that this is unreachable
+            false
         }
     }
 
@@ -161,11 +170,9 @@ fn neighbors(
             // Retrieve the tile data itself
             let tile_res =  tiles.tile(neighbor);
 
-            // Make sure we can walk over this tile, but we always allow the
-            // goal because that's where we're moving form and even if it's
-            // blocked it might move out
-            // Check the performance if we don't include the start there and
-            // instead reverse the path after the fact
+            // Make sure we can walk over this tile
+            // We always allow the goal because that's where we're moving from, and even if it's
+            // blocked we want to move away from it
             if !is_walkable(tile_res) && neighbor != goal {
                 continue
             }
