@@ -14,10 +14,8 @@ pub struct BuildInputController {
     build_state: BuildState,
     build_choice: BuildChoice,
 
-    build_floor_button: ButtonId,
-    build_wall_button: ButtonId,
-    destroy_object_button: ButtonId,
-    destroy_all_button: ButtonId,
+    buttons: Vec<(ButtonId, BuildChoice)>,
+    active_button: Option<ButtonId>,
 
     build_sound_queued: bool,
     place_sound: Source,
@@ -31,6 +29,7 @@ impl BuildInputController {
             Vector2::new(72, 24),
             Text::new(ctx, "Floor", font)?,
         ));
+        ui.get_mut(build_floor_button).color = (120, 255, 120);
         pos += 72 + 6;
 
         let build_wall_button = ui.add(Button::new(
@@ -53,6 +52,13 @@ impl BuildInputController {
             Text::new(ctx, "Destroy All", font)?,
         ));
 
+        let buttons = vec!(
+            (build_floor_button, BuildChoice::Floor),
+            (build_wall_button, BuildChoice::Wall),
+            (destroy_object_button, BuildChoice::DestroyObject),
+            (destroy_all_button, BuildChoice::DestroyAll),
+        );
+
         let mut place_sound = Source::new(ctx, "/object_placed.ogg")?;
         place_sound.set_volume(0.2);
 
@@ -61,10 +67,8 @@ impl BuildInputController {
             build_state: BuildState::Hovering { position: None },
             build_choice: BuildChoice::Floor,
 
-            build_floor_button,
-            build_wall_button,
-            destroy_object_button,
-            destroy_all_button,
+            buttons,
+            active_button: Some(build_floor_button),
 
             build_sound_queued: false,
             place_sound,
@@ -76,17 +80,17 @@ impl BuildInputController {
     }
 
     pub fn update(&mut self, ui: &mut Ui) -> GameResult<()> {
-        if ui.get_mut(self.build_floor_button).check_pressed() {
-            self.build_choice = BuildChoice::Floor;
-        }
-        if ui.get_mut(self.build_wall_button).check_pressed() {
-            self.build_choice = BuildChoice::Wall;
-        }
-        if ui.get_mut(self.destroy_object_button).check_pressed() {
-            self.build_choice = BuildChoice::DestroyObject;
-        }
-        if ui.get_mut(self.destroy_all_button).check_pressed() {
-            self.build_choice = BuildChoice::DestroyAll;
+        for &(button, build_choice) in &self.buttons {
+            if ui.get_mut(button).check_pressed() {
+                // Update button colors
+                ui.get_mut(button).color = (120, 255, 120);
+                if let Some(active_button) = self.active_button {
+                    ui.get_mut(active_button).color = (255, 255, 255);
+                }
+
+                self.build_choice = build_choice;
+                self.active_button = Some(button);
+            }
         }
 
         if self.build_sound_queued {
@@ -204,6 +208,7 @@ pub enum BuildState {
     Dragging { start: Point2<i32>, end: Point2<i32> },
 }
 
+#[derive(Copy, Clone)]
 pub enum BuildChoice {
     Floor,
     Wall,

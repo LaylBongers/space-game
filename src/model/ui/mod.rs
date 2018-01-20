@@ -41,6 +41,7 @@ pub struct Button {
     pub position: Point2<i32>,
     pub size: Vector2<i32>,
     pub text: Text,
+    pub color: (u8, u8, u8),
     pub pressed: bool,
 }
 
@@ -50,6 +51,7 @@ impl Button {
             position,
             size,
             text,
+            color: (255, 255, 255),
             pressed: false,
         }
     }

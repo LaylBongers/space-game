@@ -50,7 +50,7 @@ pub fn draw_ui(ctx: &mut Context, ui: &Ui) -> GameResult<()> {
 
 fn draw_button(ctx: &mut Context, button: &Button) -> GameResult<()> {
     // Draw the background
-    graphics::set_color(ctx, (255, 255, 255, 200).into())?;
+    graphics::set_color(ctx, (button.color.0, button.color.1, button.color.2, 200).into())?;
     graphics::rectangle(
         ctx, graphics::DrawMode::Fill,
         graphics::Rect::new(
