@@ -3,7 +3,7 @@ use nalgebra::{Point2};
 use slog::{Logger};
 use pathfinding;
 
-use model::ship::{TaskId, TaskQueue, ShipObject, Tiles};
+use model::ship::{TaskId, TaskQueue, ShipObject, Tiles, Tile, TilesError};
 
 pub struct Unit {
     position: Point2<f32>,
@@ -158,26 +158,28 @@ fn neighbors(
                 continue
             }
 
-            // Retrieve the tile data itself, if we can't, bail
-            let tile = if let Ok(tile) = tiles.tile(neighbor) {
-                tile
-            } else {
-                continue
-            };
+            // Retrieve the tile data itself
+            let tile_res =  tiles.tile(neighbor);
 
             // Make sure we can walk over this tile, but we always allow the
             // goal because that's where we're moving form and even if it's
             // blocked it might move out
             // Check the performance if we don't include the start there and
             // instead reverse the path after the fact
-            if (!tile.floor || tile.object.is_some()) && neighbor != goal {
+            if !is_walkable(tile_res) && neighbor != goal {
                 continue
             }
 
-            // Diagonal costs are somewhat bigger
+            // Cost differ for straight and diagonal movement
             let cost = if x == node.x || y == node.y {
                 costs.straight
             } else {
+                // If it's a diagonal we also need to check we're not moving through a hard corner
+                if !is_walkable(tiles.tile(Point2::new(x, node.y))) ||
+                   !is_walkable(tiles.tile(Point2::new(node.x, y))) {
+                    continue
+                }
+
                 costs.diagonal
             };
 
@@ -186,6 +188,14 @@ fn neighbors(
     }
 
     neighbors
+}
+
+fn is_walkable(tile_res: Result<&Tile, TilesError>) -> bool {
+    if let Ok(tile) = tile_res {
+        tile.floor && tile.object.is_none()
+    } else {
+        false
+    }
 }
 
 fn heuristic(node: Point2<i32>, goal: Point2<i32>, costs: &Costs) -> i32 {

@@ -14,49 +14,14 @@ pub struct BuildInputController {
     build_state: BuildState,
     build_choice: BuildChoice,
 
-    buttons: Vec<(ButtonId, BuildChoice)>,
-    active_button: Option<ButtonId>,
-
+    ui: BuildInputUiController,
     build_sound_queued: bool,
     place_sound: Source,
 }
 
 impl BuildInputController {
     pub fn new(ctx: &mut Context, ui: &mut Ui, font: &Font) -> GameResult<Self> {
-        let mut pos = 6;
-        let build_floor_button = ui.add(Button::new(
-            Point2::new(pos, 6),
-            Vector2::new(72, 24),
-            Text::new(ctx, "Floor", font)?,
-        ));
-        pos += 72 + 6;
-
-        let build_wall_button = ui.add(Button::new(
-            Point2::new(pos, 6),
-            Vector2::new(72, 24),
-            Text::new(ctx, "Wall", font)?,
-        ));
-        pos += 72 + 6;
-
-        let destroy_object_button = ui.add(Button::new(
-            Point2::new(pos, 6),
-            Vector2::new(84, 24),
-            Text::new(ctx, "Destroy Object", font)?,
-        ));
-        pos += 84 + 6;
-
-        let destroy_all_button = ui.add(Button::new(
-            Point2::new(pos, 6),
-            Vector2::new(72, 24),
-            Text::new(ctx, "Destroy All", font)?,
-        ));
-
-        let buttons = vec!(
-            (build_floor_button, BuildChoice::Floor),
-            (build_wall_button, BuildChoice::Wall),
-            (destroy_object_button, BuildChoice::DestroyObject),
-            (destroy_all_button, BuildChoice::DestroyAll),
-        );
+        let ui = BuildInputUiController::new(ctx, ui, font)?;
 
         let mut place_sound = Source::new(ctx, "/object_placed.ogg")?;
         place_sound.set_volume(0.2);
@@ -66,9 +31,7 @@ impl BuildInputController {
             build_state: BuildState::Hovering { position: None },
             build_choice: BuildChoice::None,
 
-            buttons,
-            active_button: None,
-
+            ui,
             build_sound_queued: false,
             place_sound,
         })
@@ -83,20 +46,7 @@ impl BuildInputController {
     }
 
     pub fn update(&mut self, ui: &mut Ui) -> GameResult<()> {
-        for &(button, build_choice) in &self.buttons {
-            if ui.get_mut(button).check_pressed() {
-                // Update button colors
-                ui.get_mut(button).color = (120, 255, 120);
-                if let Some(active_button) = self.active_button {
-                    if active_button != button {
-                        ui.get_mut(active_button).color = (255, 255, 255);
-                    }
-                }
-
-                self.build_choice = build_choice;
-                self.active_button = Some(button);
-            }
-        }
+        self.ui.update(ui, &mut self.build_choice);
 
         if self.build_sound_queued {
             self.place_sound.play()?;
@@ -135,6 +85,8 @@ impl BuildInputController {
     fn handle_build_up(&mut self, ship: &mut Ship) {
         // If we were currently dragging, switch back to hovering
         if let BuildState::Dragging { start, end } = self.build_state {
+            let mut thing_changed = false;
+
             // This also means we finished a build, so let's apply it
             let (start, end) = build_area(start, end);
             for y in start.y..end.y {
@@ -144,7 +96,10 @@ impl BuildInputController {
                         BuildChoice::None => unreachable!(),
                         BuildChoice::Floor => {
                             let tile = ship.tiles.tile_mut(tile_pos).unwrap();
-                            tile.floor = true;
+                            if !tile.floor {
+                                tile.floor = true;
+                                thing_changed = true;
+                            }
                         },
                         BuildChoice::Wall => {
                             let tile = ship.tiles.tile_mut(tile_pos).unwrap();
@@ -154,23 +109,38 @@ impl BuildInputController {
 
                             if has_tile && !has_object && !has_task {
                                 ship.task_queue.queue_task(tile_pos).unwrap();
+                                thing_changed = true;
                             }
                         },
                         BuildChoice::DestroyObject => {
                             let tile = ship.tiles.tile_mut(tile_pos).unwrap();
-                            tile.object = None;
+
+                            if tile.object.is_some() {
+                                tile.object = None;
+                                thing_changed = true;
+                            }
 
                             if let Some(task_id) = ship.task_queue.task_at(tile_pos) {
                                 ship.task_queue.dequeue_task(task_id).unwrap();
+                                thing_changed = true;
                             }
                         },
                         BuildChoice::DestroyAll => {
                             let tile = ship.tiles.tile_mut(tile_pos).unwrap();
-                            tile.floor = false;
-                            tile.object = None;
+
+                            if tile.floor {
+                                tile.floor = false;
+                                thing_changed = true;
+                            }
+
+                            if tile.object.is_some() {
+                                tile.object = None;
+                                thing_changed = true;
+                            }
 
                             if let Some(task_id) = ship.task_queue.task_at(tile_pos) {
                                 ship.task_queue.dequeue_task(task_id).unwrap();
+                                thing_changed = true;
                             }
                         },
                     }
@@ -181,17 +151,16 @@ impl BuildInputController {
             self.build_state = BuildState::Hovering { position: self.last_tile_position };
 
             // And finally, make sure the build sound is played
-            self.build_sound_queued = true;
+            if thing_changed {
+                self.build_sound_queued = true;
+            }
         }
     }
 
     fn handle_cancel_up(&mut self, ui: &mut Ui) {
         self.build_state = BuildState::Hovering { position: self.last_tile_position };
         self.build_choice = BuildChoice::None;
-        if let Some(active_button) = self.active_button {
-            ui.get_mut(active_button).color = (255, 255, 255);
-            self.active_button = None;
-        }
+        self.ui.clear_active_button(ui);
     }
 
     pub fn handle_mouse_move(
@@ -246,4 +215,77 @@ pub fn build_area(start: Point2<i32>, end: Point2<i32>) -> (Point2<i32>, Point2<
     let max_x = start.x.max(end.x);
     let max_y = start.y.max(end.y);
     (Point2::new(min_x, min_y), Point2::new(max_x + 1, max_y + 1))
+}
+
+struct BuildInputUiController {
+    buttons: Vec<(ButtonId, BuildChoice)>,
+    active_button: Option<ButtonId>,
+}
+
+impl BuildInputUiController {
+    pub fn new(ctx: &mut Context, ui: &mut Ui, font: &Font) -> GameResult<Self> {
+        let mut pos = 6;
+        let build_floor_button = ui.add(Button::new(
+            Point2::new(pos, 6),
+            Vector2::new(72, 24),
+            Text::new(ctx, "Floor", font)?,
+        ));
+        pos += 72 + 6;
+
+        let build_wall_button = ui.add(Button::new(
+            Point2::new(pos, 6),
+            Vector2::new(72, 24),
+            Text::new(ctx, "Wall", font)?,
+        ));
+        pos += 72 + 6;
+
+        let destroy_object_button = ui.add(Button::new(
+            Point2::new(pos, 6),
+            Vector2::new(84, 24),
+            Text::new(ctx, "Destroy Object", font)?,
+        ));
+        pos += 84 + 6;
+
+        let destroy_all_button = ui.add(Button::new(
+            Point2::new(pos, 6),
+            Vector2::new(72, 24),
+            Text::new(ctx, "Destroy All", font)?,
+        ));
+
+        let buttons = vec!(
+            (build_floor_button, BuildChoice::Floor),
+            (build_wall_button, BuildChoice::Wall),
+            (destroy_object_button, BuildChoice::DestroyObject),
+            (destroy_all_button, BuildChoice::DestroyAll),
+        );
+
+        Ok(BuildInputUiController {
+            buttons,
+            active_button: None,
+        })
+    }
+
+    fn update(&mut self, ui: &mut Ui, build_choice: &mut BuildChoice) {
+        for &(button, button_choice) in &self.buttons {
+            if ui.get_mut(button).check_pressed() {
+                // Update button colors
+                ui.get_mut(button).color = (120, 255, 120);
+                if let Some(active_button) = self.active_button {
+                    if active_button != button {
+                        ui.get_mut(active_button).color = (255, 255, 255);
+                    }
+                }
+
+                *build_choice = button_choice;
+                self.active_button = Some(button);
+            }
+        }
+    }
+
+    fn clear_active_button(&mut self, ui: &mut Ui) {
+        if let Some(active_button) = self.active_button {
+            ui.get_mut(active_button).color = (255, 255, 255);
+            self.active_button = None;
+        }
+    }
 }
