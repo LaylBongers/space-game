@@ -43,15 +43,15 @@ impl Unit {
 
         // Try to find a task to do if we don't have one yet, or the old one was removed
         if let Some(task) = self.assigned_task.and_then(|j| task_queue.task_mut(j)) {
-            let task_center = Point2::new(
-                task.position().x as f32 + 0.5,
-                task.position().y as f32 + 0.5
-            );
-
             // If we're still path following, don't do anything
             if self.path.is_some() {
                 return
             }
+
+            let task_center = Point2::new(
+                task.position().x as f32 + 0.5,
+                task.position().y as f32 + 0.5
+            );
 
             // Check if we're at the destination
             if (task_center.x - self.position.x).abs() < 1.1 &&
@@ -65,76 +65,7 @@ impl Unit {
                 }
             } else {
                 // We're not there, find a path to our destination
-
-                // Calculate some advance values relevant to pathfinding
-                let straight = 100; // Can only use Ord cost, f32 isn't Ord
-                let diagonal = (f32::sqrt(2.0) * straight as f32) as i32;
-                let mut start = Point2::new(self.position.x as i32, self.position.y as i32);
-                let mut goal = task.position();
-
-                // Our path following wants the path in reverse
-                ::std::mem::swap(&mut start, &mut goal);
-
-                // Now do the actual pathfinding
-                let result = pathfinding::astar(
-                    &start,
-                    |node| {
-                        let mut neighbors = Vec::new();
-
-                        for y in node.y-1..node.y+2 {
-                            for x in node.x-1..node.x+2 {
-                                let neighbor = Point2::new(x, y);
-
-                                // If this is the same one, skip it
-                                if *node == neighbor {
-                                    continue
-                                }
-
-                                // Retrieve the tile data itself, if we can't, bail
-                                let tile = if let Ok(tile) = tiles.tile(neighbor) {
-                                    tile
-                                } else {
-                                    continue
-                                };
-
-                                // Make sure we can walk over this tile, but we always allow the
-                                // goal because that's where we're moving form and even if it's
-                                // blocked it might move out
-                                // Check the performance if we don't include the start there and
-                                // instead reverse the path after the fact
-                                if (!tile.floor || tile.object.is_some()) && neighbor != goal {
-                                    continue
-                                }
-
-                                // Diagonal costs are somewhat bigger
-                                let cost = if x == node.x || y == node.y {
-                                    straight
-                                } else {
-                                    diagonal
-                                };
-
-                                neighbors.push((neighbor, cost));
-                            }
-                        }
-
-                        neighbors
-                    },
-                    |node| {
-                        let dx = (node.x - goal.x).abs();
-                        let dy = (node.y - goal.y).abs();
-                        straight*(dx + dy) + (diagonal - 2*straight) * dx.min(dy)
-                    },
-                    |node| *node == goal,
-                );
-
-                if let Some((mut path, _cost)) = result {
-                    // We found a path, remove the first entry, we want to stop next to the goal
-                    // not on it
-                    path.remove(0);
-                    self.path = Some(path)
-                } else {
-                    // We didn't find a path, perhaps mark this task unreachable?
-                }
+                self.path_to(task.position(), tiles, false);
             }
 
             return
@@ -143,6 +74,35 @@ impl Unit {
         // We don't have a task, stand in place while finding a new one
         self.assigned_task = task_queue.assign_task(log, self.position);
         self.path = None;
+    }
+
+    fn path_to(&mut self, mut goal: Point2<i32>, tiles: &Tiles, goal_inclusive: bool) {
+        // Calculate some advance values relevant to pathfinding
+        let costs = Costs {
+            straight: 100,
+            diagonal: (f32::sqrt(2.0) * 100.0) as i32,
+        };
+        let mut start = Point2::new(self.position.x as i32, self.position.y as i32);
+
+        // Our path following wants the path in reverse
+        ::std::mem::swap(&mut start, &mut goal);
+
+        // Now do the actual pathfinding
+        let result = pathfinding::astar(
+            &start,
+            |node| neighbors(*node, goal, tiles, &costs),
+            |node| heuristic(*node, goal, &costs),
+            |node| *node == goal,
+        );
+
+        if let Some((mut path, _cost)) = result {
+            if !goal_inclusive {
+                path.remove(0);
+            }
+            self.path = Some(path)
+        } else {
+            // We didn't find a path, perhaps mark this destination unreachable?
+        }
     }
 
     fn update_movement(&mut self, delta: f32) {
@@ -176,4 +136,60 @@ impl Unit {
             self.path = None
         }
     }
+}
+
+struct Costs {
+    // Can only use Ord cost, f32 isn't Ord
+    straight: i32,
+    diagonal: i32,
+}
+
+fn neighbors(
+    node: Point2<i32>, goal: Point2<i32>, tiles: &Tiles, costs: &Costs
+) -> Vec<(Point2<i32>, i32)> {
+    let mut neighbors = Vec::new();
+
+    for y in node.y-1..node.y+2 {
+        for x in node.x-1..node.x+2 {
+            let neighbor = Point2::new(x, y);
+
+            // If this is the same one, skip it
+            if node == neighbor {
+                continue
+            }
+
+            // Retrieve the tile data itself, if we can't, bail
+            let tile = if let Ok(tile) = tiles.tile(neighbor) {
+                tile
+            } else {
+                continue
+            };
+
+            // Make sure we can walk over this tile, but we always allow the
+            // goal because that's where we're moving form and even if it's
+            // blocked it might move out
+            // Check the performance if we don't include the start there and
+            // instead reverse the path after the fact
+            if (!tile.floor || tile.object.is_some()) && neighbor != goal {
+                continue
+            }
+
+            // Diagonal costs are somewhat bigger
+            let cost = if x == node.x || y == node.y {
+                costs.straight
+            } else {
+                costs.diagonal
+            };
+
+            neighbors.push((neighbor, cost));
+        }
+    }
+
+    neighbors
+}
+
+fn heuristic(node: Point2<i32>, goal: Point2<i32>, costs: &Costs) -> i32 {
+    let dx = (node.x - goal.x).abs();
+    let dy = (node.y - goal.y).abs();
+    costs.straight*(dx + dy) + (costs.diagonal - 2*costs.straight) * dx.min(dy)
 }
