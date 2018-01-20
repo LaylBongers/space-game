@@ -41,8 +41,13 @@ impl Unit {
         // frame. For performance it may be beneficial to restructure it into something else that
         // lets a unit sequantially go through the actions needed (find task -> move to -> work).
 
+        let mut got_task = false;
+        let mut world_changed = false;
+
         // Try to find a task to do if we don't have one yet, or the old one was removed
         if let Some(task) = self.assigned_task.and_then(|j| task_queue.task_mut(j)) {
+            got_task = true;
+
             // If we're still path following, don't do anything
             if self.path.is_some() {
                 return
@@ -62,22 +67,29 @@ impl Unit {
                 // If the work's done, we can add an object to the tile
                 if task.is_done() {
                     tiles.tile_mut(task.position()).unwrap().object = Some(ShipObject::new());
+                    world_changed = true;
                 }
             } else {
                 // We're not there, find a path to our destination
                 if !self.path_to(task.position(), tiles, false) {
                     // We couldn't find a path, mark the task as unreachable
                     task.set_unreachable(true);
+                    task.set_assigned(false);
                     self.assigned_task = None;
                 }
             }
-
-            return
         }
 
-        // We don't have a task, or the task we had is gone, stand in place while finding a new one
-        self.assigned_task = task_queue.assign_task(log, self.position);
-        self.path = None;
+        if world_changed {
+            // Since the world has changed, we can mark all tasks as being possible again
+            task_queue.clear_unreachable();
+        }
+
+        if !got_task {
+            // We don't have a task, or the task we had is gone, wait while finding a new one
+            self.assigned_task = task_queue.assign_task(log, self.position);
+            self.path = None;
+        }
     }
 
     /// Finds a path to the goal, returns false if no path could be found.

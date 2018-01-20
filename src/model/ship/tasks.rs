@@ -88,6 +88,12 @@ impl TaskQueue {
         found_task
     }
 
+    pub fn clear_unreachable(&mut self) {
+        for (_, task) in &mut self.tasks {
+            task.set_unreachable(false);
+        }
+    }
+
     pub fn update(&mut self, log: &Logger) {
         let mut done = Vec::new();
 

@@ -85,7 +85,7 @@ impl BuildInputController {
     fn handle_build_up(&mut self, ship: &mut Ship) {
         // If we were currently dragging, switch back to hovering
         if let BuildState::Dragging { start, end } = self.build_state {
-            let mut thing_changed = false;
+            let mut world_changed = false;
 
             // This also means we finished a build, so let's apply it
             let (start, end) = build_area(start, end);
@@ -96,9 +96,11 @@ impl BuildInputController {
                         BuildChoice::None => unreachable!(),
                         BuildChoice::Floor => {
                             let tile = ship.tiles.tile_mut(tile_pos).unwrap();
+
                             if !tile.floor {
                                 tile.floor = true;
-                                thing_changed = true;
+                                world_changed = true;
+                                self.build_sound_queued = true;
                             }
                         },
                         BuildChoice::Wall => {
@@ -109,38 +111,38 @@ impl BuildInputController {
 
                             if has_tile && !has_object && !has_task {
                                 ship.task_queue.queue_task(tile_pos).unwrap();
-                                thing_changed = true;
+                                self.build_sound_queued = true;
                             }
                         },
                         BuildChoice::DestroyObject => {
                             let tile = ship.tiles.tile_mut(tile_pos).unwrap();
 
                             if tile.object.is_some() {
-                                tile.object = None;
-                                thing_changed = true;
+                                world_changed = true;
+                                self.build_sound_queued = true;
                             }
+
+                            tile.object = None;
 
                             if let Some(task_id) = ship.task_queue.task_at(tile_pos) {
                                 ship.task_queue.dequeue_task(task_id).unwrap();
-                                thing_changed = true;
+                                self.build_sound_queued = true;
                             }
                         },
                         BuildChoice::DestroyAll => {
                             let tile = ship.tiles.tile_mut(tile_pos).unwrap();
 
-                            if tile.floor {
-                                tile.floor = false;
-                                thing_changed = true;
+                            if tile.floor || tile.object.is_some() {
+                                world_changed = true;
+                                self.build_sound_queued = true;
                             }
 
-                            if tile.object.is_some() {
-                                tile.object = None;
-                                thing_changed = true;
-                            }
+                            tile.floor = false;
+                            tile.object = None;
 
                             if let Some(task_id) = ship.task_queue.task_at(tile_pos) {
                                 ship.task_queue.dequeue_task(task_id).unwrap();
-                                thing_changed = true;
+                                self.build_sound_queued = true;
                             }
                         },
                     }
@@ -150,9 +152,9 @@ impl BuildInputController {
             // Actually switch back to hovering now
             self.build_state = BuildState::Hovering { position: self.last_tile_position };
 
-            // And finally, make sure the build sound is played
-            if thing_changed {
-                self.build_sound_queued = true;
+            if world_changed {
+                // Since the world has changed, we can mark all tasks as being possible again
+                ship.task_queue.clear_unreachable();
             }
         }
     }
