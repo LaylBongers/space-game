@@ -34,7 +34,7 @@ impl Ui {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct ButtonId(usize);
 
 pub struct Button {

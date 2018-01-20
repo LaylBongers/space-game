@@ -6,12 +6,17 @@ use ggez::{Context, GameResult};
 use ggez::graphics::{self};
 use nalgebra::{Point2};
 
-use controller::{self, BuildInputController, BuildState};
+use controller::{self, BuildInputController, BuildState, BuildChoice};
 use model::ui::{Ui, Button};
 
 pub fn draw_build_indicator(
     ctx: &mut Context, build_input: &BuildInputController
 ) -> GameResult<()> {
+    // If clicking won't do anything, we don't want to draw an indicator
+    if *build_input.build_choice() == BuildChoice::None {
+        return Ok(())
+    }
+
     graphics::set_color(ctx, (255, 255, 255, 100).into())?;
 
     match *build_input.build_state() {

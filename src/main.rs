@@ -148,7 +148,7 @@ impl EventHandler for MainState {
         button: MouseButton, x: i32, y: i32
     ) {
         self.ui_input.handle_mouse_up(button, Point2::new(x, y), &mut self.ui);
-        self.build_input.handle_mouse_up(button, &mut self.ship);
+        self.build_input.handle_mouse_up(button, &mut self.ship, &mut self.ui);
         self.camera_input.handle_mouse_up(button);
     }
 

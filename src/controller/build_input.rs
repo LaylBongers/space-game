@@ -29,7 +29,6 @@ impl BuildInputController {
             Vector2::new(72, 24),
             Text::new(ctx, "Floor", font)?,
         ));
-        ui.get_mut(build_floor_button).color = (120, 255, 120);
         pos += 72 + 6;
 
         let build_wall_button = ui.add(Button::new(
@@ -65,10 +64,10 @@ impl BuildInputController {
         Ok(BuildInputController {
             last_tile_position: None,
             build_state: BuildState::Hovering { position: None },
-            build_choice: BuildChoice::Floor,
+            build_choice: BuildChoice::None,
 
             buttons,
-            active_button: Some(build_floor_button),
+            active_button: None,
 
             build_sound_queued: false,
             place_sound,
@@ -79,13 +78,19 @@ impl BuildInputController {
         &self.build_state
     }
 
+    pub fn build_choice(&self) -> &BuildChoice {
+        &self.build_choice
+    }
+
     pub fn update(&mut self, ui: &mut Ui) -> GameResult<()> {
         for &(button, build_choice) in &self.buttons {
             if ui.get_mut(button).check_pressed() {
                 // Update button colors
                 ui.get_mut(button).color = (120, 255, 120);
                 if let Some(active_button) = self.active_button {
-                    ui.get_mut(active_button).color = (255, 255, 255);
+                    if active_button != button {
+                        ui.get_mut(active_button).color = (255, 255, 255);
+                    }
                 }
 
                 self.build_choice = build_choice;
@@ -102,7 +107,7 @@ impl BuildInputController {
     }
 
     pub fn handle_mouse_down(&mut self, button: MouseButton) {
-        if button != MouseButton::Left {
+        if button != MouseButton::Left || self.build_choice == BuildChoice::None {
             return
         }
 
@@ -115,11 +120,19 @@ impl BuildInputController {
         }
     }
 
-    pub fn handle_mouse_up(&mut self, button: MouseButton, ship: &mut Ship) {
-        if button != MouseButton::Left {
+    pub fn handle_mouse_up(&mut self, button: MouseButton, ship: &mut Ship, ui: &mut Ui) {
+        if self.build_choice == BuildChoice::None {
             return
         }
 
+        match button {
+            MouseButton::Left => self.handle_build_up(ship),
+            MouseButton::Right => self.handle_cancel_up(ui),
+            _ => {},
+        }
+    }
+
+    fn handle_build_up(&mut self, ship: &mut Ship) {
         // If we were currently dragging, switch back to hovering
         if let BuildState::Dragging { start, end } = self.build_state {
             // This also means we finished a build, so let's apply it
@@ -128,6 +141,7 @@ impl BuildInputController {
                 for x in start.x..end.x {
                     let tile_pos = Point2::new(x, y);
                     match self.build_choice {
+                        BuildChoice::None => unreachable!(),
                         BuildChoice::Floor => {
                             let tile = ship.tiles.tile_mut(tile_pos).unwrap();
                             tile.floor = true;
@@ -171,6 +185,15 @@ impl BuildInputController {
         }
     }
 
+    fn handle_cancel_up(&mut self, ui: &mut Ui) {
+        self.build_state = BuildState::Hovering { position: self.last_tile_position };
+        self.build_choice = BuildChoice::None;
+        if let Some(active_button) = self.active_button {
+            ui.get_mut(active_button).color = (255, 255, 255);
+            self.active_button = None;
+        }
+    }
+
     pub fn handle_mouse_move(
         &mut self,
         mouse_position: Point2<i32>,
@@ -208,8 +231,9 @@ pub enum BuildState {
     Dragging { start: Point2<i32>, end: Point2<i32> },
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub enum BuildChoice {
+    None,
     Floor,
     Wall,
     DestroyObject,
