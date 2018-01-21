@@ -3,6 +3,7 @@ use slog::{Logger};
 
 use model::ship::{Tiles, Unit, TaskQueue};
 
+#[derive(Deserialize, Serialize)]
 pub struct Ship {
     units: Vec<Unit>,
 

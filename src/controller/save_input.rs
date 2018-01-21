@@ -2,6 +2,8 @@ use nalgebra::{Point2, Vector2};
 use ggez::{Context, GameResult};
 use ggez::graphics::{Text, Font};
 use slog::{Logger};
+use serde::{Deserialize, Serialize};
+use rmp_serde::{Deserializer, Serializer};
 
 use model::ship::{Ship};
 use model::ui::{Ui, Button, ButtonId};
@@ -42,15 +44,30 @@ impl SaveInputController {
         })
     }
 
-    pub fn update(&mut self, log: &Logger, ui: &mut Ui, ship: &mut Ship) {
+    pub fn update(
+        &mut self, log: &Logger, ctx: &mut Context, ui: &mut Ui, ship: &mut Ship
+    ) -> GameResult<()> {
         if ui.get_mut(self.load_game_button).check_pressed() {
+            info!(log, "Loading game");
+
+            let mut file = ctx.filesystem.open("/save.mp")?;
+            let mut de = Deserializer::new(&mut file);
+            *ship = Deserialize::deserialize(&mut de).unwrap();
         }
 
         if ui.get_mut(self.save_game_button).check_pressed() {
+            info!(log, "Saving game");
+
+            let mut file = ctx.filesystem.create("/save.mp")?;
+            ship.serialize(&mut Serializer::new(&mut file)).unwrap();
         }
 
         if ui.get_mut(self.new_game_button).check_pressed() {
+            info!(log, "Creating new game");
+
             *ship = Ship::starter(log);
         }
+
+        Ok(())
     }
 }

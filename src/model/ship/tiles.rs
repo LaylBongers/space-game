@@ -1,5 +1,6 @@
 use nalgebra::{Vector2, Point2};
 
+#[derive(Deserialize, Serialize)]
 pub struct Tiles {
     tiles: Vec<Tile>,
     size: Vector2<i32>,
@@ -65,6 +66,7 @@ pub enum TilesError {
     OutOfBounds { position: Point2<i32> },
 }
 
+#[derive(Deserialize, Serialize)]
 pub struct Tile {
     pub floor: bool,
     pub object: Option<ShipObject>,
@@ -79,6 +81,7 @@ impl Tile {
     }
 }
 
+#[derive(Deserialize, Serialize)]
 pub struct ShipObject {
 }
 

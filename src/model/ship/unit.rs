@@ -5,6 +5,7 @@ use pathfinding;
 
 use model::ship::{TaskId, TaskQueue, ShipObject, Tiles, Tile, TilesError};
 
+#[derive(Deserialize, Serialize)]
 pub struct Unit {
     position: Point2<f32>,
     assigned_task: Option<TaskId>,

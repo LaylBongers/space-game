@@ -6,6 +6,10 @@ extern crate slog;
 extern crate sloggers;
 extern crate metrohash;
 extern crate pathfinding;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate rmp_serde;
 
 mod controller;
 pub mod model;
@@ -92,7 +96,7 @@ impl EventHandler for MainState {
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
             self.build_input.update(&mut self.ui)?;
-            self.save_input.update(&self.log, &mut self.ui, &mut self.ship);
+            self.save_input.update(&self.log, ctx, &mut self.ui, &mut self.ship)?;
             self.ship.update(&self.log, DELTA);
         }
 

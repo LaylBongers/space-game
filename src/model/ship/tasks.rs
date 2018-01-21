@@ -3,6 +3,7 @@ use nalgebra::{Point2};
 use metrohash::{MetroHashMap};
 use slog::{Logger};
 
+#[derive(Deserialize, Serialize)]
 pub struct TaskQueue {
     // Faster non-crypto hasher for small & medium key sizes
     tasks: MetroHashMap<TaskId, Task>,
@@ -115,9 +116,10 @@ pub enum TaskQueueError {
     InvalidTaskId { id: TaskId },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq, Deserialize, Serialize)]
 pub struct TaskId(pub i32);
 
+#[derive(Deserialize, Serialize)]
 pub struct Task {
     position: Point2<i32>,
     assigned: bool,
