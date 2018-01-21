@@ -25,10 +25,10 @@ use sloggers::{Build};
 use sloggers::terminal::{TerminalLoggerBuilder};
 use sloggers::types::{Severity};
 
-use controller::{BuildInputController, CameraInputController};
+use controller::{BuildInputController, CameraInputController, SaveInputController};
 use controller::ui::{UiInputController};
 use model::{Camera};
-use model::ship::{Ship, Unit};
+use model::ship::{Ship};
 use model::ui::{Ui};
 
 struct MainState {
@@ -42,6 +42,7 @@ struct MainState {
     // Controllers
     build_input: BuildInputController,
     camera_input: CameraInputController,
+    save_input: SaveInputController,
     ui_input: UiInputController,
 
     // View Data
@@ -57,21 +58,14 @@ impl MainState {
         camera.set_position(Point2::new(50.0, 50.0));
 
         // Create the starter ship
-        info!(log, "Creating starter ship");
-        let mut ship = Ship::empty(Vector2::new(100, 100));
-        for y in 47..53 {
-            for x in 48..52 {
-                ship.tiles.tile_mut(Point2::new(x, y)).unwrap().floor = true;
-            }
-        }
-        ship.add_unit(Unit::new(Point2::new(50.5, 50.5)));
-        ship.add_unit(Unit::new(Point2::new(49.5, 49.5)));
+        let ship = Ship::starter(&log);
 
         let mut ui = Ui::new();
         let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
 
         let build_input = BuildInputController::new(ctx, &mut ui, &font)?;
         let camera_input = CameraInputController::new();
+        let save_input = SaveInputController::new(ctx, &mut ui, &font)?;
         let ui_input = UiInputController::new();
 
         Ok(MainState {
@@ -83,6 +77,7 @@ impl MainState {
 
             build_input,
             camera_input,
+            save_input,
             ui_input,
 
             font,
@@ -97,6 +92,7 @@ impl EventHandler for MainState {
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
             self.build_input.update(&mut self.ui)?;
+            self.save_input.update(&self.log, &mut self.ui, &mut self.ship);
             self.ship.update(&self.log, DELTA);
         }
 
