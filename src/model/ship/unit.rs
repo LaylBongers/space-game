@@ -91,23 +91,21 @@ impl Unit {
     }
 
     /// Finds a path to the goal, returns false if no path could be found.
-    fn path_to(&mut self, mut goal: Point2<i32>, tiles: &Tiles, goal_inclusive: bool) -> bool {
+    fn path_to(&mut self, goal: Point2<i32>, tiles: &Tiles, goal_inclusive: bool) -> bool {
         // Calculate some advance values relevant to pathfinding
         let costs = Costs {
             straight: 100,
             diagonal: (f32::sqrt(2.0) * 100.0) as i32,
         };
-        let mut start = Point2::new(self.position.x as i32, self.position.y as i32);
-
-        // Our path following wants the path in reverse
-        ::std::mem::swap(&mut start, &mut goal);
+        let start = Point2::new(self.position.x as i32, self.position.y as i32);
 
         // Now do the actual pathfinding
+        // Keep in mind our path following wants the path in reverse
         let result = pathfinding::astar(
-            &start,
-            |node| neighbors(*node, goal, tiles, &costs),
-            |node| heuristic(*node, goal, &costs),
-            |node| *node == goal,
+            &goal,
+            |node| neighbors(*node, goal, start, goal_inclusive, tiles, &costs),
+            |node| heuristic(*node, start, &costs),
+            |node| *node == start,
         );
 
         if let Some((mut path, _cost)) = result {
@@ -164,7 +162,8 @@ struct Costs {
 }
 
 fn neighbors(
-    node: Point2<i32>, goal: Point2<i32>, tiles: &Tiles, costs: &Costs
+    node: Point2<i32>, goal: Point2<i32>, start: Point2<i32>,
+    goal_inclusive: bool, tiles: &Tiles, costs: &Costs
 ) -> Vec<(Point2<i32>, i32)> {
     let mut neighbors = Vec::new();
 
@@ -181,9 +180,13 @@ fn neighbors(
             let tile_res =  tiles.tile(neighbor);
 
             // Make sure we can walk over this tile
-            // We always allow the goal because that's where we're moving from, and even if it's
-            // blocked we want to move away from it
-            if !is_walkable(tile_res) && neighbor != goal {
+            // We always allow the start, we want to move off where we are even if it's blocked
+            // Same for the goal if it's not inclusive, because then we only have to reach it one
+            // tile away, if it's walkable is irrelevant
+            if !is_walkable(tile_res) &&
+                !(neighbor == start) &&
+                !(!goal_inclusive && neighbor == goal)
+            {
                 continue
             }
 
@@ -192,9 +195,13 @@ fn neighbors(
                 costs.straight
             } else {
                 // If it's a diagonal we also need to check we're not moving through a hard corner
-                if !is_walkable(tiles.tile(Point2::new(x, node.y))) ||
-                   !is_walkable(tiles.tile(Point2::new(node.x, y))) {
-                    continue
+                // Except, if it's the start and the end's not inclusive, we can ignore that
+                // because we're only trying to reach it one tile away, not move to it
+                if goal_inclusive || neighbor == goal {
+                    if !is_walkable(tiles.tile(Point2::new(x, node.y))) ||
+                       !is_walkable(tiles.tile(Point2::new(node.x, y))) {
+                        continue
+                    }
                 }
 
                 costs.diagonal
@@ -215,8 +222,8 @@ fn is_walkable(tile_res: Result<&Tile, TilesError>) -> bool {
     }
 }
 
-fn heuristic(node: Point2<i32>, goal: Point2<i32>, costs: &Costs) -> i32 {
-    let dx = (node.x - goal.x).abs();
-    let dy = (node.y - goal.y).abs();
+fn heuristic(node: Point2<i32>, start: Point2<i32>, costs: &Costs) -> i32 {
+    let dx = (node.x - start.x).abs();
+    let dy = (node.y - start.y).abs();
     costs.straight*(dx + dy) + (costs.diagonal - 2*costs.straight) * dx.min(dy)
 }
