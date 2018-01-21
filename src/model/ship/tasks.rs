@@ -116,7 +116,7 @@ pub enum TaskQueueError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
-pub struct TaskId(i32);
+pub struct TaskId(pub i32);
 
 pub struct Task {
     position: Point2<i32>,

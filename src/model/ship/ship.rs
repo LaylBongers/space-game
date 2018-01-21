@@ -29,6 +29,11 @@ impl Ship {
     }
 
     pub fn update(&mut self, log: &Logger, delta: f32) {
+        if self.tiles.check_changed() {
+            // Since the world has changed, we can mark all tasks as being possible again
+            self.task_queue.clear_unreachable();
+        }
+
         for unit in &mut self.units {
             unit.update(log, delta, &mut self.tiles, &mut self.task_queue);
         }

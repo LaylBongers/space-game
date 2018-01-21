@@ -153,8 +153,7 @@ impl BuildInputController {
             self.build_state = BuildState::Hovering { position: self.last_tile_position };
 
             if world_changed {
-                // Since the world has changed, we can mark all tasks as being possible again
-                ship.task_queue.clear_unreachable();
+                ship.tiles.mark_changed();
             }
         }
     }

@@ -3,6 +3,7 @@ use nalgebra::{Vector2, Point2};
 pub struct Tiles {
     tiles: Vec<Tile>,
     size: Vector2<i32>,
+    changed: bool,
 }
 
 impl Tiles {
@@ -14,6 +15,7 @@ impl Tiles {
         Tiles {
             tiles,
             size,
+            changed: false,
         }
     }
 
@@ -41,6 +43,16 @@ impl Tiles {
     pub fn is_in_bounds(&self, position: Point2<i32>) -> bool {
         position.x >= 0 && position.y >= 0
             && position.x < self.size.x && position.y < self.size.y
+    }
+
+    pub fn mark_changed(&mut self) {
+        self.changed = true
+    }
+
+    pub fn check_changed(&mut self) -> bool {
+        let val = self.changed;
+        self.changed = false;
+        val
     }
 
     fn index(&self, position: Point2<i32>) -> usize {

@@ -42,10 +42,11 @@ impl Unit {
         // lets a unit sequantially go through the actions needed (find task -> move to -> work).
 
         let mut got_task = false;
-        let mut world_changed = false;
 
         // Try to find a task to do if we don't have one yet, or the old one was removed
-        if let Some(task) = self.assigned_task.and_then(|j| task_queue.task_mut(j)) {
+        if let Some((task_id, task)) = self.assigned_task
+            .and_then(|task_id| task_queue.task_mut(task_id).map(|task| (task_id, task)))
+        {
             got_task = true;
 
             // If we're still path following, don't do anything
@@ -67,7 +68,7 @@ impl Unit {
                 // If the work's done, we can add an object to the tile
                 if task.is_done() {
                     tiles.tile_mut(task.position()).unwrap().object = Some(ShipObject::new());
-                    world_changed = true;
+                    tiles.mark_changed();
                 }
             } else {
                 // We're not there, find a path to our destination
@@ -76,13 +77,10 @@ impl Unit {
                     task.set_unreachable(true);
                     task.set_assigned(false);
                     self.assigned_task = None;
+
+                    info!(log, "Unassigned task {}, it's unreachable", task_id.0);
                 }
             }
-        }
-
-        if world_changed {
-            // Since the world has changed, we can mark all tasks as being possible again
-            task_queue.clear_unreachable();
         }
 
         if !got_task {
