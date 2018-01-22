@@ -10,6 +10,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate rmp_serde;
+extern crate markedly;
 
 mod controller;
 pub mod model;
@@ -17,6 +18,7 @@ mod view;
 
 use std::env;
 use std::path;
+use std::collections::{HashMap};
 
 use ggez::{Context, GameResult};
 use ggez::timer;
@@ -28,6 +30,7 @@ use slog::{Logger};
 use sloggers::{Build};
 use sloggers::terminal::{TerminalLoggerBuilder};
 use sloggers::types::{Severity};
+use markedly::{Template};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
 use controller::ui::{UiInputController};
@@ -37,6 +40,7 @@ use model::ui::{Ui};
 
 struct MainState {
     log: Logger,
+    //ui_root: Component,
 
     // Models
     camera: Camera,
@@ -61,11 +65,31 @@ impl MainState {
         let mut camera = Camera::new(64, Vector2::new(1280, 720));
         camera.set_position(Point2::new(50.0, 50.0));
 
-        // Create the starter ship
-        let ship = Ship::starter(&log);
-
         let mut ui = Ui::new();
         let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
+
+        // Load in all the templates for the UI
+        let mut templates = HashMap::new();
+        for path in ctx.filesystem.read_dir("/markedly")? {
+            // We only want files, not directories
+            if !ctx.filesystem.is_file(&path) {
+                continue
+            }
+
+            // Get an identifier for this template
+            let identifier = path.file_stem().unwrap().to_string_lossy().into_owned();
+
+            // Now actually load in the file
+            info!(log, "Loading ui template \"{}\"", identifier);
+            let file = ctx.filesystem.open("/markedly/root.mark")?;
+            templates.insert(identifier, Template::from_reader(file));
+        }
+
+        // Set up the UI itself
+        //let ui_root = Component::root(&markedly, "root");
+
+        // Create the starter ship
+        let ship = Ship::starter(&log);
 
         let build_input = BuildInputController::new(ctx, &mut ui, &font)?;
         let camera_input = CameraInputController::new();
@@ -74,6 +98,7 @@ impl MainState {
 
         Ok(MainState {
             log,
+            //ui_root,
 
             camera,
             ship,

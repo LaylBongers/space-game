@@ -15,7 +15,9 @@ pub struct SaveInputController {
 }
 
 impl SaveInputController {
-    pub fn new(ctx: &mut Context, ui: &mut Ui, font: &Font) -> GameResult<Self> {
+    pub fn new(
+        ctx: &mut Context, ui: &mut Ui, font: &Font
+    ) -> GameResult<Self> {
         let mut pos = 1280 - 6 - 72;
         let load_game_button = ui.add(Button::new(
             Point2::new(pos, 6),
@@ -36,6 +38,9 @@ impl SaveInputController {
             Vector2::new(72, 24),
             Text::new(ctx, "New Game", font)?,
         ));
+
+        // Set up the UI for this controller
+        //let view = ui_root.view("saving", "saving");
 
         Ok(SaveInputController {
             load_game_button,
