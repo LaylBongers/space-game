@@ -1,0 +1,9 @@
+value
+
+parent
+    child
+        nestedchild
+    otherchild
+
+parent2
+    child2

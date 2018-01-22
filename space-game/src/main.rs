@@ -38,6 +38,44 @@ use model::{Camera};
 use model::ship::{Ship};
 use model::ui::{Ui};
 
+pub fn main() {
+    // Set up logging
+    let mut builder = TerminalLoggerBuilder::new();
+    builder.level(Severity::Debug);
+    let log = builder.build().unwrap();
+
+    // Set up the ggez context
+    let mut c = Conf::new();
+    c.window_mode = WindowMode {
+        width: 1280,
+        height: 720,
+        .. Default::default()
+    };
+    c.window_setup = WindowSetup {
+        title: "Space Game".into(),
+        .. Default::default()
+    };
+    let ctx = &mut Context::load_from_conf("space-game", "carbidegames", c).unwrap();
+
+    // We add the CARGO_MANIFEST_DIR/resources do the filesystems paths so we we look in the cargo
+    // project for files.
+    if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+        let mut path = path::PathBuf::from(manifest_dir);
+        path.push("resources");
+        ctx.filesystem.mount(&path, true);
+    }
+
+    // Set up the game's state
+    let state = &mut MainState::new(ctx, log.clone()).unwrap();
+
+    // Actually run the game and see if it runs successfully
+    if let Err(e) = event::run(ctx, state) {
+        error!(log, "Error encountered: {}", e);
+    } else {
+        info!(log, "Game exited cleanly");
+    }
+}
+
 struct MainState {
     log: Logger,
     //ui_root: Component,
@@ -194,43 +232,5 @@ impl EventHandler for MainState {
     fn quit_event(&mut self, _ctx: &mut Context) -> bool {
         info!(self.log, "quit_event() callback called, quitting");
         false
-    }
-}
-
-pub fn main() {
-    // Set up logging
-    let mut builder = TerminalLoggerBuilder::new();
-    builder.level(Severity::Debug);
-    let log = builder.build().unwrap();
-
-    // Set up the ggez context
-    let mut c = Conf::new();
-    c.window_mode = WindowMode {
-        width: 1280,
-        height: 720,
-        .. Default::default()
-    };
-    c.window_setup = WindowSetup {
-        title: "Space Game".into(),
-        .. Default::default()
-    };
-    let ctx = &mut Context::load_from_conf("space-game", "carbidegames", c).unwrap();
-
-    // We add the CARGO_MANIFEST_DIR/resources do the filesystems paths so we we look in the cargo
-    // project for files.
-    if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
-        let mut path = path::PathBuf::from(manifest_dir);
-        path.push("resources");
-        ctx.filesystem.mount(&path, true);
-    }
-
-    // Set up the game's state
-    let state = &mut MainState::new(ctx, log.clone()).unwrap();
-
-    // Actually run the game and see if it runs successfully
-    if let Err(e) = event::run(ctx, state) {
-        error!(log, "Error encountered: {}", e);
-    } else {
-        info!(log, "Game exited cleanly");
     }
 }
