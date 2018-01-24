@@ -36,13 +36,13 @@ impl Template {
             // Prevent multiple roots, or root starting at wrong indentation level
             if indentation == 0 {
                 if has_root {
-                    return Err("Multiple root components found".to_string())
+                    return Err("Multiple root components found".into())
                 } else {
                     has_root = true;
                 }
             } else {
                 if !has_root {
-                    return Err("First component starts at wrong indentation".to_string())
+                    return Err("First component starts at wrong indentation".into())
                 }
             }
 
@@ -92,10 +92,10 @@ impl Template {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TemplateComponent {
     pub class: String,
-    pub args: Vec<(String, TemplateValue)>,
+    pub arguments: Vec<(String, TemplateValue)>,
     pub children: Vec<TemplateComponent>,
 }
 
@@ -104,49 +104,82 @@ impl TemplateComponent {
         assert_eq!(pair.as_rule(), Rule::component);
         let mut indentation = 0;
         let mut class = None;
+        let mut arguments = None;
 
         for pair in pair.into_inner() {
             match pair.as_rule() {
-                Rule::indentation => {
-                    // Count the spacing, including tabs
-                    let mut spacing = 0;
-                    for c in pair.as_str().chars() {
-                        match c {
-                            ' ' => spacing += 1,
-                            '\t' => spacing += 4,
-                            _ => unreachable!(),
-                        }
-                    }
-
-                    // Fail indentation that isn't divisible by 4
-                    if spacing % 4 != 0 {
-                        let (line, _col) = pair.into_span().start_pos().line_col();
-                        return Err(format!("Bad amount of indentation spacing, must be divisible by 4, at line {}", line))
-                    }
-
-                    indentation = spacing/4;
-                },
-                Rule::identifier => class = Some(pair.as_str().to_string()),
+                Rule::indentation => indentation = Self::parse_indentation(pair)?,
+                Rule::identifier => class = Some(pair.as_str().into()),
+                Rule::arguments => arguments = Some(Self::parse_arguments(pair)),
                 _ => {}
             }
         }
 
         Ok((TemplateComponent {
             class: class.unwrap(),
-            args: Vec::new(),
+            arguments: arguments.unwrap_or_else(|| Vec::new()),
             children: Vec::new(),
         }, indentation))
     }
+
+    fn parse_indentation(pair: Pair<Rule>) -> Result<usize, String> {
+        // Count the spacing, including tabs
+        let mut spacing = 0;
+        for c in pair.as_str().chars() {
+            match c {
+                ' ' => spacing += 1,
+                '\t' => spacing += 4,
+                _ => unreachable!(),
+            }
+        }
+
+        // Fail indentation that isn't divisible by 4
+        if spacing % 4 != 0 {
+            let (line, _col) = pair.into_span().start_pos().line_col();
+            return Err(format!("Bad amount of indentation spacing, must be divisible by 4, at line {}", line))
+        }
+
+        Ok(spacing/4)
+    }
+
+    fn parse_arguments(pair: Pair<Rule>) -> Vec<(String, TemplateValue)> {
+        assert_eq!(pair.as_rule(), Rule::arguments);
+
+        let mut arguments = Vec::new();
+
+        for key_value_pair in pair.into_inner() {
+            assert_eq!(key_value_pair.as_rule(), Rule::key_value);
+
+            let mut key: Option<String> = None;
+            let mut value: Option<TemplateValue> = None;
+
+            for pair in key_value_pair.into_inner() {
+                match pair.as_rule() {
+                    Rule::identifier => key = Some(pair.as_str().into()),
+                    Rule::string => {
+                        let pair_str = pair.as_str();
+                        let text = pair_str[1..pair_str.len()-1].into();
+                        value = Some(TemplateValue::String(text));
+                    },
+                    _ => unreachable!(),
+                }
+            }
+
+            arguments.push((key.unwrap(), value.unwrap()));
+        }
+
+        arguments
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TemplateValue {
     String(String),
 }
 
 #[cfg(test)]
 mod test {
-    use super::{Template};
+    use super::{Template, TemplateValue};
 
     #[test]
     fn it_parses_single_root() {
@@ -236,5 +269,18 @@ mod test {
         println!("Result2: {:?}", result2);
         assert!(result1.is_err());
         assert!(result2.is_err());
+    }
+
+    #[test]
+    fn it_parses_root_arguments() {
+        let result = Template::from_str("root { key: \"value\" }\n");
+
+        println!("Result: {:?}", result);
+        assert!(result.is_ok());
+        let root = result.unwrap().root;
+        assert_eq!(root.class, "root");
+        assert_eq!(root.arguments.len(), 1);
+        assert_eq!(root.arguments[0].0, "key");
+        assert_eq!(root.arguments[0].1, TemplateValue::String("value".into()));
     }
 }

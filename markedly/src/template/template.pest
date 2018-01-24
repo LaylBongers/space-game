@@ -1,10 +1,22 @@
 template = ${ soi ~ component* ~ eoi }
 
-component = { indentation ~ identifier ~ newline+ }
-indentation = { whitespace* }
+// Components
+component = { indentation ~ identifier ~ spacing* ~ (arguments)? ~ (spacing* ~ newline)+ }
+indentation = { spacing* }
 
+// Arguments
+arguments = !{ "{" ~ key_value* ~ "}" }
+key_value = { identifier ~ ":" ~ string }
+
+// Identifiers
 identifier_char = _{ 'a'..'z' | 'A'..'Z' | '0'..'9' | "_" }
 identifier = { identifier_char+ }
 
+// Literals
+string = @{ "\"" ~ (escape | !("\"" | "\\") ~ any)* ~ "\"" }
+escape = @{ "\\" ~ ("\"" | "\\" ) }
+
+// Whitespace
+spacing = _{ (" " | "\t") }
 newline = { ("\r" | "\n") }
-whitespace = _{ (" " | "\t") }
+whitespace = _{ spacing | newline }
