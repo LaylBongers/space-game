@@ -2,6 +2,7 @@
 
 mod component;
 mod template;
+mod value;
 
 mod parser {
     #[derive(Parser)]
@@ -11,13 +12,7 @@ mod parser {
 
 pub use self::component::{ComponentInstance};
 pub use self::template::{Template};
-
-/// A value that's part of a template, to be resolved to a UI value.
-#[derive(Debug, PartialEq)]
-pub enum Value {
-    /// A string text value.
-    String(String),
-}
+pub use self::value::{Value};
 
 #[cfg(test)]
 mod test {
@@ -143,5 +138,20 @@ r#"root {
         assert_eq!(root.component, "root");
         assert_eq!(root.children.len(), 1, "Incorrect children length on root");
         assert_eq!(root.children[0].component, "child");
+    }
+
+    #[test]
+    fn it_parses_number_arguments() {
+        let result = Template::from_str("root { key1: 5, key2: 2.5 }\n");
+
+        println!("Result: {:?}", result);
+        assert!(result.is_ok());
+        let root = result.unwrap().root;
+        assert_eq!(root.component, "root");
+        assert_eq!(root.arguments.len(), 2);
+        assert_eq!(root.arguments[0].0, "key1");
+        assert_eq!(root.arguments[0].1, Value::Integer(5));
+        assert_eq!(root.arguments[1].0, "key2");
+        assert_eq!(root.arguments[1].1, Value::Float(2.5));
     }
 }

@@ -1,2 +1,0 @@
-container { color: (255, 255, 255, 200), size: (100%, 24) }
-button { position: (6, 30), size: (72, 24), text: "Click Me!" }

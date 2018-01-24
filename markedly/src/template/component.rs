@@ -1,6 +1,6 @@
 use pest::iterators::{Pair};
 
-use template::{Value};
+use template::value::{Value};
 use template::parser::{Rule};
 
 /// A component instance in a template.
@@ -70,12 +70,10 @@ impl ComponentInstance {
 
             for pair in key_value_pair.into_inner() {
                 match pair.as_rule() {
-                    Rule::identifier => key = Some(pair.as_str().into()),
-                    Rule::string => {
-                        let pair_str = pair.as_str();
-                        let text = pair_str[1..pair_str.len()-1].into();
-                        value = Some(Value::String(text));
-                    },
+                    Rule::identifier =>
+                        key = Some(pair.as_str().into()),
+                    Rule::string | Rule::integer | Rule::float =>
+                        value = Some(Value::parse(pair)),
                     _ => unreachable!(),
                 }
             }
