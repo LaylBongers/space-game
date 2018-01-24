@@ -5,7 +5,7 @@ component = { indentation ~ identifier ~ spacing* ~ (arguments)? ~ (spacing* ~ n
 indentation = { spacing* }
 
 // Arguments
-arguments = !{ "{" ~ key_value* ~ "}" }
+arguments = !{ "{" ~ (key_value ~ ("," ~ key_value)* ~ ","?)? ~ "}" }
 key_value = { identifier ~ ":" ~ string }
 
 // Identifiers

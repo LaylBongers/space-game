@@ -1,185 +1,27 @@
-use std::io::{Read};
+//! Templates parsed in from markup
 
-use pest::{Parser};
-use pest::iterators::{Pair};
+mod component;
+mod template;
 
-#[derive(Parser)]
-#[grammar = "template/template.pest"]
-struct TemplateParser;
-
-#[derive(Debug)]
-pub struct Template {
-    root: TemplateComponent
+mod parser {
+    #[derive(Parser)]
+    #[grammar = "template/template.pest"]
+    pub struct TemplateParser;
 }
 
-impl Template {
-    pub fn from_reader<R: Read>(mut reader: R) -> Result<Self, String> {
-        let mut text = String::new();
-        reader.read_to_string(&mut text).unwrap();
-        Self::from_str(&text)
-    }
+pub use self::component::{ComponentInstance};
+pub use self::template::{Template};
 
-    pub fn from_str(text: &str) -> Result<Self, String> {
-        // Parse and extract the template pair
-        let pairs = TemplateParser::parse(Rule::template, text)
-            // This gives a pretty error to our caller
-            .map_err(|e| format!("{}", e))?;
-        let template_pair = pairs.into_iter().next().unwrap();
-        assert_eq!(template_pair.as_rule(), Rule::template);
-
-        let mut parent_stack: Vec<TemplateComponent> = Vec::new();
-        let mut has_root = false;
-        let mut last_indentation = 0;
-        for pair in template_pair.into_inner() {
-            let (component, indentation) = TemplateComponent::parse(pair.clone())?;
-
-            // Prevent multiple roots, or root starting at wrong indentation level
-            if indentation == 0 {
-                if has_root {
-                    return Err("Multiple root components found".into())
-                } else {
-                    has_root = true;
-                }
-            } else {
-                if !has_root {
-                    return Err("First component starts at wrong indentation".into())
-                }
-            }
-
-            // If we're at the same indentation level as the previous component, and not root,
-            // the previous component is our sibling, not parent
-            if indentation == last_indentation && indentation != 0 {
-                let sibling = parent_stack.pop().expect("Internal error in parent stack");
-                let mut parent = parent_stack.pop().expect("Internal error in parent stack");
-                parent.children.push(sibling);
-                parent_stack.push(parent);
-            }
-
-            // If we are at lower indentation level, unroll the stack to the level we need to be at
-            if indentation < last_indentation {
-                let unroll_amount = last_indentation - indentation + 1;
-                for _ in 0..unroll_amount {
-                    let sibling = parent_stack.pop().expect("Internal error in parent stack");
-                    let mut parent = parent_stack.pop().expect("Internal error in parent stack");
-                    parent.children.push(sibling);
-                    parent_stack.push(parent);
-                }
-            }
-
-            // If our indentation has increased by more than one, we need to give an error for that
-            if indentation > last_indentation && indentation - last_indentation > 1 {
-                let (line, _col) = pair.into_span().start_pos().line_col();
-                return Err(format!("Excessive increase in indentation at line {}", line))
-            }
-
-            parent_stack.push(component);
-            last_indentation = indentation;
-        }
-
-        // Unroll the stack into a final root
-        let mut last_component = None;
-        parent_stack.reverse();
-        for mut component in parent_stack {
-            if let Some(child_component) = last_component.take() {
-                component.children.push(child_component);
-            }
-            last_component = Some(component);
-        }
-
-        Ok(Template {
-            root: last_component.ok_or("No root component found")?,
-        })
-    }
-}
-
+/// A value that's part of a template, to be resolved to a UI value.
 #[derive(Debug, PartialEq)]
-pub struct TemplateComponent {
-    pub class: String,
-    pub arguments: Vec<(String, TemplateValue)>,
-    pub children: Vec<TemplateComponent>,
-}
-
-impl TemplateComponent {
-    fn parse(pair: Pair<Rule>) -> Result<(Self, usize), String> {
-        assert_eq!(pair.as_rule(), Rule::component);
-        let mut indentation = 0;
-        let mut class = None;
-        let mut arguments = None;
-
-        for pair in pair.into_inner() {
-            match pair.as_rule() {
-                Rule::indentation => indentation = Self::parse_indentation(pair)?,
-                Rule::identifier => class = Some(pair.as_str().into()),
-                Rule::arguments => arguments = Some(Self::parse_arguments(pair)),
-                _ => {}
-            }
-        }
-
-        Ok((TemplateComponent {
-            class: class.unwrap(),
-            arguments: arguments.unwrap_or_else(|| Vec::new()),
-            children: Vec::new(),
-        }, indentation))
-    }
-
-    fn parse_indentation(pair: Pair<Rule>) -> Result<usize, String> {
-        // Count the spacing, including tabs
-        let mut spacing = 0;
-        for c in pair.as_str().chars() {
-            match c {
-                ' ' => spacing += 1,
-                '\t' => spacing += 4,
-                _ => unreachable!(),
-            }
-        }
-
-        // Fail indentation that isn't divisible by 4
-        if spacing % 4 != 0 {
-            let (line, _col) = pair.into_span().start_pos().line_col();
-            return Err(format!("Bad amount of indentation spacing, must be divisible by 4, at line {}", line))
-        }
-
-        Ok(spacing/4)
-    }
-
-    fn parse_arguments(pair: Pair<Rule>) -> Vec<(String, TemplateValue)> {
-        assert_eq!(pair.as_rule(), Rule::arguments);
-
-        let mut arguments = Vec::new();
-
-        for key_value_pair in pair.into_inner() {
-            assert_eq!(key_value_pair.as_rule(), Rule::key_value);
-
-            let mut key: Option<String> = None;
-            let mut value: Option<TemplateValue> = None;
-
-            for pair in key_value_pair.into_inner() {
-                match pair.as_rule() {
-                    Rule::identifier => key = Some(pair.as_str().into()),
-                    Rule::string => {
-                        let pair_str = pair.as_str();
-                        let text = pair_str[1..pair_str.len()-1].into();
-                        value = Some(TemplateValue::String(text));
-                    },
-                    _ => unreachable!(),
-                }
-            }
-
-            arguments.push((key.unwrap(), value.unwrap()));
-        }
-
-        arguments
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum TemplateValue {
+pub enum Value {
+    /// A string text value.
     String(String),
 }
 
 #[cfg(test)]
 mod test {
-    use super::{Template, TemplateValue};
+    use super::{Template, Value};
 
     #[test]
     fn it_parses_single_root() {
@@ -187,7 +29,7 @@ mod test {
 
         println!("Result: {:?}", result);
         assert!(result.is_ok());
-        assert_eq!(result.unwrap().root.class, "root");
+        assert_eq!(result.unwrap().root.component, "root");
     }
 
     #[test]
@@ -205,9 +47,9 @@ mod test {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.class, "root");
+        assert_eq!(root.component, "root");
         assert_eq!(root.children.len(), 1, "Incorrect children length on root");
-        assert_eq!(root.children[0].class, "child");
+        assert_eq!(root.children[0].component, "child");
     }
 
     #[test]
@@ -217,11 +59,11 @@ mod test {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.class, "root");
+        assert_eq!(root.component, "root");
         assert_eq!(root.children.len(), 1, "Incorrect children length on root");
-        assert_eq!(root.children[0].class, "child");
+        assert_eq!(root.children[0].component, "child");
         assert_eq!(root.children[0].children.len(), 1, "Incorrect children length on child");
-        assert_eq!(root.children[0].children[0].class, "nested_child");
+        assert_eq!(root.children[0].children[0].component, "nested_child");
     }
 
     #[test]
@@ -231,10 +73,10 @@ mod test {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.class, "root");
+        assert_eq!(root.component, "root");
         assert_eq!(root.children.len(), 2, "Incorrect children length on root");
-        assert_eq!(root.children[0].class, "child1");
-        assert_eq!(root.children[1].class, "child2");
+        assert_eq!(root.children[0].component, "child1");
+        assert_eq!(root.children[1].component, "child2");
     }
 
     #[test]
@@ -244,12 +86,12 @@ mod test {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.class, "root");
+        assert_eq!(root.component, "root");
         assert_eq!(root.children.len(), 2, "Incorrect children length on root");
-        assert_eq!(root.children[0].class, "child1");
-        assert_eq!(root.children[1].class, "child2");
+        assert_eq!(root.children[0].component, "child1");
+        assert_eq!(root.children[1].component, "child2");
         assert_eq!(root.children[0].children.len(), 1, "Incorrect children length on child1");
-        assert_eq!(root.children[0].children[0].class, "nested_child");
+        assert_eq!(root.children[0].children[0].component, "nested_child");
     }
 
     #[test]
@@ -278,9 +120,28 @@ mod test {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.class, "root");
+        assert_eq!(root.component, "root");
         assert_eq!(root.arguments.len(), 1);
         assert_eq!(root.arguments[0].0, "key");
-        assert_eq!(root.arguments[0].1, TemplateValue::String("value".into()));
+        assert_eq!(root.arguments[0].1, Value::String("value".into()));
+    }
+
+    #[test]
+    fn it_parses_newlines_in_arguments_while_parsing_children() {
+        let result = Template::from_str(
+r#"root {
+    key: "value",
+    key2: "value2",
+}
+    child
+"#
+        );
+
+        println!("Result: {:?}", result);
+        assert!(result.is_ok());
+        let root = result.unwrap().root;
+        assert_eq!(root.component, "root");
+        assert_eq!(root.children.len(), 1, "Incorrect children length on root");
+        assert_eq!(root.children[0].component, "child");
     }
 }

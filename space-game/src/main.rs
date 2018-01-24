@@ -30,7 +30,7 @@ use slog::{Logger};
 use sloggers::{Build};
 use sloggers::terminal::{TerminalLoggerBuilder};
 use sloggers::types::{Severity};
-use markedly::{Template};
+use markedly::template::{Template};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
 use controller::ui::{UiInputController};
@@ -124,7 +124,6 @@ impl MainState {
             let result = Template::from_reader(file);
             match result {
                 Ok(template) => {
-                    info!(log, "{:?}", template);
                     templates.insert(identifier, template);
                 },
                 Err(error) => {
