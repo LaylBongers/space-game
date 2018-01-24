@@ -28,14 +28,6 @@ mod test {
     }
 
     #[test]
-    fn it_fails_two_roots() {
-        let result = Template::from_str("root\nroot2\n");
-
-        println!("Result: {:?}", result);
-        assert!(result.is_err());
-    }
-
-    #[test]
     fn it_parses_root_with_child() {
         let result = Template::from_str("root\n    child\n");
 
@@ -90,25 +82,6 @@ mod test {
     }
 
     #[test]
-    fn it_fails_excessive_indentation() {
-        let result = Template::from_str("root\n        excessive_child1\n");
-
-        println!("Result: {:?}", result);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn it_fails_non_4_indentation() {
-        let result1 = Template::from_str("root\n  bad_child\n");
-        let result2 = Template::from_str("root\n     bad_child\n");
-
-        println!("Result1: {:?}", result1);
-        println!("Result2: {:?}", result2);
-        assert!(result1.is_err());
-        assert!(result2.is_err());
-    }
-
-    #[test]
     fn it_parses_root_arguments() {
         let result = Template::from_str("root { key: \"value\" }\n");
 
@@ -142,16 +115,53 @@ r#"root {
 
     #[test]
     fn it_parses_number_arguments() {
-        let result = Template::from_str("root { key1: 5, key2: 2.5 }\n");
+        let result = Template::from_str("root { key1: 5, key2: 2.5, key3: 69% }\n");
 
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
         assert_eq!(root.component, "root");
-        assert_eq!(root.arguments.len(), 2);
+        assert_eq!(root.arguments.len(), 3);
         assert_eq!(root.arguments[0].0, "key1");
         assert_eq!(root.arguments[0].1, Value::Integer(5));
         assert_eq!(root.arguments[1].0, "key2");
         assert_eq!(root.arguments[1].1, Value::Float(2.5));
+        assert_eq!(root.arguments[2].0, "key3");
+        assert_eq!(root.arguments[2].1, Value::Percentage(69));
+    }
+
+    #[test]
+    fn it_fails_two_roots() {
+        let result = Template::from_str("root\nroot2\n");
+
+        println!("Result: {:?}", result);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn it_fails_excessive_indentation() {
+        let result = Template::from_str("root\n        excessive_child1\n");
+
+        println!("Result: {:?}", result);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn it_fails_non_4_indentation() {
+        let result1 = Template::from_str("root\n  bad_child\n");
+        let result2 = Template::from_str("root\n     bad_child\n");
+
+        println!("Result1: {:?}", result1);
+        println!("Result2: {:?}", result2);
+        assert!(result1.is_err());
+        assert!(result2.is_err());
+    }
+
+    #[test]
+    fn it_fails_duplicate_keys() {
+        let result = Template::from_str("root { key1: 5, key1: 10 }\n");
+
+        println!("Result: {:?}", result);
+        assert!(result.is_err());
     }
 }

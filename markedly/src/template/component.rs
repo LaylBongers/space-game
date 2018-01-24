@@ -25,7 +25,7 @@ impl ComponentInstance {
             match pair.as_rule() {
                 Rule::indentation => indentation = Self::parse_indentation(pair)?,
                 Rule::identifier => component = Some(pair.as_str().into()),
-                Rule::arguments => arguments = Some(Self::parse_arguments(pair)),
+                Rule::arguments => arguments = Some(Self::parse_arguments(pair)?),
                 _ => {}
             }
         }
@@ -57,10 +57,10 @@ impl ComponentInstance {
         Ok(spacing/4)
     }
 
-    fn parse_arguments(pair: Pair<Rule>) -> Vec<(String, Value)> {
+    fn parse_arguments(pair: Pair<Rule>) -> Result<Vec<(String, Value)>, String> {
         assert_eq!(pair.as_rule(), Rule::arguments);
 
-        let mut arguments = Vec::new();
+        let mut arguments: Vec<(String, Value)> = Vec::new();
 
         for key_value_pair in pair.into_inner() {
             assert_eq!(key_value_pair.as_rule(), Rule::key_value);
@@ -68,19 +68,25 @@ impl ComponentInstance {
             let mut key: Option<String> = None;
             let mut value: Option<Value> = None;
 
-            for pair in key_value_pair.into_inner() {
+            for pair in key_value_pair.clone().into_inner() {
                 match pair.as_rule() {
                     Rule::identifier =>
                         key = Some(pair.as_str().into()),
-                    Rule::string | Rule::integer | Rule::float =>
+                    Rule::string | Rule::percentage | Rule::integer | Rule::float =>
                         value = Some(Value::parse(pair)),
                     _ => unreachable!(),
                 }
             }
 
+            // Do not allow duplicate keys
+            if arguments.iter().any(|a| &a.0 == key.as_ref().unwrap()) {
+                let (line, _col) = key_value_pair.into_span().start_pos().line_col();
+                return Err(format!("Key {} occurs more than once at line {}", key.unwrap(), line))
+            }
+
             arguments.push((key.unwrap(), value.unwrap()));
         }
 
-        arguments
+        Ok(arguments)
     }
 }

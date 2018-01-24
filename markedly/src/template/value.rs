@@ -11,6 +11,8 @@ pub enum Value {
     Integer(i32),
     /// A floating-point numeric value.
     Float(f32),
+    /// An integer percentage value.
+    Percentage(i32),
 }
 
 impl Value {
@@ -19,6 +21,8 @@ impl Value {
         match pair.as_rule() {
             Rule::string =>
                 Value::String(pair_str[1..pair_str.len()-1].into()),
+            Rule::percentage =>
+                Value::Percentage(pair_str[0..pair_str.len()-1].parse().unwrap()),
             Rule::integer =>
                 Value::Integer(pair_str.parse().unwrap()),
             Rule::float =>
