@@ -1,0 +1,10 @@
+template = ${ soi ~ component* ~ eoi }
+
+component = { indentation ~ identifier ~ newline+ }
+indentation = { whitespace* }
+
+identifier_char = _{ 'a'..'z' | 'A'..'Z' | '0'..'9' | "_" }
+identifier = { identifier_char+ }
+
+newline = { ("\r" | "\n") }
+whitespace = _{ (" " | "\t") }

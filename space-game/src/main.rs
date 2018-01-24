@@ -65,11 +65,12 @@ pub fn main() {
         ctx.filesystem.mount(&path, true);
     }
 
-    // Set up the game's state
-    let state = &mut MainState::new(ctx, log.clone()).unwrap();
+    // Initialize and run the game
+    let result = MainState::new(ctx, log.clone())
+        .and_then(|mut s| event::run(ctx, &mut s));
 
-    // Actually run the game and see if it runs successfully
-    if let Err(e) = event::run(ctx, state) {
+    // Check if it ran successfully
+    if let Err(e) = result {
         error!(log, "Error encountered: {}", e);
     } else {
         info!(log, "Game exited cleanly");
@@ -119,8 +120,18 @@ impl MainState {
 
             // Now actually load in the file
             info!(log, "Loading ui template \"{}\"", identifier);
-            let file = ctx.filesystem.open("/markedly/root.mark")?;
-            templates.insert(identifier, Template::from_reader(file));
+            let file = ctx.filesystem.open(path)?;
+            let result = Template::from_reader(file);
+            match result {
+                Ok(template) => {
+                    info!(log, "{:?}", template);
+                    templates.insert(identifier, template);
+                },
+                Err(error) => {
+                    error!(log, "Error while loading template:\n{}\n", error);
+                    return Err(String::from("Template loading failed"))?
+                },
+            }
         }
 
         // Set up the UI itself

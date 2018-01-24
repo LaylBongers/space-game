@@ -1,5 +1,6 @@
+extern crate pest;
 #[macro_use]
-extern crate nom;
+extern crate pest_derive;
 
 mod template;
 

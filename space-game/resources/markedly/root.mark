@@ -1,9 +1,5 @@
-value
+container
+    button
 
-parent
-    child
-        nestedchild
-    otherchild
-
-parent2
-    child2
+container2
+    button2

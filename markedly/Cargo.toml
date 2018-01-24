@@ -4,4 +4,5 @@ version = "0.1.0"
 authors = ["Layl <LaylConway@users.noreply.github.com>"]
 
 [dependencies]
-nom = "4.0.0-alpha2"
+pest = "1"
+pest_derive = "1"
