@@ -131,6 +131,22 @@ r#"root {
     }
 
     #[test]
+    fn it_parses_tuple_arguments() {
+        let result = Template::from_str("root { key: (50, \"text\") }\n");
+
+        println!("Result: {:?}", result);
+        assert!(result.is_ok());
+        let root = result.unwrap().root;
+        assert_eq!(root.component, "root");
+        assert_eq!(root.arguments.len(), 1);
+        assert_eq!(root.arguments[0].0, "key");
+        assert_eq!(
+            root.arguments[0].1,
+            Value::Tuple(vec!(Value::Integer(50), Value::String("text".into())))
+        );
+    }
+
+    #[test]
     fn it_fails_two_roots() {
         let result = Template::from_str("root\nroot2\n");
 

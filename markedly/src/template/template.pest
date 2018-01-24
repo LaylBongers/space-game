@@ -6,13 +6,16 @@ indentation = { spacing* }
 
 // Arguments
 arguments = !{ "{" ~ (key_value ~ ("," ~ key_value)* ~ ","?)? ~ "}" }
-key_value = { identifier ~ ":" ~ (string | percentage | float | integer) }
+key_value = { identifier ~ ":" ~ value }
+value = { string | percentage | float | integer | tuple }
 
 // Identifiers
 identifier_char = _{ 'a'..'z' | 'A'..'Z' | '0'..'9' | "_" }
 identifier = { identifier_char+ }
 
-// Literals
+// Values
+tuple = { "(" ~ value ~ ("," ~ value)* ~ ")" }
+
 string = @{ "\"" ~ (escape | !("\"" | "\\") ~ any)* ~ "\"" }
 escape = @{ "\\" ~ ("\"" | "\\" ) }
 

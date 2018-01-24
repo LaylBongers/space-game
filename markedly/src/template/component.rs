@@ -4,7 +4,7 @@ use template::value::{Value};
 use template::parser::{Rule};
 
 /// A component instance in a template.
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct ComponentInstance {
     /// The component this is an instance of.
     pub component: String,
@@ -72,7 +72,7 @@ impl ComponentInstance {
                 match pair.as_rule() {
                     Rule::identifier =>
                         key = Some(pair.as_str().into()),
-                    Rule::string | Rule::percentage | Rule::integer | Rule::float =>
+                    Rule::value =>
                         value = Some(Value::parse(pair)),
                     _ => unreachable!(),
                 }

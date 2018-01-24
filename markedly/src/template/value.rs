@@ -13,10 +13,15 @@ pub enum Value {
     Float(f32),
     /// An integer percentage value.
     Percentage(i32),
+    /// A tuple of values.
+    Tuple(Vec<Value>),
 }
 
 impl Value {
     pub(crate) fn parse(pair: Pair<Rule>) -> Value {
+        assert_eq!(pair.as_rule(), Rule::value);
+        let pair = pair.into_inner().next().unwrap();
+
         let pair_str = pair.as_str();
         match pair.as_rule() {
             Rule::string =>
@@ -27,6 +32,13 @@ impl Value {
                 Value::Integer(pair_str.parse().unwrap()),
             Rule::float =>
                 Value::Float(pair_str.parse().unwrap()),
+            Rule::tuple => {
+                let mut values = Vec::new();
+                for pair in pair.into_inner() {
+                    values.push(Value::parse(pair));
+                }
+                Value::Tuple(values)
+            },
             _ => unreachable!(),
         }
     }
