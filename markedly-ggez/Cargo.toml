@@ -1,9 +1,7 @@
 [package]
-name = "markedly"
+name = "markedly-ggez"
 version = "0.1.0"
 authors = ["Layl <LaylConway@users.noreply.github.com>"]
 
 [dependencies]
-pest = "1"
-pest_derive = "1"
-nalgebra = "0.13"
+markedly = { path = "../markedly" }

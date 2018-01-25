@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "markedly",
+    "markedly-ggez",
     "space-game",
 ]
 

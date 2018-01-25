@@ -1,3 +1,5 @@
+use std::collections::{HashMap};
+
 use pest::iterators::{Pair};
 
 use template::value::{Value};
@@ -9,9 +11,11 @@ pub struct ComponentInstance {
     /// The component this is an instance of.
     pub component: String,
     /// The arguments given to this instance.
-    pub arguments: Vec<(String, Value)>,
+    pub arguments: HashMap<String, Value>,
     /// The children of this instance.
     pub children: Vec<ComponentInstance>,
+    /// The line this component is at in the source markup.
+    pub line: usize,
 }
 
 impl ComponentInstance {
@@ -20,6 +24,7 @@ impl ComponentInstance {
         let mut indentation = 0;
         let mut component = None;
         let mut arguments = None;
+        let (line, _col) = pair.clone().into_span().start_pos().line_col();
 
         for pair in pair.into_inner() {
             match pair.as_rule() {
@@ -32,8 +37,9 @@ impl ComponentInstance {
 
         Ok((ComponentInstance {
             component: component.unwrap(),
-            arguments: arguments.unwrap_or_else(|| Vec::new()),
+            arguments: arguments.unwrap_or_else(|| HashMap::new()),
             children: Vec::new(),
+            line,
         }, indentation))
     }
 
@@ -57,10 +63,10 @@ impl ComponentInstance {
         Ok(spacing/4)
     }
 
-    fn parse_arguments(pair: Pair<Rule>) -> Result<Vec<(String, Value)>, String> {
+    fn parse_arguments(pair: Pair<Rule>) -> Result<HashMap<String, Value>, String> {
         assert_eq!(pair.as_rule(), Rule::arguments);
 
-        let mut arguments: Vec<(String, Value)> = Vec::new();
+        let mut arguments: HashMap<String, Value> = HashMap::new();
 
         for key_value_pair in pair.into_inner() {
             assert_eq!(key_value_pair.as_rule(), Rule::key_value);
@@ -79,14 +85,26 @@ impl ComponentInstance {
             }
 
             // Do not allow duplicate keys
-            if arguments.iter().any(|a| &a.0 == key.as_ref().unwrap()) {
+            if arguments.contains_key(key.as_ref().unwrap()) {
                 let (line, _col) = key_value_pair.into_span().start_pos().line_col();
                 return Err(format!("Key {} occurs more than once at line {}", key.unwrap(), line))
             }
 
-            arguments.push((key.unwrap(), value.unwrap()));
+            arguments.insert(key.unwrap(), value.unwrap());
         }
 
         Ok(arguments)
+    }
+
+    pub fn argument<O, F: FnOnce(&Value) -> Result<O, String>>(
+        &self, key: &str, map: F, default: O
+    ) -> Result<O, String> {
+        self.arguments.get(key)
+            .map(map)
+            .unwrap_or(Ok(default))
+            .map_err(|e| format!(
+                "In component \"{}\" at line {}, invalid field \"{}\": {}",
+                self.component, self.line, key, e
+            ))
     }
 }

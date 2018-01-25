@@ -1,4 +1,5 @@
 use pest::iterators::{Pair};
+use nalgebra::{Point2, Vector2};
 
 use template::parser::{Rule};
 
@@ -40,6 +41,43 @@ impl Value {
                 Value::Tuple(values)
             },
             _ => unreachable!(),
+        }
+    }
+
+    pub fn as_float(&self) -> Result<f32, String> {
+        match *self {
+            Value::Float(value) => Ok(value),
+            _ => Err("Value is not a float".into()),
+        }
+    }
+
+    pub fn as_float_or_percentage(&self, percent_100: f32) -> Result<f32, String> {
+        match *self {
+            Value::Float(value) => Ok(value),
+            Value::Percentage(value) => Ok((value as f32 / 100.0) * percent_100),
+            _ => Err("Value is not a float or percentage".into()),
+        }
+    }
+
+    pub fn as_point(&self, percent_100: Vector2<f32>) -> Result<Point2<f32>, String> {
+        self.as_vector(percent_100)
+            .map(|v| Point2::from_coordinates(v))
+    }
+
+    pub fn as_vector(&self, percent_100: Vector2<f32>) -> Result<Vector2<f32>, String> {
+        if let Value::Tuple(ref values) = *self {
+            if values.len() == 2 {
+                let x = values[0].as_float_or_percentage(percent_100.x)
+                    .map_err(|e| format!("Value 1: {}", e))?;
+                let y = values[1].as_float_or_percentage(percent_100.y)
+                    .map_err(|e| format!("Value 2: {}", e))?;
+
+                Ok(Vector2::new(x, y))
+            } else {
+                Err("Tuple is incorrect size".into())
+            }
+        } else {
+            Err("Value is not a tuple".into())
         }
     }
 }

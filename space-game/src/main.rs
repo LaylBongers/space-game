@@ -11,6 +11,7 @@ extern crate serde;
 extern crate serde_derive;
 extern crate rmp_serde;
 extern crate markedly;
+extern crate markedly_ggez;
 
 mod controller;
 pub mod model;
@@ -30,6 +31,8 @@ use slog::{Logger};
 use sloggers::{Build};
 use sloggers::terminal::{TerminalLoggerBuilder};
 use sloggers::types::{Severity};
+
+use markedly::{Component};
 use markedly::template::{Template};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
@@ -79,7 +82,7 @@ pub fn main() {
 
 struct MainState {
     log: Logger,
-    //ui_root: Component,
+    ui_root: Component,
 
     // Models
     camera: Camera,
@@ -101,7 +104,8 @@ impl MainState {
         info!(log, "Loading game");
 
         // Set up the game world camera
-        let mut camera = Camera::new(64, Vector2::new(1280, 720));
+        let screen_size = Vector2::new(1280, 720);
+        let mut camera = Camera::new(64, screen_size);
         camera.set_position(Point2::new(50.0, 50.0));
 
         let mut ui = Ui::new();
@@ -133,8 +137,11 @@ impl MainState {
             }
         }
 
-        // Set up the UI itself
-        //let ui_root = Component::root(&markedly, "root");
+        // Set up the UI root
+        let ui_root = Component::new(
+            &templates["root"],
+            Vector2::new(screen_size.x as f32, screen_size.y as f32)
+        )?;
 
         // Create the starter ship
         let ship = Ship::starter(&log);
@@ -146,7 +153,7 @@ impl MainState {
 
         Ok(MainState {
             log,
-            //ui_root,
+            ui_root,
 
             camera,
             ship,
@@ -196,6 +203,7 @@ impl EventHandler for MainState {
         graphics::apply_transformations(ctx)?;
 
         // Draw the UI
+        markedly_ggez::render(&self.ui_root);
         view::draw_ui(ctx, &self.ui)?;
 
         // Draw an FPS counter

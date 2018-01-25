@@ -90,8 +90,7 @@ mod test {
         let root = result.unwrap().root;
         assert_eq!(root.component, "root");
         assert_eq!(root.arguments.len(), 1);
-        assert_eq!(root.arguments[0].0, "key");
-        assert_eq!(root.arguments[0].1, Value::String("value".into()));
+        assert_eq!(root.arguments.get("key"), Some(&Value::String("value".into())));
     }
 
     #[test]
@@ -122,12 +121,9 @@ r#"root {
         let root = result.unwrap().root;
         assert_eq!(root.component, "root");
         assert_eq!(root.arguments.len(), 3);
-        assert_eq!(root.arguments[0].0, "key1");
-        assert_eq!(root.arguments[0].1, Value::Integer(5));
-        assert_eq!(root.arguments[1].0, "key2");
-        assert_eq!(root.arguments[1].1, Value::Float(2.5));
-        assert_eq!(root.arguments[2].0, "key3");
-        assert_eq!(root.arguments[2].1, Value::Percentage(69));
+        assert_eq!(root.arguments.get("key1"), Some(&Value::Integer(5)));
+        assert_eq!(root.arguments.get("key2"), Some(&Value::Float(2.5)));
+        assert_eq!(root.arguments.get("key3"), Some(&Value::Percentage(69)));
     }
 
     #[test]
@@ -139,10 +135,9 @@ r#"root {
         let root = result.unwrap().root;
         assert_eq!(root.component, "root");
         assert_eq!(root.arguments.len(), 1);
-        assert_eq!(root.arguments[0].0, "key");
         assert_eq!(
-            root.arguments[0].1,
-            Value::Tuple(vec!(Value::Integer(50), Value::String("text".into())))
+            root.arguments.get("key"),
+            Some(&Value::Tuple(vec!(Value::Integer(50), Value::String("text".into()))))
         );
     }
 
