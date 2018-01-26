@@ -2,14 +2,14 @@ use std::io::{Read};
 
 use pest::{Parser};
 
-use template::component::{ComponentInstance};
+use template::component::{ComponentTemplate};
 use template::parser::{TemplateParser, Rule};
 
 /// A template for a user-defined UI component.
 #[derive(Debug)]
 pub struct Template {
     /// The root component instance of this template.
-    pub root: ComponentInstance
+    pub root: ComponentTemplate
 }
 
 impl Template {
@@ -29,11 +29,11 @@ impl Template {
         let template_pair = pairs.into_iter().next().unwrap();
         assert_eq!(template_pair.as_rule(), Rule::template);
 
-        let mut parent_stack: Vec<ComponentInstance> = Vec::new();
+        let mut parent_stack: Vec<ComponentTemplate> = Vec::new();
         let mut has_root = false;
         let mut last_indentation = 0;
         for pair in template_pair.into_inner() {
-            let (component, indentation) = ComponentInstance::parse(pair.clone())?;
+            let (component, indentation) = ComponentTemplate::parse(pair.clone())?;
 
             // Prevent multiple roots, or root starting at wrong indentation level
             if indentation == 0 {

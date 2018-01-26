@@ -114,37 +114,12 @@ impl MainState {
         let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
 
         // Load in all the templates for the UI
-        let mut templates = HashMap::new();
-        for path in ctx.filesystem.read_dir("/markedly")? {
-            // We only want files, not directories, and files that are .mark
-            if !ctx.filesystem.is_file(&path) ||
-                !path.extension().map(|v| v == "mark").unwrap_or(false)
-            {
-                continue
-            }
-
-            // Get an identifier for this template
-            let identifier = path.file_stem().unwrap().to_string_lossy().into_owned();
-
-            // Now actually load in the file
-            info!(log, "Loading ui template \"{}\"", identifier);
-            let file = ctx.filesystem.open(path)?;
-            let result = Template::from_reader(file);
-            match result {
-                Ok(template) => {
-                    templates.insert(identifier, template);
-                },
-                Err(error) => {
-                    error!(log, "Error while loading template:\n{}\n", error);
-                    return Err(String::from("Template loading failed"))?
-                },
-            }
-        }
+        let templates = load_templates(&log, ctx)?;
 
         // Set up the UI classes
         let mut classes = ComponentClasses::new();
-        classes.register("container", || markedly::class::ContainerClass::new());
-        classes.register("button", || markedly::class::ButtonClass::new());
+        classes.register("container", markedly::class::ContainerClass::new);
+        classes.register("button", markedly::class::ButtonClass::new);
 
         // Set up the UI root
         let ui_root = Component::new(
@@ -177,6 +152,37 @@ impl MainState {
             font,
         })
     }
+}
+
+fn load_templates(log: &Logger, ctx: &mut Context) -> GameResult<HashMap<String, Template>> {
+    let mut templates = HashMap::new();
+    for path in ctx.filesystem.read_dir("/markedly")? {
+        // We only want files, not directories, and files that are .mark
+        if !ctx.filesystem.is_file(&path) ||
+            !path.extension().map(|v| v == "mark").unwrap_or(false)
+        {
+            continue
+        }
+
+        // Get an identifier for this template
+        let identifier = path.file_stem().unwrap().to_string_lossy().into_owned();
+
+        // Now actually load in the file
+        info!(log, "Loading ui template \"{}\"", identifier);
+        let file = ctx.filesystem.open(path)?;
+        let result = Template::from_reader(file);
+        match result {
+            Ok(template) => {
+                templates.insert(identifier, template);
+            },
+            Err(error) => {
+                error!(log, "Error while loading template:\n{}\n", error);
+                return Err(String::from("Template loading failed"))?
+            },
+        }
+    }
+
+    Ok(templates)
 }
 
 impl EventHandler for MainState {

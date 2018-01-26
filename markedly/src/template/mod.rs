@@ -2,7 +2,6 @@
 
 mod component;
 mod template;
-mod value;
 
 mod parser {
     #[derive(Parser)]
@@ -10,9 +9,8 @@ mod parser {
     pub struct TemplateParser;
 }
 
-pub use self::component::{ComponentInstance};
+pub use self::component::{ComponentTemplate};
 pub use self::template::{Template};
-pub use self::value::{Value};
 
 #[cfg(test)]
 mod test {
@@ -82,19 +80,19 @@ mod test {
     }
 
     #[test]
-    fn it_parses_root_arguments() {
+    fn it_parses_root_attributes() {
         let result = Template::from_str("root { key: \"value\" }\n");
 
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
         assert_eq!(root.class, "root");
-        assert_eq!(root.arguments.len(), 1);
-        assert_eq!(root.arguments.get("key"), Some(&Value::String("value".into())));
+        assert_eq!(root.attributes.len(), 1);
+        assert_eq!(root.attributes.get("key"), Some(&Value::String("value".into())));
     }
 
     #[test]
-    fn it_parses_newlines_in_arguments_while_parsing_children() {
+    fn it_parses_newlines_in_attributes_while_parsing_children() {
         let result = Template::from_str(
 r#"root {
     key: "value",
@@ -113,30 +111,30 @@ r#"root {
     }
 
     #[test]
-    fn it_parses_number_arguments() {
+    fn it_parses_number_attributes() {
         let result = Template::from_str("root { key1: 5, key2: 2.5, key3: 69% }\n");
 
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
         assert_eq!(root.class, "root");
-        assert_eq!(root.arguments.len(), 3);
-        assert_eq!(root.arguments.get("key1"), Some(&Value::Integer(5)));
-        assert_eq!(root.arguments.get("key2"), Some(&Value::Float(2.5)));
-        assert_eq!(root.arguments.get("key3"), Some(&Value::Percentage(69)));
+        assert_eq!(root.attributes.len(), 3);
+        assert_eq!(root.attributes.get("key1"), Some(&Value::Integer(5)));
+        assert_eq!(root.attributes.get("key2"), Some(&Value::Float(2.5)));
+        assert_eq!(root.attributes.get("key3"), Some(&Value::Percentage(69)));
     }
 
     #[test]
-    fn it_parses_tuple_arguments() {
+    fn it_parses_tuple_attributes() {
         let result = Template::from_str("root { key: (50, \"text\") }\n");
 
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
         assert_eq!(root.class, "root");
-        assert_eq!(root.arguments.len(), 1);
+        assert_eq!(root.attributes.len(), 1);
         assert_eq!(
-            root.arguments.get("key"),
+            root.attributes.get("key"),
             Some(&Value::Tuple(vec!(Value::Integer(50), Value::String("text".into()))))
         );
     }

@@ -1,3 +1,8 @@
 container
-    container { color: (255, 255, 255, 200), size: (100%, 24.0) }
-    button { position: (6.0, 30.0), size: (72.0, 24.0), text: "Click Me!" }
+    container { size: (100%, 36.0), background-color: (255, 255, 255, 0.8) }
+    button {
+        position: (6.0, 42.0),
+        size: (72.0, 24.0),
+        background-color: (255, 255, 255, 0.8),
+        text: "Click Me!"
+    }

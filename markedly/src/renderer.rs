@@ -1,12 +1,13 @@
 use nalgebra::{Point2, Vector2};
-use {Component};
+use {Component, Color};
 
 pub trait Renderer {
     type Error;
     type Context;
 
     fn rectangle(
-        &self, context: &mut Self::Context, position: Point2<f32>, size: Vector2<f32>
+        &self, context: &mut Self::Context,
+        position: Point2<f32>, size: Vector2<f32>, color: Color,
     ) -> Result<(), Self::Error>;
 }
 

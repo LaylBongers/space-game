@@ -1,7 +1,7 @@
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClasses, ComponentClass};
-use template::{Template, ComponentInstance};
+use template::{Template, ComponentTemplate};
 use {Renderer};
 
 /// A generic runtime component.
@@ -21,14 +21,14 @@ impl<R: Renderer> Component<R> {
     }
 
     fn from_template(
-        template: &ComponentInstance, parent_size: Vector2<f32>, classes: &ComponentClasses<R>,
+        template: &ComponentTemplate, parent_size: Vector2<f32>, classes: &ComponentClasses<R>,
     ) -> Result<Self, String> {
-        let class = classes.create(&template.class)?;
+        let class = classes.create(&template)?;
 
-        let position = template.argument(
+        let position = template.attribute(
             "position", |v| v.as_point(parent_size), Point2::new(0.0, 0.0)
         )?;
-        let size = template.argument(
+        let size = template.attribute(
             "size", |v| v.as_vector(parent_size), parent_size
         )?;
 
