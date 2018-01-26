@@ -24,7 +24,7 @@ mod test {
 
         println!("Result: {:?}", result);
         assert!(result.is_ok());
-        assert_eq!(result.unwrap().root.component, "root");
+        assert_eq!(result.unwrap().root.class, "root");
     }
 
     #[test]
@@ -34,9 +34,9 @@ mod test {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.component, "root");
+        assert_eq!(root.class, "root");
         assert_eq!(root.children.len(), 1, "Incorrect children length on root");
-        assert_eq!(root.children[0].component, "child");
+        assert_eq!(root.children[0].class, "child");
     }
 
     #[test]
@@ -46,11 +46,11 @@ mod test {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.component, "root");
+        assert_eq!(root.class, "root");
         assert_eq!(root.children.len(), 1, "Incorrect children length on root");
-        assert_eq!(root.children[0].component, "child");
+        assert_eq!(root.children[0].class, "child");
         assert_eq!(root.children[0].children.len(), 1, "Incorrect children length on child");
-        assert_eq!(root.children[0].children[0].component, "nested_child");
+        assert_eq!(root.children[0].children[0].class, "nested_child");
     }
 
     #[test]
@@ -60,10 +60,10 @@ mod test {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.component, "root");
+        assert_eq!(root.class, "root");
         assert_eq!(root.children.len(), 2, "Incorrect children length on root");
-        assert_eq!(root.children[0].component, "child1");
-        assert_eq!(root.children[1].component, "child2");
+        assert_eq!(root.children[0].class, "child1");
+        assert_eq!(root.children[1].class, "child2");
     }
 
     #[test]
@@ -73,10 +73,10 @@ mod test {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.component, "root");
+        assert_eq!(root.class, "root");
         assert_eq!(root.children.len(), 2, "Incorrect children length on root");
-        assert_eq!(root.children[0].component, "child1");
-        assert_eq!(root.children[1].component, "child2");
+        assert_eq!(root.children[0].class, "child1");
+        assert_eq!(root.children[1].class, "child2");
         assert_eq!(root.children[0].children.len(), 1, "Incorrect children length on child1");
         assert_eq!(root.children[0].children[0].component, "nested_child");
     }
@@ -88,7 +88,7 @@ mod test {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.component, "root");
+        assert_eq!(root.class, "root");
         assert_eq!(root.arguments.len(), 1);
         assert_eq!(root.arguments.get("key"), Some(&Value::String("value".into())));
     }
@@ -107,7 +107,7 @@ r#"root {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.component, "root");
+        assert_eq!(root.class, "root");
         assert_eq!(root.children.len(), 1, "Incorrect children length on root");
         assert_eq!(root.children[0].component, "child");
     }
@@ -119,7 +119,7 @@ r#"root {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.component, "root");
+        assert_eq!(root.class, "root");
         assert_eq!(root.arguments.len(), 3);
         assert_eq!(root.arguments.get("key1"), Some(&Value::Integer(5)));
         assert_eq!(root.arguments.get("key2"), Some(&Value::Float(2.5)));
@@ -133,7 +133,7 @@ r#"root {
         println!("Result: {:?}", result);
         assert!(result.is_ok());
         let root = result.unwrap().root;
-        assert_eq!(root.component, "root");
+        assert_eq!(root.class, "root");
         assert_eq!(root.arguments.len(), 1);
         assert_eq!(
             root.arguments.get("key"),

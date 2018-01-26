@@ -10,7 +10,7 @@ key_value = { identifier ~ ":" ~ value }
 value = { string | percentage | float | integer | tuple }
 
 // Identifiers
-identifier_char = _{ 'a'..'z' | 'A'..'Z' | '0'..'9' | "_" }
+identifier_char = _{ 'a'..'z' | 'A'..'Z' | '0'..'9' | "_" | "-" }
 identifier = { identifier_char+ }
 
 // Values

@@ -44,6 +44,7 @@ impl Value {
         }
     }
 
+    /// Gets the floating point content of this value, or returns an error.
     pub fn as_float(&self) -> Result<f32, String> {
         match *self {
             Value::Float(value) => Ok(value),
@@ -51,6 +52,8 @@ impl Value {
         }
     }
 
+    /// Gets the floating point content of this value, calculates a percentage floating point
+    /// value, or returns an error.
     pub fn as_float_or_percentage(&self, percent_100: f32) -> Result<f32, String> {
         match *self {
             Value::Float(value) => Ok(value),
@@ -59,11 +62,14 @@ impl Value {
         }
     }
 
+
+    /// Gets the point content of this value, or returns an error.
     pub fn as_point(&self, percent_100: Vector2<f32>) -> Result<Point2<f32>, String> {
         self.as_vector(percent_100)
             .map(|v| Point2::from_coordinates(v))
     }
 
+    /// Gets the vector content of this value, or returns an error.
     pub fn as_vector(&self, percent_100: Vector2<f32>) -> Result<Vector2<f32>, String> {
         if let Value::Tuple(ref values) = *self {
             if values.len() == 2 {

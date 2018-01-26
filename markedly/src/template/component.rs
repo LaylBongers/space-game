@@ -8,8 +8,8 @@ use template::parser::{Rule};
 /// A component instance in a template.
 #[derive(Debug)]
 pub struct ComponentInstance {
-    /// The component this is an instance of.
-    pub component: String,
+    /// The component class this is an instance of.
+    pub class: String,
     /// The arguments given to this instance.
     pub arguments: HashMap<String, Value>,
     /// The children of this instance.
@@ -22,21 +22,21 @@ impl ComponentInstance {
     pub(crate) fn parse(pair: Pair<Rule>) -> Result<(Self, usize), String> {
         assert_eq!(pair.as_rule(), Rule::component);
         let mut indentation = 0;
-        let mut component = None;
+        let mut class = None;
         let mut arguments = None;
         let (line, _col) = pair.clone().into_span().start_pos().line_col();
 
         for pair in pair.into_inner() {
             match pair.as_rule() {
                 Rule::indentation => indentation = Self::parse_indentation(pair)?,
-                Rule::identifier => component = Some(pair.as_str().into()),
+                Rule::identifier => class = Some(pair.as_str().into()),
                 Rule::arguments => arguments = Some(Self::parse_arguments(pair)?),
                 _ => {}
             }
         }
 
         Ok((ComponentInstance {
-            component: component.unwrap(),
+            class: class.unwrap(),
             arguments: arguments.unwrap_or_else(|| HashMap::new()),
             children: Vec::new(),
             line,
@@ -104,7 +104,7 @@ impl ComponentInstance {
             .unwrap_or(Ok(default))
             .map_err(|e| format!(
                 "In component \"{}\" at line {}, invalid field \"{}\": {}",
-                self.component, self.line, key, e
+                self.class, self.line, key, e
             ))
     }
 }

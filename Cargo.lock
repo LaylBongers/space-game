@@ -634,7 +634,9 @@ dependencies = [
 name = "markedly-ggez"
 version = "0.1.0"
 dependencies = [
+ "ggez 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "markedly 0.1.0",
+ "nalgebra 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

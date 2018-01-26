@@ -32,8 +32,10 @@ use sloggers::{Build};
 use sloggers::terminal::{TerminalLoggerBuilder};
 use sloggers::types::{Severity};
 
-use markedly::{Component};
+use markedly::class::{ComponentClasses};
 use markedly::template::{Template};
+use markedly::{Component};
+use markedly_ggez::{GgezRenderer};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
 use controller::ui::{UiInputController};
@@ -82,7 +84,7 @@ pub fn main() {
 
 struct MainState {
     log: Logger,
-    ui_root: Component,
+    ui_root: Component<GgezRenderer>,
 
     // Models
     camera: Camera,
@@ -114,8 +116,10 @@ impl MainState {
         // Load in all the templates for the UI
         let mut templates = HashMap::new();
         for path in ctx.filesystem.read_dir("/markedly")? {
-            // We only want files, not directories
-            if !ctx.filesystem.is_file(&path) {
+            // We only want files, not directories, and files that are .mark
+            if !ctx.filesystem.is_file(&path) ||
+                !path.extension().map(|v| v == "mark").unwrap_or(false)
+            {
                 continue
             }
 
@@ -137,10 +141,16 @@ impl MainState {
             }
         }
 
+        // Set up the UI classes
+        let mut classes = ComponentClasses::new();
+        classes.register("container", || markedly::class::ContainerClass::new());
+        classes.register("button", || markedly::class::ButtonClass::new());
+
         // Set up the UI root
         let ui_root = Component::new(
             &templates["root"],
-            Vector2::new(screen_size.x as f32, screen_size.y as f32)
+            Vector2::new(screen_size.x as f32, screen_size.y as f32),
+            &classes,
         )?;
 
         // Create the starter ship
@@ -203,7 +213,8 @@ impl EventHandler for MainState {
         graphics::apply_transformations(ctx)?;
 
         // Draw the UI
-        markedly_ggez::render(&self.ui_root);
+        let renderer = GgezRenderer {};
+        markedly::render(&renderer, ctx, &self.ui_root)?;
         view::draw_ui(ctx, &self.ui)?;
 
         // Draw an FPS counter
