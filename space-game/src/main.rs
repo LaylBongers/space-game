@@ -85,6 +85,7 @@ pub fn main() {
 struct MainState {
     log: Logger,
     ui_root: Component<GgezRenderer>,
+    ui_renderer: GgezRenderer,
 
     // Models
     camera: Camera,
@@ -113,13 +114,14 @@ impl MainState {
         let mut ui = Ui::new();
         let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
 
-        // Load in all the templates for the UI
+        // Set up the UI context
         let templates = load_templates(&log, ctx)?;
 
-        // Set up the UI classes
         let mut classes = ComponentClasses::new();
         classes.register("container", markedly::class::ContainerClass::new);
         classes.register("button", markedly::class::ButtonClass::new);
+
+        let ui_renderer = GgezRenderer::new(font.clone());
 
         // Set up the UI root
         let ui_root = Component::new(
@@ -139,6 +141,7 @@ impl MainState {
         Ok(MainState {
             log,
             ui_root,
+            ui_renderer,
 
             camera,
             ship,
@@ -219,8 +222,7 @@ impl EventHandler for MainState {
         graphics::apply_transformations(ctx)?;
 
         // Draw the UI
-        let renderer = GgezRenderer {};
-        markedly::render(&renderer, ctx, &self.ui_root)?;
+        markedly::render(&self.ui_renderer, ctx, &self.ui_root)?;
         view::draw_ui(ctx, &self.ui)?;
 
         // Draw an FPS counter

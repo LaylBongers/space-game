@@ -6,6 +6,8 @@ use {Renderer, Color};
 
 pub struct ButtonClass {
     background_color: Option<Color>,
+    text_color: Color,
+    text: Option<String>,
 }
 
 impl ButtonClass {
@@ -13,9 +15,15 @@ impl ButtonClass {
         template: &ComponentTemplate
     ) -> Result<Box<ComponentClass<R>>, String> {
         let background_color = template.attribute_optional("background-color", |v| v.as_color())?;
+        let text_color = template.attribute(
+            "text-color", |v| v.as_color(), Color::new(0, 0, 0, 255)
+        )?;
+        let text = template.attribute_optional("text", |v| v.as_string())?;
 
         Ok(Box::new(ButtonClass {
             background_color,
+            text_color,
+            text,
         }))
     }
 }
@@ -26,6 +34,10 @@ impl<R: Renderer> ComponentClass<R> for ButtonClass {
     ) -> Result<(), R::Error> {
         if let Some(background_color) = self.background_color {
             renderer.rectangle(context, position, size, background_color)?;
+        }
+
+        if let Some(ref text) = self.text {
+            renderer.text(context, &text, position, size, self.text_color)?;
         }
 
         Ok(())

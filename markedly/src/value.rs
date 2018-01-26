@@ -18,6 +18,14 @@ pub enum Value {
 }
 
 impl Value {
+    /// Gets the string content of this value, or returns an error.
+    pub fn as_string(&self) -> Result<String, String> {
+        match *self {
+            Value::String(ref value) => Ok(value.clone()),
+            _ => Err("Value is not a string".into()),
+        }
+    }
+
     /// Gets the integer content of this value, or returns an error.
     pub fn as_integer(&self) -> Result<i32, String> {
         match *self {

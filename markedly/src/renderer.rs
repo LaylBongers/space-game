@@ -5,9 +5,16 @@ pub trait Renderer {
     type Error;
     type Context;
 
+    /// Renders a rectangle.
     fn rectangle(
         &self, context: &mut Self::Context,
         position: Point2<f32>, size: Vector2<f32>, color: Color,
+    ) -> Result<(), Self::Error>;
+
+    /// Renders text centered in an area.
+    fn text(
+        &self, context: &mut Self::Context,
+        text: &str, position: Point2<f32>, size: Vector2<f32>, color: Color,
     ) -> Result<(), Self::Error>;
 }
 
