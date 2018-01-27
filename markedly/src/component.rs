@@ -1,7 +1,7 @@
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClasses, ComponentClass};
-use template::{Template, ComponentTemplate};
+use template::{ComponentTemplate};
 use {Renderer};
 
 /// A generic runtime component.
@@ -15,9 +15,9 @@ pub struct Component<R: Renderer> {
 impl<R: Renderer> Component<R> {
     /// Create a new component from a template.
     pub fn new(
-        template: &Template, screen_size: Vector2<f32>, classes: &ComponentClasses<R>
+        template: &ComponentTemplate, screen_size: Vector2<f32>, classes: &ComponentClasses<R>
     ) -> Result<Self, String> {
-        Self::from_template(&template.root, screen_size, classes)
+        Self::from_template(template, screen_size, classes)
     }
 
     fn from_template(

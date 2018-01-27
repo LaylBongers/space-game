@@ -33,7 +33,7 @@ use sloggers::terminal::{TerminalLoggerBuilder};
 use sloggers::types::{Severity};
 
 use markedly::class::{ComponentClasses};
-use markedly::template::{Template};
+use markedly::template::{ComponentTemplate};
 use markedly::{Component};
 use markedly_ggez::{GgezRenderer};
 
@@ -157,7 +157,9 @@ impl MainState {
     }
 }
 
-fn load_templates(log: &Logger, ctx: &mut Context) -> GameResult<HashMap<String, Template>> {
+fn load_templates(
+    log: &Logger, ctx: &mut Context
+) -> GameResult<HashMap<String, ComponentTemplate>> {
     let mut templates = HashMap::new();
     for path in ctx.filesystem.read_dir("/markedly")? {
         // We only want files, not directories, and files that are .mark
@@ -173,7 +175,7 @@ fn load_templates(log: &Logger, ctx: &mut Context) -> GameResult<HashMap<String,
         // Now actually load in the file
         info!(log, "Loading ui template \"{}\"", identifier);
         let file = ctx.filesystem.open(path)?;
-        let result = Template::from_reader(file);
+        let result = ComponentTemplate::from_reader(file);
         match result {
             Ok(template) => {
                 templates.insert(identifier, template);
