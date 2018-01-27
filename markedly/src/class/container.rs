@@ -2,7 +2,8 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass};
 use template::{ComponentTemplate};
-use {Renderer, Color};
+use render::{Renderer};
+use {Color};
 
 pub struct ContainerClass {
     background_color: Option<Color>,

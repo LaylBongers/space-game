@@ -2,7 +2,7 @@ use std::collections::{HashMap};
 
 use class::{ComponentClass};
 use template::{ComponentTemplate};
-use {Renderer};
+use render::{Renderer};
 
 pub struct ComponentClasses<R: Renderer> {
     factories: HashMap<String, Box<

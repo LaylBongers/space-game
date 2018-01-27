@@ -224,7 +224,7 @@ impl EventHandler for MainState {
         graphics::apply_transformations(ctx)?;
 
         // Draw the UI
-        markedly::render(&self.ui_renderer, ctx, &self.ui_root)?;
+        markedly::render::render(&self.ui_renderer, ctx, &self.ui_root)?;
         view::draw_ui(ctx, &self.ui)?;
 
         // Draw an FPS counter

@@ -7,7 +7,8 @@ use ggez::error::{GameError};
 use ggez::graphics::{self, DrawMode, Rect, Font, Text};
 use nalgebra::{Point2, Vector2};
 
-use markedly::{Renderer, Color};
+use markedly::render::{Renderer};
+use markedly::{Color};
 
 pub struct GgezRenderer {
     font: Font,
@@ -28,7 +29,7 @@ impl Renderer for GgezRenderer {
     fn rectangle(
         &self, ctx: &mut Context, position: Point2<f32>, size: Vector2<f32>, color: Color,
     ) -> GameResult<()> {
-        graphics::set_color(ctx, (color.red, color.green, color.blue, color.alpha).into())?;
+        graphics::set_color(ctx, color_convert(color))?;
 
         graphics::rectangle(ctx, DrawMode::Fill, Rect::new(
             position.x, position.y,
@@ -42,7 +43,7 @@ impl Renderer for GgezRenderer {
         &self, ctx: &mut Context,
         text: &str, position: Point2<f32>, size: Vector2<f32>, color: Color,
     ) -> GameResult<()> {
-        graphics::set_color(ctx, (color.red, color.green, color.blue, color.alpha).into())?;
+        graphics::set_color(ctx, color_convert(color))?;
 
         let text = Text::new(ctx, text, &self.font)?;
 
@@ -56,4 +57,8 @@ impl Renderer for GgezRenderer {
 
         Ok(())
     }
+}
+
+fn color_convert(color: Color) -> ::ggez::graphics::Color {
+    ::ggez::graphics::Color::new(color.red, color.green, color.blue, color.alpha)
 }

@@ -2,7 +2,7 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClasses, ComponentClass};
 use template::{ComponentTemplate};
-use {Renderer};
+use render::{Renderer};
 
 /// A generic runtime component.
 pub struct Component<R: Renderer> {

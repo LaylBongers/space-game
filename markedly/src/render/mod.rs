@@ -1,3 +1,5 @@
+//! Rendering functions and backend traits
+
 use nalgebra::{Point2, Vector2};
 use {Component, Color};
 

@@ -1,3 +1,5 @@
+//! Component classes that define functionality and appearance
+
 mod container;
 mod classes;
 mod button;
@@ -8,7 +10,7 @@ pub use self::button::{ButtonClass};
 
 use nalgebra::{Point2, Vector2};
 
-use {Renderer};
+use render::{Renderer};
 
 pub trait ComponentClass<R: Renderer> {
     fn render(

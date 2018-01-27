@@ -2,7 +2,8 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass};
 use template::{ComponentTemplate};
-use {Renderer, Color};
+use render::{Renderer};
+use {Color};
 
 pub struct ButtonClass {
     background_color: Option<Color>,
@@ -16,7 +17,7 @@ impl ButtonClass {
     ) -> Result<Box<ComponentClass<R>>, String> {
         let background_color = template.attribute_optional("background-color", |v| v.as_color())?;
         let text_color = template.attribute(
-            "text-color", |v| v.as_color(), Color::new(0, 0, 0, 255)
+            "text-color", |v| v.as_color(), Color::new_u8(0, 0, 0)
         )?;
         let text = template.attribute_optional("text", |v| v.as_string())?;
 

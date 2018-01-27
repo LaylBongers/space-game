@@ -1,6 +1,6 @@
 use nalgebra::{Point2, Vector2};
 
-/// A value that's part of a template, to be resolved to a UI value.
+/// A generic attribute value, will be read in by components.
 #[derive(Debug, PartialEq)]
 pub enum Value {
     /// A string text value.
@@ -101,7 +101,7 @@ impl Value {
                 range_i(green, "Value 2", 0, 255)?;
                 range_i(blue, "Value 3", 0, 255)?;
 
-                Ok(Color::new(red as u8, green as u8, blue as u8, alpha))
+                Ok(Color::with_alpha_u8(red as u8, green as u8, blue as u8, alpha))
             } else {
                 Err("Tuple is incorrect size".into())
             }
@@ -127,18 +127,6 @@ fn range_f(value: f32, err_id: &str, min: f32, max: f32) -> Result<(), String> {
     }
 }
 
-#[derive(Clone, Copy)]
-pub struct Color {
-    pub red: u8,
-    pub green: u8,
-    pub blue: u8,
-    pub alpha: u8,
-}
-
-impl Color {
-    pub fn new(red: u8, green: u8, blue: u8, alpha: u8) -> Self {
-        Color {
-            red, green, blue, alpha
-        }
-    }
-}
+// Re-export of palette's color for convenience so people don't have to add palette to their own
+// crate unless they need more complex color functionality.
+pub type Color = ::palette::pixel::Srgb;
