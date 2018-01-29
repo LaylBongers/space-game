@@ -1,8 +1,9 @@
 template = ${ soi ~ component* ~ eoi }
 
 // Components
-component = { indentation ~ identifier ~ spacing* ~ (attributes)? ~ (spacing* ~ newline)+ }
+component = { indentation ~ identifier ~ style_class? ~ spacing* ~ (attributes)? ~ (spacing* ~ newline)+ }
 indentation = { spacing* }
+style_class = { "." ~ identifier }
 
 // Attributes
 attributes = !{ "{" ~ (key_value ~ ("," ~ key_value)* ~ ","?)? ~ "}" }

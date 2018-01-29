@@ -7,15 +7,16 @@ use pest::iterators::{Pair};
 use {Value};
 use template::parser::{TemplateParser, Rule};
 
-
 /// A component instance in a template.
 #[derive(Debug)]
 pub struct ComponentTemplate {
-    /// The component class this is an instance of.
+    /// The component class this coomponent has.
     pub class: String,
-    /// The attributes given to this instance.
+    /// The style class this component has.
+    pub style_class: Option<String>,
+    /// The attributes given to this component.
     pub attributes: HashMap<String, Value>,
-    /// The children of this instance.
+    /// The children of this component.
     pub children: Vec<ComponentTemplate>,
     /// The line this component is at in the source markup.
     pub line: usize,
@@ -104,6 +105,7 @@ impl ComponentTemplate {
         assert_eq!(pair.as_rule(), Rule::component);
         let mut indentation = 0;
         let mut class = None;
+        let mut style_class: Option<String> = None;
         let mut attributes = None;
         let (line, _col) = pair.clone().into_span().start_pos().line_col();
 
@@ -111,6 +113,7 @@ impl ComponentTemplate {
             match pair.as_rule() {
                 Rule::indentation => indentation = Self::parse_indentation(pair)?,
                 Rule::identifier => class = Some(pair.as_str().into()),
+                Rule::style_class => style_class = Some(pair.as_str()[1..].into()),
                 Rule::attributes => attributes = Some(Self::parse_attributes(pair)?),
                 _ => {}
             }
@@ -118,6 +121,7 @@ impl ComponentTemplate {
 
         Ok((ComponentTemplate {
             class: class.unwrap(),
+            style_class,
             attributes: attributes.unwrap_or_else(|| HashMap::new()),
             children: Vec::new(),
             line,

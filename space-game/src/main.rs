@@ -19,7 +19,6 @@ mod view;
 
 use std::env;
 use std::path;
-use std::collections::{HashMap};
 
 use ggez::{Context, GameResult};
 use ggez::timer;
@@ -115,8 +114,6 @@ impl MainState {
         let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
 
         // Set up everything needed for the UI
-        let templates = load_templates(&log, ctx)?;
-
         let mut classes = ComponentClasses::new();
         classes.register::<markedly::class::ContainerClass>("container");
         classes.register::<markedly::class::ButtonClass>("button");
@@ -125,16 +122,15 @@ impl MainState {
         let ui_font = font.clone();
 
         // Set up the UI itself
-        let mut ui = Ui::new(
-            &templates["root"],
-            Vector2::new(screen_size.x as f32, screen_size.y as f32),
-            &classes,
-        )?;
+        let root_template_file = ctx.filesystem.open("/markedly/root.mark")?;
+        let root_template = ComponentTemplate::from_reader(root_template_file)?;
+        let screen_size_f = Vector2::new(screen_size.x as f32, screen_size.y as f32);
+        let mut ui = Ui::new(&root_template, screen_size_f, &classes)?;
 
         // Create the starter ship
         let ship = Ship::starter(&log);
 
-        let build_input = BuildInputController::new(ctx, &mut ui)?;
+        let build_input = BuildInputController::new(ctx, &mut ui, &classes)?;
         let camera_input = CameraInputController::new();
         let save_input = SaveInputController::new(ctx, &mut ui_old, &font)?;
         let ui_input_old = UiInputController::new();
@@ -155,39 +151,6 @@ impl MainState {
             ui_input_old,
         })
     }
-}
-
-fn load_templates(
-    log: &Logger, ctx: &mut Context
-) -> GameResult<HashMap<String, ComponentTemplate>> {
-    let mut templates = HashMap::new();
-    for path in ctx.filesystem.read_dir("/markedly")? {
-        // We only want files, not directories, and files that are .mark
-        if !ctx.filesystem.is_file(&path) ||
-            !path.extension().map(|v| v == "mark").unwrap_or(false)
-        {
-            continue
-        }
-
-        // Get an identifier for this template
-        let identifier = path.file_stem().unwrap().to_string_lossy().into_owned();
-
-        // Now actually load in the file
-        info!(log, "Loading ui template \"{}\"", identifier);
-        let file = ctx.filesystem.open(path)?;
-        let result = ComponentTemplate::from_reader(file);
-        match result {
-            Ok(template) => {
-                templates.insert(identifier, template);
-            },
-            Err(error) => {
-                error!(log, "Error while loading template:\n{}\n", error);
-                return Err(String::from("Template loading failed"))?
-            },
-        }
-    }
-
-    Ok(templates)
 }
 
 impl EventHandler for MainState {
