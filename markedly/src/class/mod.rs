@@ -20,6 +20,9 @@ pub trait ComponentClass<R: Renderer> {
         &self, renderer: &R, context: &mut R::Context, position: Point2<f32>, size: Vector2<f32>
     ) -> Result<(), R::Error>;
 
+    /// Returns if this component class captures cursor events or not. Does not affect children.
+    fn is_capturing_cursor(&self) -> bool { false }
+
     /// Called when the component is clicked or tapped.
-    fn pressed_event(&mut self) {}
+    fn pressed_event(&self) {}
 }

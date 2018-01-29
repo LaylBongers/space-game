@@ -245,7 +245,7 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         button: MouseButton, x: i32, y: i32
     ) {
-        self.ui_input.start_drag(Point2::new(x as f32, y as f32), &mut self.ui);
+        self.ui_input.handle_drag_started(Point2::new(x as f32, y as f32), &mut self.ui);
 
         self.build_input.handle_mouse_down(button);
         self.camera_input.handle_mouse_down(button);
@@ -255,7 +255,7 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         button: MouseButton, x: i32, y: i32
     ) {
-        self.ui_input.end_drag(Point2::new(x as f32, y as f32), &mut self.ui);
+        self.ui_input.handle_drag_ended(Point2::new(x as f32, y as f32), &mut self.ui);
 
         self.ui_input_old.handle_mouse_up(button, Point2::new(x, y), &mut self.ui_old);
         self.build_input.handle_mouse_up(button, &mut self.ship, &mut self.ui_old);
@@ -269,9 +269,11 @@ impl EventHandler for MainState {
         let position = Point2::new(x, y);
         let rel_position = Vector2::new(xrel, yrel);
 
+        self.ui_input.handle_cursor_moved(Point2::new(x as f32, y as f32), &mut self.ui);
+
         self.ui_input_old.handle_mouse_move(position, &self.ui_old);
         self.build_input.handle_mouse_move(
-            position, &mut self.camera, &self.ship, &self.ui_input_old
+            position, &mut self.camera, &self.ship, &self.ui_input, &self.ui_input_old
         );
         self.camera_input.handle_mouse_move(rel_position, &mut self.camera);
     }

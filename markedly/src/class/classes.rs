@@ -42,6 +42,6 @@ impl<R: Renderer> ComponentClasses<R> {
 
 /// A factory trait to allow component classes to define their factory function.
 pub trait ComponentClassFactory<R: Renderer>: Sized + ComponentClass<R> + 'static {
-    // Creates a new instance of the component class.
+    /// Creates a new instance of the component class.
     fn new(template: &ComponentTemplate) -> Result<Self, String>;
 }

@@ -32,4 +32,8 @@ impl<R: Renderer> ComponentClass<R> for ContainerClass {
 
         Ok(())
     }
+
+    fn is_capturing_cursor(&self) -> bool {
+        self.background_color.is_some()
+    }
 }

@@ -45,7 +45,11 @@ impl<R: Renderer> ComponentClass<R> for ButtonClass {
         Ok(())
     }
 
-    fn pressed_event(&mut self) {
+    fn is_capturing_cursor(&self) -> bool {
+        true
+    }
+
+    fn pressed_event(&self) {
         println!("Clicked!");
     }
 }
