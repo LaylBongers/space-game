@@ -198,7 +198,7 @@ fn neighbors(
                 // If it's a diagonal we also need to check we're not moving through a hard corner
                 // Except, if it's the start and the end's not inclusive, we can ignore that
                 // because we're only trying to reach it one tile away, not move to it
-                if goal_inclusive || neighbor == goal {
+                if !(!goal_inclusive && neighbor == goal) {
                     if !is_walkable(tiles.tile(Point2::new(x, node.y))) ||
                        !is_walkable(tiles.tile(Point2::new(node.x, y))) {
                         continue

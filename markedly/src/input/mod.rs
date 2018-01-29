@@ -11,25 +11,30 @@ pub struct UiInput {
 }
 
 impl UiInput {
+    /// Creates a new UI input handler.
     pub fn new() -> Self {
         UiInput {
             hovering_over: None,
         }
     }
 
+    /// Returns true if the cursor is currently over a UI element that captures cursor movement.
     pub fn is_cursor_over_ui(&self) -> bool {
         self.hovering_over.is_some()
     }
 
+    /// Handles cursor movement.
     pub fn handle_cursor_moved<R: Renderer>(&mut self, position: Point2<f32>, ui: &Ui<R>) {
         self.hovering_over = find_at_position(position, ui, ui.root_id());
     }
 
+    /// Handles the start of a cursor or touch drag.
     pub fn handle_drag_started<R: Renderer>(
         &mut self, _position: Point2<f32>, _ui: &mut Ui<R>
     ) {
     }
 
+    /// Handles the end of a cursor or touch drag.
     pub fn handle_drag_ended<R: Renderer>(
         &mut self, position: Point2<f32>, ui: &mut Ui<R>
     ) {

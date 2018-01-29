@@ -4,7 +4,7 @@ mod component;
 
 mod parser {
     #[derive(Parser)]
-    #[grammar = "template/template.pest"]
+    #[grammar = "grammar/template.pest"]
     pub struct TemplateParser;
 }
 
