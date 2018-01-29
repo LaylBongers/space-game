@@ -6,6 +6,7 @@ use template::{ComponentTemplate};
 use render::{Renderer};
 use {Component};
 
+/// A self-contained UI.
 pub struct Ui<R: Renderer> {
     components: MetroHashMap<ComponentId, Component<R>>,
     next_id: ComponentId,
@@ -13,6 +14,7 @@ pub struct Ui<R: Renderer> {
 }
 
 impl<R: Renderer> Ui<R> {
+    /// Creates a new UI from a root template.
     pub fn new(
         root: &ComponentTemplate, screen_size: Vector2<f32>, classes: &ComponentClasses<R>
     ) -> Result<Self, String> {
@@ -49,18 +51,22 @@ impl<R: Renderer> Ui<R> {
         Ok(id)
     }
 
+    /// Gets a component from its ID.
     pub fn get(&self, id: ComponentId) -> Option<&Component<R>> {
         self.components.get(&id)
     }
 
+    /// Gets a component as mutable from its ID.
     pub fn get_mut(&mut self, id: ComponentId) -> Option<&mut Component<R>> {
         self.components.get_mut(&id)
     }
 
+    /// Gets the root component's ID.
     pub fn root_id(&self) -> ComponentId {
         self.root_id
     }
 }
 
+/// An id pointing to a component in a UI.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ComponentId(pub i32);

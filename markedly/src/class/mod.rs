@@ -5,13 +5,15 @@ mod classes;
 mod button;
 
 pub use self::container::{ContainerClass};
-pub use self::classes::{ComponentClasses};
+pub use self::classes::{ComponentClasses, ComponentClassFactory};
 pub use self::button::{ButtonClass};
 
 use nalgebra::{Point2, Vector2};
 
 use render::{Renderer};
 
+/// The class of a component, defines specific appearance and functionality in response to user
+/// input.
 pub trait ComponentClass<R: Renderer> {
     /// Renders the component.
     fn render(

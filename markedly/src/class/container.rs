@@ -1,23 +1,24 @@
 use nalgebra::{Point2, Vector2};
 
-use class::{ComponentClass};
+use class::{ComponentClass, ComponentClassFactory};
 use template::{ComponentTemplate};
 use render::{Renderer};
 use {Color};
 
+/// A container component class, functions as a generic container for other components.
 pub struct ContainerClass {
     background_color: Option<Color>,
 }
 
-impl ContainerClass {
-    pub fn new<R: Renderer>(
+impl<R: Renderer> ComponentClassFactory<R> for ContainerClass {
+    fn new(
         template: &ComponentTemplate
-    ) -> Result<Box<ComponentClass<R>>, String> {
+    ) -> Result<Self, String> {
         let background_color = template.attribute_optional("background-color", |v| v.as_color())?;
 
-        Ok(Box::new(ContainerClass {
+        Ok(ContainerClass {
             background_color,
-        }))
+        })
     }
 }
 

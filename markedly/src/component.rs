@@ -5,16 +5,16 @@ use template::{ComponentTemplate};
 use render::{Renderer};
 use {ComponentId};
 
-/// A generic runtime component.
+/// A runtime component.
 pub struct Component<R: Renderer> {
-    pub class: Box<ComponentClass<R>>,
-    pub children: Vec<ComponentId>,
-    pub position: Point2<f32>,
-    pub size: Vector2<f32>,
+    pub(crate) class: Box<ComponentClass<R>>,
+    pub(crate) children: Vec<ComponentId>,
+    pub(crate) position: Point2<f32>,
+    pub(crate) size: Vector2<f32>,
 }
 
 impl<R: Renderer> Component<R> {
-    pub fn from_template(
+    pub(crate) fn from_template(
         template: &ComponentTemplate, parent_size: Vector2<f32>, classes: &ComponentClasses<R>,
     ) -> Result<Self, String> {
         let class = classes.create(&template)?;

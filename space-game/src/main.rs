@@ -120,8 +120,8 @@ impl MainState {
         let templates = load_templates(&log, ctx)?;
 
         let mut classes = ComponentClasses::new();
-        classes.register("container", markedly::class::ContainerClass::new);
-        classes.register("button", markedly::class::ButtonClass::new);
+        classes.register::<markedly::class::ContainerClass>("container");
+        classes.register::<markedly::class::ButtonClass>("button");
 
         let ui_renderer = GgezRenderer::new(font.clone());
         let ui_input = UiInput::new();

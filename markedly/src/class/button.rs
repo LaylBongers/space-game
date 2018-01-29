@@ -1,31 +1,32 @@
 use nalgebra::{Point2, Vector2};
 
-use class::{ComponentClass};
+use class::{ComponentClass, ComponentClassFactory};
 use template::{ComponentTemplate};
 use render::{Renderer};
 use {Color};
 
+/// A button component class, raises events on click.
 pub struct ButtonClass {
     background_color: Option<Color>,
     text_color: Color,
     text: Option<String>,
 }
 
-impl ButtonClass {
-    pub fn new<R: Renderer>(
+impl<R: Renderer> ComponentClassFactory<R> for ButtonClass {
+    fn new(
         template: &ComponentTemplate
-    ) -> Result<Box<ComponentClass<R>>, String> {
+    ) -> Result<Self, String> {
         let background_color = template.attribute_optional("background-color", |v| v.as_color())?;
         let text_color = template.attribute(
             "text-color", |v| v.as_color(), Color::new_u8(0, 0, 0)
         )?;
         let text = template.attribute_optional("text", |v| v.as_string())?;
 
-        Ok(Box::new(ButtonClass {
+        Ok(ButtonClass {
             background_color,
             text_color,
             text,
-        }))
+        })
     }
 }
 

@@ -1,3 +1,5 @@
+//! Systems for handling user input
+
 use nalgebra::{Point2};
 
 use render::{Renderer};
