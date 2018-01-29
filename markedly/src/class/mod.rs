@@ -12,6 +12,7 @@ use std::error::{Error};
 use nalgebra::{Point2, Vector2};
 
 use render::{Renderer};
+use {ComponentEventsSender};
 
 /// The class of a component, defines specific appearance and functionality in response to user
 /// input.
@@ -25,5 +26,5 @@ pub trait ComponentClass {
     fn is_capturing_cursor(&self) -> bool { false }
 
     /// Called when the component is clicked or tapped.
-    fn pressed_event(&self) {}
+    fn pressed_event(&self, _sender: &ComponentEventsSender) {}
 }

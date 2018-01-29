@@ -13,9 +13,11 @@ pub mod render;
 pub mod template;
 
 mod component;
+mod events;
 mod ui;
 mod value;
 
 pub use component::{Component};
+pub use events::{ComponentEvents, ComponentEventsSender};
 pub use ui::{Ui, ComponentId};
 pub use value::{Value, Color};

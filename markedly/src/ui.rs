@@ -3,7 +3,7 @@ use metrohash::{MetroHashMap};
 
 use class::{ComponentClasses};
 use template::{ComponentTemplate};
-use {Component};
+use {Component, ComponentEvents};
 
 /// A self-contained UI.
 pub struct Ui {
@@ -16,16 +16,17 @@ impl Ui {
     /// Creates a new UI from a root template.
     pub fn new(
         root: &ComponentTemplate, screen_size: Vector2<f32>, classes: &ComponentClasses
-    ) -> Result<Self, String> {
+    ) -> Result<(Self, ComponentEvents), String> {
         let mut ui = Ui {
             components: MetroHashMap::default(),
             next_id: ComponentId(0),
             root_id: ComponentId(0),
         };
 
-        ui.root_id = ui.load_template(root, screen_size, classes)?;
+        let events = ComponentEvents::new();
+        ui.root_id = ui.load_template(root, screen_size, classes, &events)?;
 
-        Ok(ui)
+        Ok((ui, events))
     }
 
     /// Gets a component from its ID.
@@ -47,7 +48,7 @@ impl Ui {
     /// style class.
     pub fn insert_template(
         &mut self, template: &ComponentTemplate, style_class: &str, classes: &ComponentClasses
-    ) -> Result<(), String> {
+    ) -> Result<ComponentEvents, String> {
         // Find the first component that has a style class matching what we were asked for
         let mut found_parent_id = None;
         for (key, component) in &self.components {
@@ -64,27 +65,29 @@ impl Ui {
         let size = self.get(parent_id).unwrap().size;
 
         // Recursively add the template
-        let id = self.load_template(template, size, classes)?;
+        let events = ComponentEvents::new();
+        let id = self.load_template(template, size, classes, &events)?;
 
         // Add the component tree we just added to the children of the component we had found
         self.get_mut(parent_id).unwrap().children.push(id);
 
-        Ok(())
+        Ok(events)
     }
 
     fn load_template(
         &mut self,
         template: &ComponentTemplate, parent_size: Vector2<f32>, classes: &ComponentClasses,
+        events: &ComponentEvents,
     ) -> Result<ComponentId, String> {
         // Load the component itself from the template
-        let mut component = Component::from_template(template, parent_size, classes)?;
+        let mut component = Component::from_template(template, parent_size, classes, events)?;
         let size = component.size;
         let id = self.next_id;
         self.next_id.0 += 1;
 
         // Also load all the children
         for child in &template.children {
-            let id = self.load_template(child, size, classes)?;
+            let id = self.load_template(child, size, classes, events)?;
             component.children.push(id);
         }
 

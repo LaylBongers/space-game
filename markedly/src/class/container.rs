@@ -16,10 +16,8 @@ impl ComponentClassFactory for ContainerClass {
     fn new(
         template: &ComponentTemplate
     ) -> Result<Self, String> {
-        let background_color = template.attribute_optional("background-color", |v| v.as_color())?;
-
         Ok(ContainerClass {
-            background_color,
+            background_color: template.attribute_optional("background-color", |v| v.as_color())?,
         })
     }
 }

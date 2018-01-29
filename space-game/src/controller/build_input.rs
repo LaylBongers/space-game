@@ -6,7 +6,7 @@ use nalgebra::{Point2};
 use markedly::template::{ComponentTemplate};
 use markedly::input::{UiInput};
 use markedly::class::{ComponentClasses};
-use markedly::{Ui};
+use markedly::{Ui, ComponentEvents};
 
 use controller::ui::{UiInputController};
 use model::{Camera};
@@ -119,7 +119,7 @@ impl BuildInputController {
                                 self.build_sound_queued = true;
                             }
                         },
-                        BuildChoice::DestroyObject => {
+                        BuildChoice::Destroy => {
                             let tile = ship.tiles.tile_mut(tile_pos).unwrap();
 
                             if tile.object.is_some() {
@@ -213,7 +213,7 @@ pub enum BuildChoice {
     None,
     Floor,
     Wall,
-    DestroyObject,
+    Destroy,
     DestroyAll,
 }
 
@@ -226,23 +226,31 @@ pub fn build_area(start: Point2<i32>, end: Point2<i32>) -> (Point2<i32>, Point2<
 }
 
 struct BuildInputUiController {
+    events: ComponentEvents,
 }
 
 impl BuildInputUiController {
     pub fn new(ctx: &mut Context, ui: &mut Ui, classes: &ComponentClasses) -> GameResult<Self> {
         let template_file = ctx.filesystem.open("/markedly/build-input.mark")?;
         let template = ComponentTemplate::from_reader(template_file)?;
-        ui.insert_template(&template, "top-menu", &classes)?;
+        let events = ui.insert_template(&template, "top-menu", &classes)?;
 
         Ok(BuildInputUiController {
+            events,
         })
     }
 
-    fn update(&mut self, _ui: &mut Ui, _build_choice: &mut BuildChoice) {
-        /*(build_floor_button, BuildChoice::Floor),
-        (build_wall_button, BuildChoice::Wall),
-        (destroy_object_button, BuildChoice::DestroyObject),
-        (destroy_all_button, BuildChoice::DestroyAll),*/
+    fn update(&mut self, _ui: &mut Ui, build_choice: &mut BuildChoice) {
+        while let Some(event) = self.events.next() {
+            match event.as_str() {
+                "build-floor" => *build_choice = BuildChoice::Floor,
+                "build-wall" => *build_choice = BuildChoice::Wall,
+                "destroy" => *build_choice = BuildChoice::Destroy,
+                "destroy-all" => *build_choice = BuildChoice::DestroyAll,
+                _ => {}
+            }
+        }
+
         //ui.get_mut(button).color = (120, 255, 120);
     }
 

@@ -35,7 +35,7 @@ use sloggers::types::{Severity};
 use markedly::class::{ComponentClasses};
 use markedly::input::{UiInput};
 use markedly::template::{ComponentTemplate};
-use markedly::{Ui};
+use markedly::{Ui, ComponentEvents};
 use markedly_ggez::{GgezRenderer};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
@@ -88,6 +88,7 @@ struct MainState {
     ui: Ui,
     ui_input: UiInput,
     ui_font: Font,
+    root_events: ComponentEvents,
 
     // Models
     camera: Camera,
@@ -125,7 +126,7 @@ impl MainState {
         let root_template_file = ctx.filesystem.open("/markedly/root.mark")?;
         let root_template = ComponentTemplate::from_reader(root_template_file)?;
         let screen_size_f = Vector2::new(screen_size.x as f32, screen_size.y as f32);
-        let mut ui = Ui::new(&root_template, screen_size_f, &classes)?;
+        let (mut ui, root_events) = Ui::new(&root_template, screen_size_f, &classes)?;
 
         // Create the starter ship
         let ship = Ship::starter(&log);
@@ -140,6 +141,7 @@ impl MainState {
             ui,
             ui_input,
             ui_font,
+            root_events,
 
             camera,
             ship,
@@ -159,6 +161,8 @@ impl EventHandler for MainState {
         const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
+            while let Some(_) = self.root_events.next() {}
+
             self.build_input.update(&mut self.ui)?;
             self.save_input.update(&self.log, ctx, &mut self.ui_old, &mut self.ship)?;
             self.ship.update(&self.log, DELTA);

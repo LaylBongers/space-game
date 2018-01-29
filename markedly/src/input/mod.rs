@@ -39,7 +39,7 @@ impl UiInput {
     ) {
         if let Some(component_id) = find_at_position(position, ui, ui.root_id()) {
             let component = ui.get_mut(component_id).unwrap();
-            component.class.pressed_event();
+            component.class.pressed_event(&component.events_sender);
         }
     }
 }
