@@ -104,7 +104,7 @@ impl Unit {
         // Keep in mind our path following wants the path in reverse
         let result = pathfinding::astar(
             &goal,
-            |node| neighbors(*node, goal, start, goal_inclusive, tiles, &costs),
+            |node| neighbors(*node, start, goal, goal_inclusive, tiles, &costs),
             |node| heuristic(*node, start, &costs),
             |node| *node == start,
         );
@@ -163,7 +163,7 @@ struct Costs {
 }
 
 fn neighbors(
-    node: Point2<i32>, goal: Point2<i32>, start: Point2<i32>,
+    node: Point2<i32>, start: Point2<i32>, goal: Point2<i32>,
     goal_inclusive: bool, tiles: &Tiles, costs: &Costs
 ) -> Vec<(Point2<i32>, i32)> {
     let mut neighbors = Vec::new();
@@ -186,7 +186,7 @@ fn neighbors(
             // tile away, if it's walkable is irrelevant
             if !is_walkable(tile_res) &&
                 !(neighbor == start) &&
-                !(!goal_inclusive && neighbor == goal)
+                !(!goal_inclusive && node == goal)
             {
                 continue
             }
@@ -198,7 +198,7 @@ fn neighbors(
                 // If it's a diagonal we also need to check we're not moving through a hard corner
                 // Except, if it's the start and the end's not inclusive, we can ignore that
                 // because we're only trying to reach it one tile away, not move to it
-                if !(!goal_inclusive && neighbor == goal) {
+                if !(!goal_inclusive && node == goal) {
                     if !is_walkable(tiles.tile(Point2::new(x, node.y))) ||
                        !is_walkable(tiles.tile(Point2::new(node.x, y))) {
                         continue
