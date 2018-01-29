@@ -2,36 +2,36 @@ extern crate ggez;
 extern crate nalgebra;
 extern crate markedly;
 
-use ggez::{Context, GameResult};
-use ggez::error::{GameError};
+use std::error::{Error};
+
+use ggez::{Context};
 use ggez::graphics::{self, DrawMode, Rect, Font, Text};
 use nalgebra::{Point2, Vector2};
 
 use markedly::render::{Renderer};
 use markedly::{Color};
 
-pub struct GgezRenderer {
-    font: Font,
+pub struct GgezRenderer<'a> {
+    ctx: &'a mut Context,
+    font: &'a Font,
 }
 
-impl GgezRenderer {
-    pub fn new(font: Font) -> Self {
+impl<'a> GgezRenderer<'a> {
+    pub fn new(ctx: &'a mut Context, font: &'a Font) -> Self {
         GgezRenderer {
+            ctx,
             font,
         }
     }
 }
 
-impl Renderer for GgezRenderer {
-    type Error = GameError;
-    type Context = Context;
-
+impl<'a> Renderer for GgezRenderer<'a> {
     fn rectangle(
-        &self, ctx: &mut Context, position: Point2<f32>, size: Vector2<f32>, color: Color,
-    ) -> GameResult<()> {
-        graphics::set_color(ctx, color_convert(color))?;
+        &mut self, position: Point2<f32>, size: Vector2<f32>, color: Color,
+    ) -> Result<(), Box<Error>> {
+        graphics::set_color(self.ctx, color_convert(color))?;
 
-        graphics::rectangle(ctx, DrawMode::Fill, Rect::new(
+        graphics::rectangle(self.ctx, DrawMode::Fill, Rect::new(
             position.x, position.y,
             size.x, size.y,
         ))?;
@@ -40,17 +40,17 @@ impl Renderer for GgezRenderer {
     }
 
     fn text(
-        &self, ctx: &mut Context,
+        &mut self,
         text: &str, position: Point2<f32>, size: Vector2<f32>, color: Color,
-    ) -> GameResult<()> {
-        graphics::set_color(ctx, color_convert(color))?;
+    ) -> Result<(), Box<Error>> {
+        graphics::set_color(self.ctx, color_convert(color))?;
 
-        let text = Text::new(ctx, text, &self.font)?;
+        let text = Text::new(self.ctx, text, self.font)?;
 
         let x_offset = ((size.x - text.width() as f32) * 0.5).round();
         let y_offset = ((size.y - text.height() as f32) * 0.5).round();
-        graphics::set_color(ctx, (0, 0, 0, 200).into())?;
-        graphics::draw(ctx, &text, Point2::new(
+        graphics::set_color(self.ctx, (0, 0, 0, 200).into())?;
+        graphics::draw(self.ctx, &text, Point2::new(
             position.x + x_offset,
             position.y + y_offset,
         ), 0.0)?;

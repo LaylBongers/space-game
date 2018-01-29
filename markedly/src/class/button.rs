@@ -1,3 +1,5 @@
+use std::error::{Error};
+
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory};
@@ -12,7 +14,7 @@ pub struct ButtonClass {
     text: Option<String>,
 }
 
-impl<R: Renderer> ComponentClassFactory<R> for ButtonClass {
+impl ComponentClassFactory for ButtonClass {
     fn new(
         template: &ComponentTemplate
     ) -> Result<Self, String> {
@@ -30,16 +32,16 @@ impl<R: Renderer> ComponentClassFactory<R> for ButtonClass {
     }
 }
 
-impl<R: Renderer> ComponentClass<R> for ButtonClass {
+impl ComponentClass for ButtonClass {
     fn render(
-        &self, renderer: &R, context: &mut R::Context, position: Point2<f32>, size: Vector2<f32>
-    ) -> Result<(), R::Error> {
+        &self, renderer: &mut Renderer, position: Point2<f32>, size: Vector2<f32>
+    ) -> Result<(), Box<Error>> {
         if let Some(background_color) = self.background_color {
-            renderer.rectangle(context, position, size, background_color)?;
+            renderer.rectangle(position, size, background_color)?;
         }
 
         if let Some(ref text) = self.text {
-            renderer.text(context, &text, position, size, self.text_color)?;
+            renderer.text(&text, position, size, self.text_color)?;
         }
 
         Ok(())

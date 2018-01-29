@@ -1,15 +1,14 @@
 use ggez::{Context, GameResult};
 use ggez::audio::{Source};
 use ggez::event::{MouseButton};
-use ggez::graphics::{Text, Font};
-use nalgebra::{Point2, Vector2};
+use nalgebra::{Point2};
 
 use markedly::input::{UiInput};
+use markedly::{Ui};
 
 use controller::ui::{UiInputController};
 use model::{Camera};
 use model::ship::{Ship};
-use model::ui::{Button, ButtonId, UiOld};
 
 pub struct BuildInputController {
     last_tile_position: Option<Point2<i32>>,
@@ -22,8 +21,8 @@ pub struct BuildInputController {
 }
 
 impl BuildInputController {
-    pub fn new(ctx: &mut Context, ui: &mut UiOld, font: &Font) -> GameResult<Self> {
-        let ui = BuildInputUiController::new(ctx, ui, font)?;
+    pub fn new(ctx: &mut Context, ui: &mut Ui) -> GameResult<Self> {
+        let ui = BuildInputUiController::new(ctx, ui)?;
 
         let mut place_sound = Source::new(ctx, "/object_placed.ogg")?;
         place_sound.set_volume(0.2);
@@ -47,7 +46,7 @@ impl BuildInputController {
         &self.build_choice
     }
 
-    pub fn update(&mut self, ui: &mut UiOld) -> GameResult<()> {
+    pub fn update(&mut self, ui: &mut Ui) -> GameResult<()> {
         self.ui.update(ui, &mut self.build_choice);
 
         if self.build_sound_queued {
@@ -72,7 +71,9 @@ impl BuildInputController {
         }
     }
 
-    pub fn handle_mouse_up(&mut self, button: MouseButton, ship: &mut Ship, ui: &mut UiOld) {
+    pub fn handle_mouse_up(
+        &mut self, button: MouseButton, ship: &mut Ship, ui: &mut Ui
+    ) {
         if self.build_choice == BuildChoice::None {
             return
         }
@@ -160,7 +161,7 @@ impl BuildInputController {
         }
     }
 
-    fn handle_cancel_up(&mut self, ui: &mut UiOld) {
+    fn handle_cancel_up(&mut self, ui: &mut Ui) {
         self.build_state = BuildState::Hovering { position: self.last_tile_position };
         self.build_choice = BuildChoice::None;
         self.ui.clear_active_button(ui);
@@ -223,74 +224,23 @@ pub fn build_area(start: Point2<i32>, end: Point2<i32>) -> (Point2<i32>, Point2<
 }
 
 struct BuildInputUiController {
-    buttons: Vec<(ButtonId, BuildChoice)>,
-    active_button: Option<ButtonId>,
 }
 
 impl BuildInputUiController {
-    pub fn new(ctx: &mut Context, ui: &mut UiOld, font: &Font) -> GameResult<Self> {
-        let mut pos = 6;
-        let build_floor_button = ui.add(Button::new(
-            Point2::new(pos, 6),
-            Vector2::new(72, 24),
-            Text::new(ctx, "Floor", font)?,
-        ));
-        pos += 72 + 6;
-
-        let build_wall_button = ui.add(Button::new(
-            Point2::new(pos, 6),
-            Vector2::new(72, 24),
-            Text::new(ctx, "Wall", font)?,
-        ));
-        pos += 72 + 6;
-
-        let destroy_object_button = ui.add(Button::new(
-            Point2::new(pos, 6),
-            Vector2::new(84, 24),
-            Text::new(ctx, "Destroy Object", font)?,
-        ));
-        pos += 84 + 6;
-
-        let destroy_all_button = ui.add(Button::new(
-            Point2::new(pos, 6),
-            Vector2::new(72, 24),
-            Text::new(ctx, "Destroy All", font)?,
-        ));
-
-        let buttons = vec!(
-            (build_floor_button, BuildChoice::Floor),
-            (build_wall_button, BuildChoice::Wall),
-            (destroy_object_button, BuildChoice::DestroyObject),
-            (destroy_all_button, BuildChoice::DestroyAll),
-        );
+    pub fn new(_ctx: &mut Context, _ui: &mut Ui) -> GameResult<Self> {
 
         Ok(BuildInputUiController {
-            buttons,
-            active_button: None,
         })
     }
 
-    fn update(&mut self, ui: &mut UiOld, build_choice: &mut BuildChoice) {
-        for &(button, button_choice) in &self.buttons {
-            if ui.get_mut(button).check_pressed() {
-                // Update button colors
-                ui.get_mut(button).color = (120, 255, 120);
-                if let Some(active_button) = self.active_button {
-                    if active_button != button {
-                        ui.get_mut(active_button).color = (255, 255, 255);
-                    }
-                }
-
-                *build_choice = button_choice;
-                self.active_button = Some(button);
-            }
-        }
+    fn update(&mut self, _ui: &mut Ui, _build_choice: &mut BuildChoice) {
+        /*(build_floor_button, BuildChoice::Floor),
+        (build_wall_button, BuildChoice::Wall),
+        (destroy_object_button, BuildChoice::DestroyObject),
+        (destroy_all_button, BuildChoice::DestroyAll),*/
+        //ui.get_mut(button).color = (120, 255, 120);
     }
 
-    fn clear_active_button(&mut self, ui: &mut UiOld) {
-        if let Some(active_button) = self.active_button {
-            ui.get_mut(active_button).color = (255, 255, 255);
-            self.active_button = None;
-        }
+    fn clear_active_button(&mut self, _ui: &mut Ui) {
     }
 }

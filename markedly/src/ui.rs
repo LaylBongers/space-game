@@ -3,20 +3,19 @@ use metrohash::{MetroHashMap};
 
 use class::{ComponentClasses};
 use template::{ComponentTemplate};
-use render::{Renderer};
 use {Component};
 
 /// A self-contained UI.
-pub struct Ui<R: Renderer> {
-    components: MetroHashMap<ComponentId, Component<R>>,
+pub struct Ui {
+    components: MetroHashMap<ComponentId, Component>,
     next_id: ComponentId,
     root_id: ComponentId,
 }
 
-impl<R: Renderer> Ui<R> {
+impl Ui {
     /// Creates a new UI from a root template.
     pub fn new(
-        root: &ComponentTemplate, screen_size: Vector2<f32>, classes: &ComponentClasses<R>
+        root: &ComponentTemplate, screen_size: Vector2<f32>, classes: &ComponentClasses
     ) -> Result<Self, String> {
         let mut ui = Ui {
             components: MetroHashMap::default(),
@@ -31,7 +30,7 @@ impl<R: Renderer> Ui<R> {
 
     fn load_template(
         &mut self,
-        template: &ComponentTemplate, parent_size: Vector2<f32>, classes: &ComponentClasses<R>,
+        template: &ComponentTemplate, parent_size: Vector2<f32>, classes: &ComponentClasses,
     ) -> Result<ComponentId, String> {
         // Load the component itself from the template
         let mut component = Component::from_template(template, parent_size, classes)?;
@@ -52,12 +51,12 @@ impl<R: Renderer> Ui<R> {
     }
 
     /// Gets a component from its ID.
-    pub fn get(&self, id: ComponentId) -> Option<&Component<R>> {
+    pub fn get(&self, id: ComponentId) -> Option<&Component> {
         self.components.get(&id)
     }
 
     /// Gets a component as mutable from its ID.
-    pub fn get_mut(&mut self, id: ComponentId) -> Option<&mut Component<R>> {
+    pub fn get_mut(&mut self, id: ComponentId) -> Option<&mut Component> {
         self.components.get_mut(&id)
     }
 

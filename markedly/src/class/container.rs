@@ -1,3 +1,5 @@
+use std::error::{Error};
+
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory};
@@ -10,7 +12,7 @@ pub struct ContainerClass {
     background_color: Option<Color>,
 }
 
-impl<R: Renderer> ComponentClassFactory<R> for ContainerClass {
+impl ComponentClassFactory for ContainerClass {
     fn new(
         template: &ComponentTemplate
     ) -> Result<Self, String> {
@@ -22,12 +24,12 @@ impl<R: Renderer> ComponentClassFactory<R> for ContainerClass {
     }
 }
 
-impl<R: Renderer> ComponentClass<R> for ContainerClass {
+impl ComponentClass for ContainerClass {
     fn render(
-        &self, renderer: &R, context: &mut R::Context, position: Point2<f32>, size: Vector2<f32>
-    ) -> Result<(), R::Error> {
+        &self, renderer: &mut Renderer, position: Point2<f32>, size: Vector2<f32>
+    ) -> Result<(), Box<Error>> {
         if let Some(background_color) = self.background_color {
-            renderer.rectangle(context, position, size, background_color)?;
+            renderer.rectangle(position, size, background_color)?;
         }
 
         Ok(())

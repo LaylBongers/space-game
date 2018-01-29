@@ -2,16 +2,15 @@ use std::collections::{HashMap};
 
 use class::{ComponentClass};
 use template::{ComponentTemplate};
-use render::{Renderer};
 
 /// A registry of component class factories.
-pub struct ComponentClasses<R: Renderer> {
+pub struct ComponentClasses {
     factories: HashMap<String, Box<
-        Fn(&ComponentTemplate) -> Result<Box<ComponentClass<R>>, String>
+        Fn(&ComponentTemplate) -> Result<Box<ComponentClass>, String>
     >>,
 }
 
-impl<R: Renderer> ComponentClasses<R> {
+impl ComponentClasses {
     /// Creates a new registry.
     pub fn new() -> Self {
         ComponentClasses {
@@ -20,7 +19,7 @@ impl<R: Renderer> ComponentClasses<R> {
     }
 
     /// Registers a component class by name.
-    pub fn register<F: ComponentClassFactory<R>>(
+    pub fn register<F: ComponentClassFactory>(
         &mut self, class: &str
     ) {
         self.factories.insert(class.into(), Box::new(|t| {
@@ -30,7 +29,7 @@ impl<R: Renderer> ComponentClasses<R> {
     }
 
     /// Creates a new boxed instance of the component class requested in the template.
-    pub fn create(&self, template: &ComponentTemplate) -> Result<Box<ComponentClass<R>>, String> {
+    pub fn create(&self, template: &ComponentTemplate) -> Result<Box<ComponentClass>, String> {
         let component_class = self.factories
             .get(&template.class)
             .ok_or(format!("Component class \"{}\" was not registered", template.class))?
@@ -41,7 +40,7 @@ impl<R: Renderer> ComponentClasses<R> {
 }
 
 /// A factory trait to allow component classes to define their factory function.
-pub trait ComponentClassFactory<R: Renderer>: Sized + ComponentClass<R> + 'static {
+pub trait ComponentClassFactory: Sized + ComponentClass + 'static {
     /// Creates a new instance of the component class.
     fn new(template: &ComponentTemplate) -> Result<Self, String>;
 }

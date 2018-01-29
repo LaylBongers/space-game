@@ -2,7 +2,6 @@
 
 use nalgebra::{Point2};
 
-use render::{Renderer};
 use {Ui, ComponentId};
 
 /// Handles user input, raising events on components and storing current input information.
@@ -24,19 +23,19 @@ impl UiInput {
     }
 
     /// Handles cursor movement.
-    pub fn handle_cursor_moved<R: Renderer>(&mut self, position: Point2<f32>, ui: &Ui<R>) {
+    pub fn handle_cursor_moved(&mut self, position: Point2<f32>, ui: &Ui) {
         self.hovering_over = find_at_position(position, ui, ui.root_id());
     }
 
     /// Handles the start of a cursor or touch drag.
-    pub fn handle_drag_started<R: Renderer>(
-        &mut self, _position: Point2<f32>, _ui: &mut Ui<R>
+    pub fn handle_drag_started(
+        &mut self, _position: Point2<f32>, _ui: &mut Ui
     ) {
     }
 
     /// Handles the end of a cursor or touch drag.
-    pub fn handle_drag_ended<R: Renderer>(
-        &mut self, position: Point2<f32>, ui: &mut Ui<R>
+    pub fn handle_drag_ended(
+        &mut self, position: Point2<f32>, ui: &mut Ui
     ) {
         if let Some(component_id) = find_at_position(position, ui, ui.root_id()) {
             let component = ui.get_mut(component_id).unwrap();
@@ -45,8 +44,8 @@ impl UiInput {
     }
 }
 
-fn find_at_position<R: Renderer>(
-    position: Point2<f32>, ui: &Ui<R>, id: ComponentId,
+fn find_at_position(
+    position: Point2<f32>, ui: &Ui, id: ComponentId,
 ) -> Option<ComponentId> {
     // If the position isn't over us, it also won't be over any children, so just return none
     let component = ui.get(id).unwrap();

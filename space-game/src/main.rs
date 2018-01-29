@@ -26,6 +26,7 @@ use ggez::timer;
 use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use ggez::graphics::{self, Font, Text};
+use ggez::error::{GameError};
 use nalgebra::{Vector2, Point2};
 use slog::{Logger};
 use sloggers::{Build};
@@ -85,9 +86,9 @@ pub fn main() {
 
 struct MainState {
     log: Logger,
-    ui: Ui<GgezRenderer>,
-    ui_renderer: GgezRenderer,
+    ui: Ui,
     ui_input: UiInput,
+    ui_font: Font,
 
     // Models
     camera: Camera,
@@ -99,9 +100,6 @@ struct MainState {
     camera_input: CameraInputController,
     save_input: SaveInputController,
     ui_input_old: UiInputController,
-
-    // View Data
-    font: Font,
 }
 
 impl MainState {
@@ -123,11 +121,11 @@ impl MainState {
         classes.register::<markedly::class::ContainerClass>("container");
         classes.register::<markedly::class::ButtonClass>("button");
 
-        let ui_renderer = GgezRenderer::new(font.clone());
         let ui_input = UiInput::new();
+        let ui_font = font.clone();
 
         // Set up the UI itself
-        let ui = Ui::new(
+        let mut ui = Ui::new(
             &templates["root"],
             Vector2::new(screen_size.x as f32, screen_size.y as f32),
             &classes,
@@ -136,7 +134,7 @@ impl MainState {
         // Create the starter ship
         let ship = Ship::starter(&log);
 
-        let build_input = BuildInputController::new(ctx, &mut ui_old, &font)?;
+        let build_input = BuildInputController::new(ctx, &mut ui)?;
         let camera_input = CameraInputController::new();
         let save_input = SaveInputController::new(ctx, &mut ui_old, &font)?;
         let ui_input_old = UiInputController::new();
@@ -144,8 +142,8 @@ impl MainState {
         Ok(MainState {
             log,
             ui,
-            ui_renderer,
             ui_input,
+            ui_font,
 
             camera,
             ship,
@@ -155,8 +153,6 @@ impl MainState {
             camera_input,
             save_input,
             ui_input_old,
-
-            font,
         })
     }
 }
@@ -200,7 +196,7 @@ impl EventHandler for MainState {
         const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            self.build_input.update(&mut self.ui_old)?;
+            self.build_input.update(&mut self.ui)?;
             self.save_input.update(&self.log, ctx, &mut self.ui_old, &mut self.ship)?;
             self.ship.update(&self.log, DELTA);
         }
@@ -228,12 +224,16 @@ impl EventHandler for MainState {
         graphics::apply_transformations(ctx)?;
 
         // Draw the UI
-        markedly::render::render(&self.ui_renderer, ctx, &self.ui)?;
+        {
+            let mut renderer = GgezRenderer::new(ctx, &self.ui_font);
+            markedly::render::render(&mut renderer, &self.ui)
+                .map_err(|e| GameError::UnknownError(e.description().to_string()))?;
+        }
         view::draw_ui(ctx, &self.ui_old)?;
 
         // Draw an FPS counter
         let fps = timer::get_fps(ctx);
-        let text = Text::new(ctx, &format!("FPS: {:.2}", fps), &self.font)?;
+        let text = Text::new(ctx, &format!("FPS: {:.2}", fps), &self.ui_font)?;
         graphics::set_color(ctx, (255, 255, 255, 200).into())?;
         graphics::draw(ctx, &text, Point2::new(0.0, 710.0), 0.0)?;
 
@@ -258,7 +258,7 @@ impl EventHandler for MainState {
         self.ui_input.handle_drag_ended(Point2::new(x as f32, y as f32), &mut self.ui);
 
         self.ui_input_old.handle_mouse_up(button, Point2::new(x, y), &mut self.ui_old);
-        self.build_input.handle_mouse_up(button, &mut self.ship, &mut self.ui_old);
+        self.build_input.handle_mouse_up(button, &mut self.ship, &mut self.ui);
         self.camera_input.handle_mouse_up(button);
     }
 
