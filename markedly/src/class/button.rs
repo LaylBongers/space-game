@@ -43,4 +43,8 @@ impl<R: Renderer> ComponentClass<R> for ButtonClass {
 
         Ok(())
     }
+
+    fn pressed_event(&mut self) {
+        println!("Clicked!");
+    }
 }
