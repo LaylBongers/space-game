@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use rmp_serde::{Deserializer, Serializer};
 
 use model::ship::{Ship};
-use model::ui::{Ui, Button, ButtonId};
+use model::ui::{UiOld, Button, ButtonId};
 
 pub struct SaveInputController {
     load_game_button: ButtonId,
@@ -16,7 +16,7 @@ pub struct SaveInputController {
 
 impl SaveInputController {
     pub fn new(
-        ctx: &mut Context, ui: &mut Ui, font: &Font
+        ctx: &mut Context, ui: &mut UiOld, font: &Font
     ) -> GameResult<Self> {
         let mut pos = 1280 - 6 - 72;
         let load_game_button = ui.add(Button::new(
@@ -50,7 +50,7 @@ impl SaveInputController {
     }
 
     pub fn update(
-        &mut self, log: &Logger, ctx: &mut Context, ui: &mut Ui, ship: &mut Ship
+        &mut self, log: &Logger, ctx: &mut Context, ui: &mut UiOld, ship: &mut Ship
     ) -> GameResult<()> {
         if ui.get_mut(self.load_game_button).check_pressed() {
             info!(log, "Loading game");

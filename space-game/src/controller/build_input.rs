@@ -7,7 +7,7 @@ use nalgebra::{Point2, Vector2};
 use controller::ui::{UiInputController};
 use model::{Camera};
 use model::ship::{Ship};
-use model::ui::{Button, ButtonId, Ui};
+use model::ui::{Button, ButtonId, UiOld};
 
 pub struct BuildInputController {
     last_tile_position: Option<Point2<i32>>,
@@ -20,7 +20,7 @@ pub struct BuildInputController {
 }
 
 impl BuildInputController {
-    pub fn new(ctx: &mut Context, ui: &mut Ui, font: &Font) -> GameResult<Self> {
+    pub fn new(ctx: &mut Context, ui: &mut UiOld, font: &Font) -> GameResult<Self> {
         let ui = BuildInputUiController::new(ctx, ui, font)?;
 
         let mut place_sound = Source::new(ctx, "/object_placed.ogg")?;
@@ -45,7 +45,7 @@ impl BuildInputController {
         &self.build_choice
     }
 
-    pub fn update(&mut self, ui: &mut Ui) -> GameResult<()> {
+    pub fn update(&mut self, ui: &mut UiOld) -> GameResult<()> {
         self.ui.update(ui, &mut self.build_choice);
 
         if self.build_sound_queued {
@@ -70,7 +70,7 @@ impl BuildInputController {
         }
     }
 
-    pub fn handle_mouse_up(&mut self, button: MouseButton, ship: &mut Ship, ui: &mut Ui) {
+    pub fn handle_mouse_up(&mut self, button: MouseButton, ship: &mut Ship, ui: &mut UiOld) {
         if self.build_choice == BuildChoice::None {
             return
         }
@@ -158,7 +158,7 @@ impl BuildInputController {
         }
     }
 
-    fn handle_cancel_up(&mut self, ui: &mut Ui) {
+    fn handle_cancel_up(&mut self, ui: &mut UiOld) {
         self.build_state = BuildState::Hovering { position: self.last_tile_position };
         self.build_choice = BuildChoice::None;
         self.ui.clear_active_button(ui);
@@ -224,7 +224,7 @@ struct BuildInputUiController {
 }
 
 impl BuildInputUiController {
-    pub fn new(ctx: &mut Context, ui: &mut Ui, font: &Font) -> GameResult<Self> {
+    pub fn new(ctx: &mut Context, ui: &mut UiOld, font: &Font) -> GameResult<Self> {
         let mut pos = 6;
         let build_floor_button = ui.add(Button::new(
             Point2::new(pos, 6),
@@ -266,7 +266,7 @@ impl BuildInputUiController {
         })
     }
 
-    fn update(&mut self, ui: &mut Ui, build_choice: &mut BuildChoice) {
+    fn update(&mut self, ui: &mut UiOld, build_choice: &mut BuildChoice) {
         for &(button, button_choice) in &self.buttons {
             if ui.get_mut(button).check_pressed() {
                 // Update button colors
@@ -283,7 +283,7 @@ impl BuildInputUiController {
         }
     }
 
-    fn clear_active_button(&mut self, ui: &mut Ui) {
+    fn clear_active_button(&mut self, ui: &mut UiOld) {
         if let Some(active_button) = self.active_button {
             ui.get_mut(active_button).color = (255, 255, 255);
             self.active_button = None;

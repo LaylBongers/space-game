@@ -1,7 +1,7 @@
 use ggez::event::{MouseButton};
 use nalgebra::{Point2};
 
-use model::ui::{Ui, Button};
+use model::ui::{UiOld, Button};
 
 pub struct UiInputController {
     mouse_over_ui: bool,
@@ -21,7 +21,7 @@ impl UiInputController {
     }
 
     pub fn handle_mouse_up(
-        &self, mouse_button: MouseButton, position: Point2<i32>, ui: &mut Ui,
+        &self, mouse_button: MouseButton, position: Point2<i32>, ui: &mut UiOld,
     ) {
         // We're only listening for clicks
         if mouse_button != MouseButton::Left {
@@ -36,7 +36,7 @@ impl UiInputController {
         }
     }
 
-    pub fn handle_mouse_move(&mut self, position: Point2<i32>, ui: &Ui) {
+    pub fn handle_mouse_move(&mut self, position: Point2<i32>, ui: &UiOld) {
         self.mouse_over_ui = false;
         self.mouse_position = position;
 

@@ -127,6 +127,6 @@ fn range_f(value: f32, err_id: &str, min: f32, max: f32) -> Result<(), String> {
     }
 }
 
-// Re-export of palette's color for convenience so people don't have to add palette to their own
-// crate unless they need more complex color functionality.
+/// Re-export of palette's color for convenience so you don't have to add palette to your own
+/// crate unless you need more complex color functionality.
 pub type Color = ::palette::pixel::Srgb;

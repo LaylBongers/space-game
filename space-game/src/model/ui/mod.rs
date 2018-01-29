@@ -1,13 +1,13 @@
 use ggez::graphics::{Text};
 use nalgebra::{Point2, Vector2};
 
-pub struct Ui {
+pub struct UiOld {
     buttons: Vec<Button>,
 }
 
-impl Ui {
+impl UiOld {
     pub fn new() -> Self {
-        Ui {
+        UiOld {
             buttons: Vec::new(),
         }
     }

@@ -33,15 +33,16 @@ use sloggers::terminal::{TerminalLoggerBuilder};
 use sloggers::types::{Severity};
 
 use markedly::class::{ComponentClasses};
+use markedly::input::{UiInput};
 use markedly::template::{ComponentTemplate};
-use markedly::{Component};
+use markedly::{Ui};
 use markedly_ggez::{GgezRenderer};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
 use controller::ui::{UiInputController};
 use model::{Camera};
 use model::ship::{Ship};
-use model::ui::{Ui};
+use model::ui::{UiOld};
 
 pub fn main() {
     // Set up logging
@@ -84,19 +85,20 @@ pub fn main() {
 
 struct MainState {
     log: Logger,
-    ui_root: Component<GgezRenderer>,
+    ui: Ui<GgezRenderer>,
     ui_renderer: GgezRenderer,
+    ui_input: UiInput,
 
     // Models
     camera: Camera,
     ship: Ship,
-    ui: Ui,
+    ui_old: UiOld,
 
     // Controllers
     build_input: BuildInputController,
     camera_input: CameraInputController,
     save_input: SaveInputController,
-    ui_input: UiInputController,
+    ui_input_old: UiInputController,
 
     // View Data
     font: Font,
@@ -111,10 +113,10 @@ impl MainState {
         let mut camera = Camera::new(64, screen_size);
         camera.set_position(Point2::new(50.0, 50.0));
 
-        let mut ui = Ui::new();
+        let mut ui_old = UiOld::new();
         let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
 
-        // Set up the UI context
+        // Set up everything needed for the UI
         let templates = load_templates(&log, ctx)?;
 
         let mut classes = ComponentClasses::new();
@@ -122,9 +124,10 @@ impl MainState {
         classes.register("button", markedly::class::ButtonClass::new);
 
         let ui_renderer = GgezRenderer::new(font.clone());
+        let ui_input = UiInput::new();
 
-        // Set up the UI root
-        let ui_root = Component::new(
+        // Set up the UI itself
+        let ui = Ui::new(
             &templates["root"],
             Vector2::new(screen_size.x as f32, screen_size.y as f32),
             &classes,
@@ -133,24 +136,25 @@ impl MainState {
         // Create the starter ship
         let ship = Ship::starter(&log);
 
-        let build_input = BuildInputController::new(ctx, &mut ui, &font)?;
+        let build_input = BuildInputController::new(ctx, &mut ui_old, &font)?;
         let camera_input = CameraInputController::new();
-        let save_input = SaveInputController::new(ctx, &mut ui, &font)?;
-        let ui_input = UiInputController::new();
+        let save_input = SaveInputController::new(ctx, &mut ui_old, &font)?;
+        let ui_input_old = UiInputController::new();
 
         Ok(MainState {
             log,
-            ui_root,
+            ui,
             ui_renderer,
+            ui_input,
 
             camera,
             ship,
-            ui,
+            ui_old,
 
             build_input,
             camera_input,
             save_input,
-            ui_input,
+            ui_input_old,
 
             font,
         })
@@ -196,8 +200,8 @@ impl EventHandler for MainState {
         const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            self.build_input.update(&mut self.ui)?;
-            self.save_input.update(&self.log, ctx, &mut self.ui, &mut self.ship)?;
+            self.build_input.update(&mut self.ui_old)?;
+            self.save_input.update(&self.log, ctx, &mut self.ui_old, &mut self.ship)?;
             self.ship.update(&self.log, DELTA);
         }
 
@@ -224,8 +228,8 @@ impl EventHandler for MainState {
         graphics::apply_transformations(ctx)?;
 
         // Draw the UI
-        markedly::render::render(&self.ui_renderer, ctx, &self.ui_root)?;
-        view::draw_ui(ctx, &self.ui)?;
+        markedly::render::render(&self.ui_renderer, ctx, &self.ui)?;
+        view::draw_ui(ctx, &self.ui_old)?;
 
         // Draw an FPS counter
         let fps = timer::get_fps(ctx);
@@ -239,8 +243,10 @@ impl EventHandler for MainState {
 
     fn mouse_button_down_event(
         &mut self, _ctx: &mut Context,
-        button: MouseButton, _x: i32, _y: i32
+        button: MouseButton, x: i32, y: i32
     ) {
+        self.ui_input.start_drag(Point2::new(x as f32, y as f32), &mut self.ui);
+
         self.build_input.handle_mouse_down(button);
         self.camera_input.handle_mouse_down(button);
     }
@@ -249,8 +255,10 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         button: MouseButton, x: i32, y: i32
     ) {
-        self.ui_input.handle_mouse_up(button, Point2::new(x, y), &mut self.ui);
-        self.build_input.handle_mouse_up(button, &mut self.ship, &mut self.ui);
+        self.ui_input.end_drag(Point2::new(x as f32, y as f32), &mut self.ui);
+
+        self.ui_input_old.handle_mouse_up(button, Point2::new(x, y), &mut self.ui_old);
+        self.build_input.handle_mouse_up(button, &mut self.ship, &mut self.ui_old);
         self.camera_input.handle_mouse_up(button);
     }
 
@@ -261,9 +269,9 @@ impl EventHandler for MainState {
         let position = Point2::new(x, y);
         let rel_position = Vector2::new(xrel, yrel);
 
-        self.ui_input.handle_mouse_move(position, &self.ui);
+        self.ui_input_old.handle_mouse_move(position, &self.ui_old);
         self.build_input.handle_mouse_move(
-            position, &mut self.camera, &self.ship, &self.ui_input
+            position, &mut self.camera, &self.ship, &self.ui_input_old
         );
         self.camera_input.handle_mouse_move(rel_position, &mut self.camera);
     }

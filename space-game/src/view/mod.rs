@@ -7,7 +7,7 @@ use ggez::graphics::{self};
 use nalgebra::{Point2};
 
 use controller::{self, BuildInputController, BuildState, BuildChoice};
-use model::ui::{Ui, Button};
+use model::ui::{UiOld, Button};
 
 pub fn draw_build_indicator(
     ctx: &mut Context, build_input: &BuildInputController
@@ -45,7 +45,7 @@ pub fn draw_build_indicator(
     Ok(())
 }
 
-pub fn draw_ui(ctx: &mut Context, ui: &Ui) -> GameResult<()> {
+pub fn draw_ui(ctx: &mut Context, ui: &UiOld) -> GameResult<()> {
     for button in ui.buttons() {
         draw_button(ctx, button)?;
     }
