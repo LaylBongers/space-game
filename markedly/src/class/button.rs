@@ -9,10 +9,13 @@ use {Color, ComponentEventsSender};
 
 /// A button component class, raises events on click.
 pub struct ButtonClass {
-    background_color: Option<Color>,
+    color: Option<Color>,
+    color_hovering: Option<Color>,
     text_color: Color,
     text: Option<String>,
     on_pressed: Option<String>,
+
+    hovering: bool,
 }
 
 impl ComponentClassFactory for ButtonClass {
@@ -20,12 +23,19 @@ impl ComponentClassFactory for ButtonClass {
         template: &ComponentTemplate
     ) -> Result<Self, String> {
         Ok(ButtonClass {
-            background_color: template.attribute_optional("background-color", |v| v.as_color())?,
+            color: template.attribute_optional(
+                "color", |v| v.as_color()
+            )?,
+            color_hovering: template.attribute_optional(
+                "color-hovering", |v| v.as_color()
+            )?,
             text_color: template.attribute(
                 "text-color", |v| v.as_color(), Color::new_u8(0, 0, 0)
             )?,
             text: template.attribute_optional("text", |v| v.as_string())?,
             on_pressed: template.attribute_optional("on-pressed", |v| v.as_string())?,
+
+            hovering: false,
         })
     }
 }
@@ -34,8 +44,14 @@ impl ComponentClass for ButtonClass {
     fn render(
         &self, renderer: &mut Renderer, position: Point2<f32>, size: Vector2<f32>
     ) -> Result<(), Box<Error>> {
-        if let Some(background_color) = self.background_color {
-            renderer.rectangle(position, size, background_color)?;
+        let current_color = if self.hovering && self.color_hovering.is_some() {
+            self.color_hovering
+        } else {
+            self.color
+        };
+
+        if let Some(current_color) = current_color {
+            renderer.rectangle(position, size, current_color)?;
         }
 
         if let Some(ref text) = self.text {
@@ -49,7 +65,15 @@ impl ComponentClass for ButtonClass {
         true
     }
 
-    fn pressed_event(&self, sender: &ComponentEventsSender) {
+    fn hover_start_event(&mut self, _sender: &ComponentEventsSender) {
+        self.hovering = true;
+    }
+
+    fn hover_end_event(&mut self, _sender: &ComponentEventsSender) {
+        self.hovering = false;
+    }
+
+    fn pressed_event(&mut self, sender: &ComponentEventsSender) {
         if let Some(event) = self.on_pressed.clone() {
             sender.raise(event);
         }

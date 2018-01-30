@@ -1,32 +1,36 @@
 container
     button {
-        position: (6.0, 6.0),
+        position: (3.0, 3.0),
         size: (72.0, 24.0),
-        background-color: (255, 255, 255, 0.8),
+        color: (255, 255, 255, 0.8),
+        color-hovering: (240, 240, 240, 0.8),
         text-color: (0, 0, 0, 0.8),
         text: "Floor",
         on-pressed: "build-floor",
     }
     button {
-        position: (84.0, 6.0),
+        position: (78.0, 3.0),
         size: (72.0, 24.0),
-        background-color: (255, 255, 255, 0.8),
+        color: (255, 255, 255, 0.8),
+        color-hovering: (240, 240, 240, 0.8),
         text-color: (0, 0, 0, 0.8),
         text: "Wall",
         on-pressed: "build-wall",
     }
     button {
-        position: (162.0, 6.0),
+        position: (153.0, 3.0),
         size: (72.0, 24.0),
-        background-color: (255, 255, 255, 0.8),
+        color: (255, 255, 255, 0.8),
+        color-hovering: (240, 240, 240, 0.8),
         text-color: (0, 0, 0, 0.8),
         text: "Destroy",
         on-pressed: "destroy",
     }
     button {
-        position: (240.0, 6.0),
+        position: (228.0, 3.0),
         size: (72.0, 24.0),
-        background-color: (255, 255, 255, 0.8),
+        color: (255, 255, 255, 0.8),
+        color-hovering: (240, 240, 240, 0.8),
         text-color: (0, 0, 0, 0.8),
         text: "Destroy All",
         on-pressed: "destroy-all",

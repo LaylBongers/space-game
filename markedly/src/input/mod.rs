@@ -23,8 +23,26 @@ impl UiInput {
     }
 
     /// Handles cursor movement.
-    pub fn handle_cursor_moved(&mut self, position: Point2<f32>, ui: &Ui) {
-        self.hovering_over = find_at_position(position, ui, ui.root_id());
+    pub fn handle_cursor_moved(&mut self, position: Point2<f32>, ui: &mut Ui) {
+        let new_hovering = find_at_position(position, ui, ui.root_id());
+
+        if let Some(new_hovering) = new_hovering {
+            // If the thing we're hovering over is a new thing, we need to notify it
+            if self.hovering_over.map(|v| v != new_hovering).unwrap_or(true) {
+                let component = ui.get_mut(new_hovering).unwrap();
+                component.class.hover_start_event(&component.events_sender);
+            }
+        }
+
+        if let Some(hovering_over) = self.hovering_over {
+            // If the thing we're hovering over is a new thing, we need to notify the old one
+            if new_hovering.map(|v| v != hovering_over).unwrap_or(true) {
+                let component = ui.get_mut(hovering_over).unwrap();
+                component.class.hover_end_event(&component.events_sender);
+            }
+        }
+
+        self.hovering_over = new_hovering;
     }
 
     /// Handles the start of a cursor or touch drag.
