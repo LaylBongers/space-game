@@ -24,7 +24,7 @@ impl UiInput {
 
     /// Handles cursor movement.
     pub fn handle_cursor_moved(&mut self, position: Point2<f32>, ui: &mut Ui) {
-        let new_hovering = find_at_position(position, ui, ui.root_id());
+        let new_hovering = find_at_position(position, ui, ui.root_id(), Point2::new(0.0, 0.0));
 
         if let Some(new_hovering) = new_hovering {
             // If the thing we're hovering over is a new thing, we need to notify it
@@ -55,7 +55,9 @@ impl UiInput {
     pub fn handle_drag_ended(
         &mut self, position: Point2<f32>, ui: &mut Ui
     ) {
-        if let Some(component_id) = find_at_position(position, ui, ui.root_id()) {
+        if let Some(component_id) = find_at_position(
+            position, ui, ui.root_id(), Point2::new(0.0, 0.0)
+        ) {
             let component = ui.get_mut(component_id).unwrap();
             component.class.pressed_event(&component.events_sender);
         }
@@ -63,14 +65,18 @@ impl UiInput {
 }
 
 fn find_at_position(
-    position: Point2<f32>, ui: &Ui, id: ComponentId,
+    position: Point2<f32>, ui: &Ui, id: ComponentId, computed_parent_position: Point2<f32>,
 ) -> Option<ComponentId> {
-    // If the position isn't over us, it also won't be over any children, so just return none
     let component = ui.get(id).unwrap();
-    if position.x < component.position.x ||
-        position.y < component.position.y ||
-        position.x > component.position.x + component.size.x ||
-        position.y > component.position.y + component.size.y {
+
+    // Compute the final position for this component based on parents
+    let computed_position = computed_parent_position + component.position.coords;
+
+    // If the position isn't over us, it also won't be over any children, so just return none
+    if position.x < computed_position.x ||
+        position.y < computed_position.y ||
+        position.x > computed_position.x + component.size.x ||
+        position.y > computed_position.y + component.size.y {
         return None
     }
 
@@ -86,7 +92,7 @@ fn find_at_position(
     // the last one that matches because it's the one rendered on top. The function will
     // recursively find the deepest matching child like this.
     for child_id in &component.children {
-        if let Some(id) = find_at_position(position, ui, *child_id) {
+        if let Some(id) = find_at_position(position, ui, *child_id, computed_position) {
             found_id = Some(id);
         }
     }

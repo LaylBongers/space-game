@@ -8,7 +8,6 @@ use markedly::input::{UiInput};
 use markedly::class::{ComponentClasses};
 use markedly::{Ui, ComponentEvents};
 
-use controller::ui::{UiInputController};
 use model::{Camera};
 use model::ship::{Ship};
 
@@ -174,7 +173,7 @@ impl BuildInputController {
     pub fn handle_mouse_move(
         &mut self,
         mouse_position: Point2<i32>,
-        camera: &mut Camera, ship: &Ship, ui_input: &UiInput, ui_input_old: &UiInputController,
+        camera: &mut Camera, ship: &Ship, ui_input: &UiInput,
     ) {
         // Get the position of the cursor in-world
         let world_position = camera.screen_to_world(mouse_position);
@@ -184,7 +183,7 @@ impl BuildInputController {
         );
 
         // Make sure we're not over UI, and the tile we're hovering over is valid
-        if !ui_input.is_cursor_over_ui() && !ui_input_old.mouse_over_ui() &&
+        if !ui_input.is_cursor_over_ui() &&
             ship.tiles.is_in_bounds(tile_position)
         {
             self.last_tile_position = Some(tile_position);

@@ -1,0 +1,18 @@
+container {
+    position: (1000.0, 0.0)
+}
+    button {
+        position: (3.0, 3.0),
+        text: "Load Game",
+        on-pressed: "load-game",
+    }
+    button {
+        position: (78.0, 3.0),
+        text: "Save Game",
+        on-pressed: "save-game",
+    }
+    button {
+        position: (153.0, 3.0),
+        text: "New Game",
+        on-pressed: "new-game",
+    }

@@ -39,10 +39,8 @@ use markedly::{Ui, ComponentEvents};
 use markedly_ggez::{GgezRenderer};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
-use controller::ui::{UiInputController};
 use model::{Camera};
 use model::ship::{Ship};
-use model::ui::{UiOld};
 
 pub fn main() {
     // Set up logging
@@ -93,13 +91,11 @@ struct MainState {
     // Models
     camera: Camera,
     ship: Ship,
-    ui_old: UiOld,
 
     // Controllers
     build_input: BuildInputController,
     camera_input: CameraInputController,
     save_input: SaveInputController,
-    ui_input_old: UiInputController,
 }
 
 impl MainState {
@@ -111,16 +107,13 @@ impl MainState {
         let mut camera = Camera::new(64, screen_size);
         camera.set_position(Point2::new(50.0, 50.0));
 
-        let mut ui_old = UiOld::new();
-        let font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
-
         // Set up everything needed for the UI
         let mut classes = ComponentClasses::new();
         classes.register::<markedly::class::ContainerClass>("container");
         classes.register::<markedly::class::ButtonClass>("button");
 
         let ui_input = UiInput::new();
-        let ui_font = font.clone();
+        let ui_font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
 
         // Set up the UI itself
         let style_file = ctx.filesystem.open("/markedly/style.mark")?;
@@ -135,8 +128,7 @@ impl MainState {
 
         let build_input = BuildInputController::new(ctx, &mut ui, &style, &classes)?;
         let camera_input = CameraInputController::new();
-        let save_input = SaveInputController::new(ctx, &mut ui_old, &font)?;
-        let ui_input_old = UiInputController::new();
+        let save_input = SaveInputController::new(ctx, &mut ui, &style, &classes)?;
 
         Ok(MainState {
             log,
@@ -147,12 +139,10 @@ impl MainState {
 
             camera,
             ship,
-            ui_old,
 
             build_input,
             camera_input,
             save_input,
-            ui_input_old,
         })
     }
 }
@@ -166,7 +156,7 @@ impl EventHandler for MainState {
             while let Some(_) = self.root_events.next() {}
 
             self.build_input.update(&mut self.ui)?;
-            self.save_input.update(&self.log, ctx, &mut self.ui_old, &mut self.ship)?;
+            self.save_input.update(&self.log, ctx, &mut self.ship)?;
             self.ship.update(&self.log, DELTA);
         }
 
@@ -198,7 +188,6 @@ impl EventHandler for MainState {
             markedly::render::render(&mut renderer, &self.ui)
                 .map_err(|e| GameError::UnknownError(e.description().to_string()))?;
         }
-        view::draw_ui(ctx, &self.ui_old)?;
 
         // Draw an FPS counter
         let fps = timer::get_fps(ctx);
@@ -226,7 +215,6 @@ impl EventHandler for MainState {
     ) {
         self.ui_input.handle_drag_ended(Point2::new(x as f32, y as f32), &mut self.ui);
 
-        self.ui_input_old.handle_mouse_up(button, Point2::new(x, y), &mut self.ui_old);
         self.build_input.handle_mouse_up(button, &mut self.ship, &mut self.ui);
         self.camera_input.handle_mouse_up(button);
     }
@@ -240,10 +228,7 @@ impl EventHandler for MainState {
 
         self.ui_input.handle_cursor_moved(Point2::new(x as f32, y as f32), &mut self.ui);
 
-        self.ui_input_old.handle_mouse_move(position, &self.ui_old);
-        self.build_input.handle_mouse_move(
-            position, &mut self.camera, &self.ship, &self.ui_input, &self.ui_input_old
-        );
+        self.build_input.handle_mouse_move(position, &mut self.camera, &self.ship, &self.ui_input);
         self.camera_input.handle_mouse_move(rel_position, &mut self.camera);
     }
 

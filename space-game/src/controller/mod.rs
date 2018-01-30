@@ -1,4 +1,3 @@
-pub mod ui;
 mod build_input;
 mod camera_input;
 mod save_input;
