@@ -182,11 +182,9 @@ fn neighbors(
 
             // Make sure we can walk over this tile
             // We always allow the start, we want to move off where we are even if it's blocked
-            // Same for the goal if it's not inclusive, because then we only have to reach it one
-            // tile away, if it's walkable is irrelevant
+            // We start at the goal anyways, so we don't have to add an exception for that
             if !is_walkable(tile_res) &&
-                !(neighbor == start) &&
-                !(!goal_inclusive && node == goal)
+                !(neighbor == start)
             {
                 continue
             }
