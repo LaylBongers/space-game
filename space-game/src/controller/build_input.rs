@@ -3,7 +3,7 @@ use ggez::audio::{Source};
 use ggez::event::{MouseButton};
 use nalgebra::{Point2};
 
-use markedly::template::{ComponentTemplate};
+use markedly::template::{Template, Style};
 use markedly::input::{UiInput};
 use markedly::class::{ComponentClasses};
 use markedly::{Ui, ComponentEvents};
@@ -23,8 +23,10 @@ pub struct BuildInputController {
 }
 
 impl BuildInputController {
-    pub fn new(ctx: &mut Context, ui: &mut Ui, classes: &ComponentClasses) -> GameResult<Self> {
-        let ui = BuildInputUiController::new(ctx, ui, classes)?;
+    pub fn new(
+        ctx: &mut Context, ui: &mut Ui, style: &Style, classes: &ComponentClasses
+    ) -> GameResult<Self> {
+        let ui = BuildInputUiController::new(ctx, ui, style, classes)?;
 
         let mut place_sound = Source::new(ctx, "/object_placed.ogg")?;
         place_sound.set_volume(0.2);
@@ -230,10 +232,12 @@ struct BuildInputUiController {
 }
 
 impl BuildInputUiController {
-    pub fn new(ctx: &mut Context, ui: &mut Ui, classes: &ComponentClasses) -> GameResult<Self> {
+    pub fn new(
+        ctx: &mut Context, ui: &mut Ui, style: &Style, classes: &ComponentClasses
+    ) -> GameResult<Self> {
         let template_file = ctx.filesystem.open("/markedly/build-input.mark")?;
-        let template = ComponentTemplate::from_reader(template_file)?;
-        let events = ui.insert_template(&template, "top-menu", &classes)?;
+        let template = Template::from_reader(template_file)?;
+        let events = ui.insert_template(&template, style, "top-menu", &classes)?;
 
         Ok(BuildInputUiController {
             events,

@@ -34,7 +34,7 @@ use sloggers::types::{Severity};
 
 use markedly::class::{ComponentClasses};
 use markedly::input::{UiInput};
-use markedly::template::{ComponentTemplate};
+use markedly::template::{Template, Style};
 use markedly::{Ui, ComponentEvents};
 use markedly_ggez::{GgezRenderer};
 
@@ -123,15 +123,17 @@ impl MainState {
         let ui_font = font.clone();
 
         // Set up the UI itself
+        let style_file = ctx.filesystem.open("/markedly/root.mark")?;
+        let style = Style::from_reader(style_file)?;
         let root_template_file = ctx.filesystem.open("/markedly/root.mark")?;
-        let root_template = ComponentTemplate::from_reader(root_template_file)?;
+        let root_template = Template::from_reader(root_template_file)?;
         let screen_size_f = Vector2::new(screen_size.x as f32, screen_size.y as f32);
-        let (mut ui, root_events) = Ui::new(&root_template, screen_size_f, &classes)?;
+        let (mut ui, root_events) = Ui::new(&root_template, &style, screen_size_f, &classes)?;
 
         // Create the starter ship
         let ship = Ship::starter(&log);
 
-        let build_input = BuildInputController::new(ctx, &mut ui, &classes)?;
+        let build_input = BuildInputController::new(ctx, &mut ui, &style, &classes)?;
         let camera_input = CameraInputController::new();
         let save_input = SaveInputController::new(ctx, &mut ui_old, &font)?;
         let ui_input_old = UiInputController::new();
