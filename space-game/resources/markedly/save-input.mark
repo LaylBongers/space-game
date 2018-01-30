@@ -1,6 +1,4 @@
-container {
-    position: (1000.0, 0.0)
-}
+container { docking: ("end", "start"), size: (228.0, 100%) }
     button {
         position: (3.0, 3.0),
         text: "Load Game",

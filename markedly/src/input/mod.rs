@@ -1,6 +1,6 @@
 //! Systems for handling user input
 
-use nalgebra::{Point2};
+use nalgebra::{Point2, Vector2};
 
 use {Ui, ComponentId};
 
@@ -24,7 +24,9 @@ impl UiInput {
 
     /// Handles cursor movement.
     pub fn handle_cursor_moved(&mut self, position: Point2<f32>, ui: &mut Ui) {
-        let new_hovering = find_at_position(position, ui, ui.root_id(), Point2::new(0.0, 0.0));
+        let new_hovering = find_at_position(
+            position, ui, ui.root_id(), Point2::new(0.0, 0.0), Vector2::new(0.0, 0.0),
+        );
 
         if let Some(new_hovering) = new_hovering {
             // If the thing we're hovering over is a new thing, we need to notify it
@@ -56,7 +58,7 @@ impl UiInput {
         &mut self, position: Point2<f32>, ui: &mut Ui
     ) {
         if let Some(component_id) = find_at_position(
-            position, ui, ui.root_id(), Point2::new(0.0, 0.0)
+            position, ui, ui.root_id(), Point2::new(0.0, 0.0), Vector2::new(0.0, 0.0),
         ) {
             let component = ui.get_mut(component_id).unwrap();
             component.class.pressed_event(&component.events_sender);
@@ -65,12 +67,11 @@ impl UiInput {
 }
 
 fn find_at_position(
-    position: Point2<f32>, ui: &Ui, id: ComponentId, computed_parent_position: Point2<f32>,
+    position: Point2<f32>, ui: &Ui, id: ComponentId,
+    computed_parent_position: Point2<f32>, parent_size: Vector2<f32>,
 ) -> Option<ComponentId> {
     let component = ui.get(id).unwrap();
-
-    // Compute the final position for this component based on parents
-    let computed_position = computed_parent_position + component.position.coords;
+    let computed_position = component.compute_position(computed_parent_position, parent_size);
 
     // If the position isn't over us, it also won't be over any children, so just return none
     if position.x < computed_position.x ||
@@ -92,7 +93,9 @@ fn find_at_position(
     // the last one that matches because it's the one rendered on top. The function will
     // recursively find the deepest matching child like this.
     for child_id in &component.children {
-        if let Some(id) = find_at_position(position, ui, *child_id, computed_position) {
+        if let Some(id) = find_at_position(
+            position, ui, *child_id, computed_position, component.size
+        ) {
             found_id = Some(id);
         }
     }

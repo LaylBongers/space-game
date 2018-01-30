@@ -52,6 +52,13 @@ impl Value {
         }
     }
 
+    pub fn as_vec(&self) -> Result<&Vec<Value>, String> {
+        if let Value::Tuple(ref values) = *self {
+            Ok(values)
+        } else {
+            Err("Value is not a tuple".into())
+        }
+    }
 
     /// Gets the point content of this value, or returns an error.
     pub fn as_point(&self, percent_100: Vector2<f32>) -> Result<Point2<f32>, String> {

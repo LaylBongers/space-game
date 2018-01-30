@@ -21,22 +21,21 @@ pub trait Renderer {
 pub fn render<R: Renderer>(
     renderer: &mut R, ui: &Ui
 ) -> Result<(), Box<Error>> {
-    render_component(renderer, ui, ui.root_id(), Point2::new(0.0, 0.0))
+    render_component(renderer, ui, ui.root_id(), Point2::new(0.0, 0.0), Vector2::new(0.0, 0.0))
 }
 
 fn render_component<R: Renderer>(
-    renderer: &mut R, ui: &Ui, component_id: ComponentId, computed_parent_position: Point2<f32>,
+    renderer: &mut R, ui: &Ui, component_id: ComponentId,
+    computed_parent_position: Point2<f32>, parent_size: Vector2<f32>,
 ) -> Result<(), Box<Error>> {
     let component = ui.get(component_id).unwrap();
-
-    // Compute the final position for this component based on parents
-    let computed_position = computed_parent_position + component.position.coords;
+    let computed_position = component.compute_position(computed_parent_position, parent_size);
 
     // Let the component's class render itself
     component.class.render(renderer, computed_position, component.size)?;
 
     for child in &component.children {
-        render_component(renderer, ui, *child, computed_position)?;
+        render_component(renderer, ui, *child, computed_position, component.size)?;
     }
 
     Ok(())
