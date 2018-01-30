@@ -1,7 +1,7 @@
 use nalgebra::{Point2, Vector2};
 
 /// A generic attribute value, will be read in by components.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     /// A string text value.
     String(String),
@@ -14,7 +14,7 @@ pub enum Value {
     /// A tuple of values.
     Tuple(Vec<Value>),
     /// A null value.
-    Null,
+    Default,
 }
 
 impl Value {

@@ -3,9 +3,8 @@ use std::error::{Error};
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory};
-use template::{ComponentTemplate};
 use render::{Renderer};
-use {Color};
+use {Color, Attributes};
 
 /// A container component class, functions as a generic container for other components.
 pub struct ContainerClass {
@@ -13,11 +12,9 @@ pub struct ContainerClass {
 }
 
 impl ComponentClassFactory for ContainerClass {
-    fn new(
-        template: &ComponentTemplate
-    ) -> Result<Self, String> {
+    fn new(attributes: &Attributes) -> Result<Self, String> {
         Ok(ContainerClass {
-            color: template.attribute_optional("color", |v| v.as_color())?,
+            color: attributes.attribute_optional("color", |v| v.as_color())?,
         })
     }
 }

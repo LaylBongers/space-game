@@ -25,7 +25,7 @@ impl Ui {
         };
 
         let events = ComponentEvents::new();
-        ui.root_id = ui.load_component(&root.root, screen_size, classes, &events)?;
+        ui.root_id = ui.load_component(&root.root, style, screen_size, classes, &events)?;
 
         Ok((ui, events))
     }
@@ -69,7 +69,7 @@ impl Ui {
 
         // Recursively add the template
         let events = ComponentEvents::new();
-        let id = self.load_component(&template.root, size, classes, &events)?;
+        let id = self.load_component(&template.root, style, size, classes, &events)?;
 
         // Add the component tree we just added to the children of the component we had found
         self.get_mut(parent_id).unwrap().children.push(id);
@@ -79,18 +79,21 @@ impl Ui {
 
     fn load_component(
         &mut self,
-        template: &ComponentTemplate, parent_size: Vector2<f32>, classes: &ComponentClasses,
+        template: &ComponentTemplate, style: &Style,
+        parent_size: Vector2<f32>, classes: &ComponentClasses,
         events: &ComponentEvents,
     ) -> Result<ComponentId, String> {
         // Load the component itself from the template
-        let mut component = Component::from_template(template, parent_size, classes, events)?;
+        let mut component = Component::from_template(
+            template, style, parent_size, classes, events
+        )?;
         let size = component.size;
         let id = self.next_id;
         self.next_id.0 += 1;
 
         // Also load all the children
         for child in &template.children {
-            let id = self.load_component(child, size, classes, events)?;
+            let id = self.load_component(child, style, size, classes, events)?;
             component.children.push(id);
         }
 

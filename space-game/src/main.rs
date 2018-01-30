@@ -123,7 +123,7 @@ impl MainState {
         let ui_font = font.clone();
 
         // Set up the UI itself
-        let style_file = ctx.filesystem.open("/markedly/root.mark")?;
+        let style_file = ctx.filesystem.open("/markedly/style.mark")?;
         let style = Style::from_reader(style_file)?;
         let root_template_file = ctx.filesystem.open("/markedly/root.mark")?;
         let root_template = Template::from_reader(root_template_file)?;

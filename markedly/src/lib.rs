@@ -12,11 +12,13 @@ pub mod input;
 pub mod render;
 pub mod template;
 
+mod attributes;
 mod component;
 mod events;
 mod ui;
 mod value;
 
+pub use attributes::{Attributes};
 pub use component::{Component};
 pub use events::{ComponentEvents, ComponentEventsSender};
 pub use ui::{Ui, ComponentId};

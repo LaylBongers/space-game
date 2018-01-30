@@ -3,9 +3,8 @@ use std::error::{Error};
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory};
-use template::{ComponentTemplate};
 use render::{Renderer};
-use {Color, ComponentEventsSender};
+use {Color, ComponentEventsSender, Attributes};
 
 /// A button component class, raises events on click.
 pub struct ButtonClass {
@@ -19,21 +18,19 @@ pub struct ButtonClass {
 }
 
 impl ComponentClassFactory for ButtonClass {
-    fn new(
-        template: &ComponentTemplate
-    ) -> Result<Self, String> {
+    fn new(attributes: &Attributes) -> Result<Self, String> {
         Ok(ButtonClass {
-            color: template.attribute_optional(
+            color: attributes.attribute_optional(
                 "color", |v| v.as_color()
             )?,
-            color_hovering: template.attribute_optional(
+            color_hovering: attributes.attribute_optional(
                 "color-hovering", |v| v.as_color()
             )?,
-            text_color: template.attribute(
+            text_color: attributes.attribute(
                 "text-color", |v| v.as_color(), Color::new_u8(0, 0, 0)
             )?,
-            text: template.attribute_optional("text", |v| v.as_string())?,
-            on_pressed: template.attribute_optional("on-pressed", |v| v.as_string())?,
+            text: attributes.attribute_optional("text", |v| v.as_string())?,
+            on_pressed: attributes.attribute_optional("on-pressed", |v| v.as_string())?,
 
             hovering: false,
         })

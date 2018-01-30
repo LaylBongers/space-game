@@ -185,8 +185,8 @@ fn parse_value(pair: Pair<Rule>) -> Value {
             }
             Value::Tuple(values)
         },
-        Rule::null =>
-            Value::Null,
+        Rule::default =>
+            Value::Default,
         _ => unreachable!(),
     }
 }

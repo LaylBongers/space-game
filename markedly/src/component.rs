@@ -1,8 +1,8 @@
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClasses, ComponentClass};
-use template::{ComponentTemplate};
-use {ComponentId, ComponentEvents, ComponentEventsSender};
+use template::{ComponentTemplate, Style};
+use {ComponentId, ComponentEvents, ComponentEventsSender, Attributes};
 
 /// A runtime component.
 pub struct Component {
@@ -17,15 +17,18 @@ pub struct Component {
 
 impl Component {
     pub(crate) fn from_template(
-        template: &ComponentTemplate, parent_size: Vector2<f32>, classes: &ComponentClasses,
+        template: &ComponentTemplate, style: &Style,
+        parent_size: Vector2<f32>, classes: &ComponentClasses,
         events: &ComponentEvents,
     ) -> Result<Self, String> {
-        let class = classes.create(&template)?;
+        let attributes = Attributes::resolve(template, style);
 
-        let position = template.attribute(
+        let class = classes.create(template, &attributes)?;
+
+        let position = attributes.attribute(
             "position", |v| v.as_point(parent_size), Point2::new(0.0, 0.0)
         )?;
-        let size = template.attribute(
+        let size = attributes.attribute(
             "size", |v| v.as_vector(parent_size), parent_size
         )?;
 
