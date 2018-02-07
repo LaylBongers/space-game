@@ -1,11 +1,14 @@
 use ggez::{Context, GameResult};
-use ggez::graphics::{self, MeshBuilder};
+use ggez::graphics::spritebatch::{SpriteBatch};
+use ggez::graphics::{self, MeshBuilder, DrawParam, Rect};
 use nalgebra::{Point2};
 
 use model::{Camera};
 use model::ship::{Ship};
 
-pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<()> {
+pub fn draw_ship(
+    ctx: &mut Context, ship: &Ship, camera: &Camera, tiles: &mut SpriteBatch
+) -> GameResult<()> {
     // Find the tiles we are drawing
     let (start, end) = camera.world_bounds();
     let size = ship.tiles.size();
@@ -14,7 +17,7 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
     let end_x = (end.x.ceil() as i32).min(size.x);
     let end_y = (end.y.ceil() as i32).min(size.y);
 
-    draw_tiles(ctx, ship, start_x, start_y, end_x, end_y)?;
+    draw_tiles(ctx, ship, tiles, start_x, start_y, end_x, end_y)?;
     draw_tasks(ctx, ship)?;
     draw_grid(ctx, start_x, start_y, end_x, end_y)?;
     draw_units(ctx, ship)?;
@@ -23,10 +26,9 @@ pub fn draw_ship(ctx: &mut Context, ship: &Ship, camera: &Camera) -> GameResult<
 }
 
 fn draw_tiles(
-    ctx: &mut Context, ship: &Ship, start_x: i32, start_y: i32, end_x: i32, end_y: i32
+    ctx: &mut Context, ship: &Ship, tiles: &mut SpriteBatch,
+    start_x: i32, start_y: i32, end_x: i32, end_y: i32,
 ) -> GameResult<()> {
-    let mut floor_builder = MeshBuilder::new();
-    let mut object_builder = MeshBuilder::new();
     for y in start_y..end_y {
         for x in start_x..end_x {
             let tile = ship.tiles.tile(Point2::new(x, y)).unwrap();
@@ -35,39 +37,29 @@ fn draw_tiles(
 
             // Add graphic for the floor
             if tile.floor {
-                floor_builder.triangles(&[
-                    Point2::new(fx, fy),
-                    Point2::new(fx + 1.0, fy),
-                    Point2::new(fx, fy + 1.0),
-
-                    Point2::new(fx + 1.0, fy + 1.0),
-                    Point2::new(fx, fy + 1.0),
-                    Point2::new(fx + 1.0, fy),
-                ]);
+                tiles.add(DrawParam {
+                    src: Rect::new(0.0, 0.5, 0.5, 0.5),
+                    dest: Point2::new(fx, fy + 1.0),
+                    scale: Point2::new(1.0 / 64.0, -1.0 / 64.0),
+                    .. Default::default()
+                });
             }
 
             // Add graphic for objects
             if tile.object.is_some() {
-                object_builder.triangles(&[
-                    Point2::new(fx + 0.05, fy + 0.05),
-                    Point2::new(fx + 0.95, fy + 0.05),
-                    Point2::new(fx + 0.05, fy + 0.95),
-
-                    Point2::new(fx + 0.95, fy + 0.95),
-                    Point2::new(fx + 0.05, fy + 0.95),
-                    Point2::new(fx + 0.95, fy + 0.05),
-                ]);
+                tiles.add(DrawParam {
+                    src: Rect::new(0.0, 0.0, 0.5, 0.5),
+                    dest: Point2::new(fx, fy + 1.0),
+                    scale: Point2::new(1.0 / 64.0, -1.0 / 64.0),
+                    .. Default::default()
+                });
             }
         }
     }
-    let floor_mesh = floor_builder.build(ctx)?;
-    let object_mesh = object_builder.build(ctx)?;
 
-    graphics::set_color(ctx, (150, 150, 150).into())?;
-    graphics::draw(ctx, &floor_mesh, Point2::new(0.0, 0.0), 0.0)?;
-
-    graphics::set_color(ctx, (50, 50, 50).into())?;
-    graphics::draw(ctx, &object_mesh, Point2::new(0.0, 0.0), 0.0)?;
+    graphics::set_color(ctx, (255, 255, 255).into())?;
+    graphics::draw(ctx, tiles, Point2::new(0.0, 0.0), 0.0)?;
+    tiles.clear();
 
     Ok(())
 }
@@ -130,7 +122,7 @@ fn draw_grid(
     }
     let grid_mesh = grid_builder.build(ctx)?;
 
-    graphics::set_color(ctx, (255, 255, 255, 16).into())?;
+    graphics::set_color(ctx, (255, 255, 255, 8).into())?;
     graphics::draw(ctx, &grid_mesh, Point2::new(0.0, 0.0), 0.0)?;
 
     Ok(())

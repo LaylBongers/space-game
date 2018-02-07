@@ -24,7 +24,8 @@ use ggez::{Context, GameResult};
 use ggez::timer;
 use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
-use ggez::graphics::{self, Font, Text};
+use ggez::graphics::spritebatch::{SpriteBatch};
+use ggez::graphics::{self, Font, Text, Image};
 use ggez::error::{GameError};
 use nalgebra::{Vector2, Point2};
 use slog::{Logger};
@@ -96,6 +97,9 @@ struct MainState {
     build_input: BuildInputController,
     camera_input: CameraInputController,
     save_input: SaveInputController,
+
+    // View Data
+    tiles: SpriteBatch,
 }
 
 impl MainState {
@@ -130,6 +134,8 @@ impl MainState {
         let camera_input = CameraInputController::new();
         let save_input = SaveInputController::new(ctx, &mut ui, &style, &classes)?;
 
+        let tiles = SpriteBatch::new(Image::new(ctx, "/tiles.png")?);
+
         Ok(MainState {
             log,
             ui,
@@ -143,6 +149,8 @@ impl MainState {
             build_input,
             camera_input,
             save_input,
+
+            tiles,
         })
     }
 }
@@ -175,7 +183,7 @@ impl EventHandler for MainState {
         graphics::apply_transformations(ctx)?;
 
         // Draw everything in the world
-        view::draw_ship(ctx, &self.ship, &self.camera)?;
+        view::draw_ship(ctx, &self.ship, &self.camera, &mut self.tiles)?;
         view::draw_build_indicator(ctx, &self.build_input)?;
 
         // Swith the projection back to pixels rendering for UI

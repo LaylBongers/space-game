@@ -12,7 +12,7 @@ use std::error::{Error};
 use nalgebra::{Point2, Vector2};
 
 use render::{Renderer};
-use {ComponentEventsSender};
+use {ComponentEventsClient};
 
 /// The class of a component, defines specific appearance and functionality in response to user
 /// input.
@@ -25,9 +25,9 @@ pub trait ComponentClass {
     /// Returns if this component class captures cursor events or not. Does not affect children.
     fn is_capturing_cursor(&self) -> bool { false }
 
-    fn hover_start_event(&mut self, _sender: &ComponentEventsSender) {}
-    fn hover_end_event(&mut self, _sender: &ComponentEventsSender) {}
+    fn hover_start_event(&mut self, _sender: &ComponentEventsClient) {}
+    fn hover_end_event(&mut self, _sender: &ComponentEventsClient) {}
 
     /// Called when the component is clicked or tapped.
-    fn pressed_event(&mut self, _sender: &ComponentEventsSender) {}
+    fn pressed_event(&mut self, _sender: &ComponentEventsClient) {}
 }

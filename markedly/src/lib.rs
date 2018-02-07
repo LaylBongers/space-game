@@ -20,6 +20,6 @@ mod value;
 
 pub use attributes::{Attributes};
 pub use component::{Component};
-pub use events::{ComponentEvents, ComponentEventsSender};
+pub use events::{ComponentEvents, ComponentEventsClient};
 pub use ui::{Ui, ComponentId};
 pub use value::{Value, Color};

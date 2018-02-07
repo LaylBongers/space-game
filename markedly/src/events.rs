@@ -17,19 +17,19 @@ impl ComponentEvents {
         self.event_sink.borrow_mut().pop_front()
     }
 
-    pub(crate) fn create_sender(&self) -> ComponentEventsSender {
-        ComponentEventsSender {
+    pub(crate) fn create_client(&self) -> ComponentEventsClient {
+        ComponentEventsClient {
             event_sink: self.event_sink.clone(),
         }
     }
 }
 
 #[derive(Clone)]
-pub struct ComponentEventsSender {
+pub struct ComponentEventsClient {
     event_sink: Rc<RefCell<VecDeque<String>>>,
 }
 
-impl ComponentEventsSender {
+impl ComponentEventsClient {
     pub fn raise(&self, event: String) {
         self.event_sink.borrow_mut().push_back(event);
     }

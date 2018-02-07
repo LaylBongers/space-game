@@ -2,13 +2,13 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClasses, ComponentClass};
 use template::{ComponentTemplate, Style};
-use {ComponentId, ComponentEvents, ComponentEventsSender, Attributes, Value};
+use {ComponentId, ComponentEvents, ComponentEventsClient, Attributes, Value};
 
 /// A runtime component.
 pub struct Component {
     pub(crate) class: Box<ComponentClass>,
     pub(crate) style_class: Option<String>,
-    pub(crate) events_sender: ComponentEventsSender,
+    pub(crate) events_sender: ComponentEventsClient,
 
     pub(crate) children: Vec<ComponentId>,
     pub(crate) position: Point2<f32>,
@@ -40,7 +40,7 @@ impl Component {
         Ok(Component {
             class,
             style_class: template.style_class.clone(),
-            events_sender: events.create_sender(),
+            events_sender: events.create_client(),
 
             children: Vec::new(),
             position,

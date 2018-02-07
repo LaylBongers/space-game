@@ -4,7 +4,7 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory};
 use render::{Renderer};
-use {Color, ComponentEventsSender, Attributes};
+use {Color, ComponentEventsClient, Attributes};
 
 /// A button component class, raises events on click.
 pub struct ButtonClass {
@@ -62,15 +62,15 @@ impl ComponentClass for ButtonClass {
         true
     }
 
-    fn hover_start_event(&mut self, _sender: &ComponentEventsSender) {
+    fn hover_start_event(&mut self, _sender: &ComponentEventsClient) {
         self.hovering = true;
     }
 
-    fn hover_end_event(&mut self, _sender: &ComponentEventsSender) {
+    fn hover_end_event(&mut self, _sender: &ComponentEventsClient) {
         self.hovering = false;
     }
 
-    fn pressed_event(&mut self, sender: &ComponentEventsSender) {
+    fn pressed_event(&mut self, sender: &ComponentEventsClient) {
         if let Some(event) = self.on_pressed.clone() {
             sender.raise(event);
         }
