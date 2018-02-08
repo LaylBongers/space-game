@@ -184,7 +184,7 @@ impl EventHandler for MainState {
 
         // Draw everything in the world
         view::draw_ship(ctx, &self.ship, &self.camera, &mut self.tiles)?;
-        view::draw_build_indicator(ctx, &self.build_input)?;
+        view::draw_build_graphics(ctx, &self.build_input, &self.ship, &self.camera)?;
 
         // Swith the projection back to pixels rendering for UI
         graphics::set_projection(ctx, pixels_projection);

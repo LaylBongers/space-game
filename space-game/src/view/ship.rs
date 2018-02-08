@@ -6,31 +6,45 @@ use nalgebra::{Point2};
 use model::{Camera};
 use model::ship::{Ship};
 
-pub fn draw_ship(
-    ctx: &mut Context, ship: &Ship, camera: &Camera, tiles: &mut SpriteBatch
-) -> GameResult<()> {
-    // Find the tiles we are drawing
-    let (start, end) = camera.world_bounds();
-    let size = ship.tiles.size();
-    let start_x = (start.x.floor() as i32).max(0);
-    let start_y = (start.y.floor() as i32).max(0);
-    let end_x = (end.x.ceil() as i32).min(size.x);
-    let end_y = (end.y.ceil() as i32).min(size.y);
+pub struct Bounds {
+    pub start: Point2<i32>,
+    pub end: Point2<i32>,
+}
 
-    draw_tiles(ctx, ship, tiles, start_x, start_y, end_x, end_y)?;
+impl Bounds {
+    pub fn calculate(ship: &Ship, camera: &Camera) -> Self {
+        let (start, end) = camera.world_bounds();
+        let size = ship.tiles.size();
+        let start_x = (start.x.floor() as i32).max(0);
+        let start_y = (start.y.floor() as i32).max(0);
+        let end_x = (end.x.ceil() as i32).min(size.x);
+        let end_y = (end.y.ceil() as i32).min(size.y);
+
+        Bounds {
+            start: Point2::new(start_x, start_y),
+            end: Point2::new(end_x, end_y),
+        }
+    }
+}
+
+pub fn draw_ship(
+    ctx: &mut Context, ship: &Ship, camera: &Camera, tiles: &mut SpriteBatch,
+) -> GameResult<()> {
+
+    draw_tiles(ctx, ship, camera, tiles)?;
     draw_tasks(ctx, ship)?;
-    draw_grid(ctx, start_x, start_y, end_x, end_y)?;
     draw_units(ctx, ship)?;
 
     Ok(())
 }
 
 fn draw_tiles(
-    ctx: &mut Context, ship: &Ship, tiles: &mut SpriteBatch,
-    start_x: i32, start_y: i32, end_x: i32, end_y: i32,
+    ctx: &mut Context, ship: &Ship, camera: &Camera, tiles: &mut SpriteBatch,
 ) -> GameResult<()> {
-    for y in start_y..end_y {
-        for x in start_x..end_x {
+    let bounds = Bounds::calculate(ship, camera);
+
+    for y in bounds.start.y..bounds.end.y {
+        for x in bounds.start.x..bounds.end.x {
             let tile = ship.tiles.tile(Point2::new(x, y)).unwrap();
 
             let (fx, fy) = (x as f32, y as f32);
@@ -99,31 +113,6 @@ fn draw_tasks(
 
     graphics::set_color(ctx, (255, 120, 120, 50).into())?;
     graphics::draw(ctx, &unreachable_tasks_mesh, Point2::new(0.0, 0.0), 0.0)?;
-
-    Ok(())
-}
-
-fn draw_grid(
-    ctx: &mut Context, start_x: i32, start_y: i32, end_x: i32, end_y: i32
-) -> GameResult<()> {
-    // Draw a build grid
-    let mut grid_builder = MeshBuilder::new();
-    for y in start_y..(end_y+1) {
-        grid_builder.line(
-            &[Point2::new(start_x as f32, y as f32), Point2::new(end_x as f32, y as f32)],
-            0.025
-        );
-    }
-    for x in start_x..(end_x+1) {
-        grid_builder.line(
-            &[Point2::new(x as f32, start_y as f32), Point2::new(x as f32, end_y as f32)],
-            0.02
-        );
-    }
-    let grid_mesh = grid_builder.build(ctx)?;
-
-    graphics::set_color(ctx, (255, 255, 255, 8).into())?;
-    graphics::draw(ctx, &grid_mesh, Point2::new(0.0, 0.0), 0.0)?;
 
     Ok(())
 }
