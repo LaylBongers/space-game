@@ -5,6 +5,8 @@ use {Value};
 
 pub struct Attributes {
     attributes: HashMap<String, Value>,
+    component_class: String,
+    component_line: usize,
 }
 
 impl Attributes {
@@ -27,6 +29,8 @@ impl Attributes {
         }
 
         Attributes {
+            component_class: template.class.clone(),
+            component_line: template.line,
             attributes,
         }
     }
@@ -38,8 +42,11 @@ impl Attributes {
             .map(map)
             .unwrap_or(Ok(default))
             .map_err(|e| format!(
-                // TODO: Report source of error
-                "Invalid field \"{}\": {}",
+                // Error reporting here is done by what component is being resolved, rather than
+                // where the attribute came from. Both of these are relevant information for
+                // resolving the error, so this needs to be changed to both.
+                "In component \"{}\" at line {}, invalid field \"{}\": {}",
+                self.component_class, self.component_line,
                 key, e
             ))
     }
@@ -57,8 +64,11 @@ impl Attributes {
             })
             .unwrap_or(Ok(None))
             .map_err(|e| format!(
-                // TODO: Report source of error
-                "Invalid field \"{}\": {}",
+                // Error reporting here is done by what component is being resolved, rather than
+                // where the attribute came from. Both of these are relevant information for
+                // resolving the error, so this needs to be changed to both.
+                "In component \"{}\" at line {}, Invalid field \"{}\": {}",
+                self.component_class, self.component_line,
                 key, e
             ))
     }
