@@ -3,6 +3,8 @@ use nalgebra::{Point2};
 use metrohash::{MetroHashMap};
 use slog::{Logger};
 
+use model::ship::{ShipObjectClassId};
+
 #[derive(Deserialize, Serialize)]
 pub struct TaskQueue {
     // Faster non-crypto hasher for small & medium key sizes
@@ -40,11 +42,9 @@ impl TaskQueue {
         None
     }
 
-    pub fn queue_task(&mut self, position: Point2<i32>) -> Result<(), TaskQueueError> {
+    pub fn queue_task(&mut self, task: Task) -> Result<(), TaskQueueError> {
         let id = TaskId(self.next_task_id);
         self.next_task_id += 1;
-
-        let task = Task::new(position, 1.0);
         self.tasks.insert(id, task);
 
         Ok(())
@@ -122,6 +122,7 @@ pub struct TaskId(pub i32);
 #[derive(Deserialize, Serialize)]
 pub struct Task {
     position: Point2<i32>,
+    object_class: ShipObjectClassId,
     assigned: bool,
     unreachable: bool,
 
@@ -130,11 +131,13 @@ pub struct Task {
 }
 
 impl Task {
-    pub fn new(position: Point2<i32>, work_target: f32) -> Self {
+    pub fn new(position: Point2<i32>, object_class: ShipObjectClassId, work_target: f32) -> Self {
         Task {
             position,
+            object_class,
             assigned: false,
             unreachable: false,
+
             work_done: 0.0,
             work_target,
         }
@@ -142,6 +145,10 @@ impl Task {
 
     pub fn position(&self) -> Point2<i32> {
         self.position
+    }
+
+    pub fn object_class(&self) -> ShipObjectClassId {
+        self.object_class
     }
 
     pub fn assigned(&self) -> bool {

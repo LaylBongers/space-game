@@ -83,11 +83,16 @@ impl Tile {
 
 #[derive(Deserialize, Serialize)]
 pub struct ShipObject {
+    pub class: ShipObjectClassId,
 }
 
 impl ShipObject {
-    pub fn new() -> Self {
+    pub fn new(class: ShipObjectClassId) -> Self {
         ShipObject {
+            class,
         }
     }
 }
+
+#[derive(Copy, Clone, Eq, PartialEq, Deserialize, Serialize)]
+pub struct ShipObjectClassId(pub i32);

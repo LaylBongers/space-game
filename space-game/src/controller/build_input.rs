@@ -9,7 +9,7 @@ use markedly::class::{ComponentClasses};
 use markedly::{Ui, ComponentEvents};
 
 use model::{Camera};
-use model::ship::{Ship};
+use model::ship::{Ship, ShipObjectClassId, Task};
 
 pub struct BuildInputController {
     last_tile_position: Option<Point2<i32>>,
@@ -109,14 +109,15 @@ impl BuildInputController {
                                 self.build_sound_queued = true;
                             }
                         },
-                        BuildChoice::Wall => {
+                        BuildChoice::Object(id) => {
                             let tile = ship.tiles.tile_mut(tile_pos).unwrap();
                             let has_tile = tile.floor;
                             let has_object = tile.object.is_some();
                             let has_task = ship.task_queue.task_at(tile_pos).is_some();
 
                             if has_tile && !has_object && !has_task {
-                                ship.task_queue.queue_task(tile_pos).unwrap();
+                                let task = Task::new(tile_pos, id, 1.0);
+                                ship.task_queue.queue_task(task).unwrap();
                                 self.build_sound_queued = true;
                             }
                         },
@@ -213,7 +214,7 @@ pub enum BuildState {
 pub enum BuildChoice {
     None,
     Floor,
-    Wall,
+    Object(ShipObjectClassId),
     Destroy,
     DestroyAll,
 }
@@ -247,7 +248,8 @@ impl BuildInputUiController {
         while let Some(event) = self.events.next() {
             match event.as_str() {
                 "build-floor" => *build_choice = BuildChoice::Floor,
-                "build-wall" => *build_choice = BuildChoice::Wall,
+                "build-wall" => *build_choice = BuildChoice::Object(ShipObjectClassId(0)),
+                "build-door" => *build_choice = BuildChoice::Object(ShipObjectClassId(1)),
                 "destroy" => *build_choice = BuildChoice::Destroy,
                 "destroy-all" => *build_choice = BuildChoice::DestroyAll,
                 _ => {}

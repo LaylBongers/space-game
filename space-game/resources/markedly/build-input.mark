@@ -11,11 +11,16 @@ container
     }
     button {
         position: (153.0, 3.0),
+        text: "Door",
+        on-pressed: "build-door",
+    }
+    button {
+        position: (228.0, 3.0),
         text: "Destroy",
         on-pressed: "destroy",
     }
     button {
-        position: (228.0, 3.0),
+        position: (303.0, 3.0),
         text: "Destroy All",
         on-pressed: "destroy-all",
     }

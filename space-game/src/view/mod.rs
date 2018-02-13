@@ -67,8 +67,12 @@ fn draw_build_placeholder(
     let uvs = match *build_input.build_choice() {
         BuildChoice::Floor =>
             Some(Rect::new(0.0, 0.5, 0.5, 0.5)),
-        BuildChoice::Wall =>
-            Some(Rect::new(0.0, 0.0, 0.5, 0.5)),
+        BuildChoice::Object(id) =>
+            Some(match id.0 {
+                0 => Rect::new(0.0, 0.0, 0.5, 0.5),
+                1 => Rect::new(0.5, 0.0, 0.5, 0.5),
+                _ => unreachable!()
+            }),
         _ => None
     };
 
@@ -76,14 +80,6 @@ fn draw_build_placeholder(
     let (start, end) = match *build_input.build_state() {
         BuildState::Hovering { position: Some(hovered_tile) } => {
             (hovered_tile, hovered_tile + Vector2::new(1, 1))
-
-            /*graphics::rectangle(
-                ctx, graphics::DrawMode::Fill,
-                graphics::Rect::new(
-                    hovered_tile.x as f32, hovered_tile.y as f32,
-                    1.0, 1.0,
-                ),
-            )?;*/
         },
         BuildState::Dragging { start, end } => {
             controller::build_area(start, end)

@@ -68,7 +68,8 @@ impl Unit {
 
                 // If the work's done, we can add an object to the tile
                 if task.is_done() {
-                    tiles.tile_mut(task.position()).unwrap().object = Some(ShipObject::new());
+                    tiles.tile_mut(task.position()).unwrap()
+                        .object = Some(ShipObject::new(task.object_class()));
                     tiles.mark_changed();
                 }
             } else {

@@ -60,9 +60,15 @@ fn draw_tiles(
             }
 
             // Add graphic for objects
-            if tile.object.is_some() {
+            if let Some(ref object) = tile.object {
+                let uvs = match object.class.0 {
+                    0 => Rect::new(0.0, 0.0, 0.5, 0.5),
+                    1 => Rect::new(0.5, 0.0, 0.5, 0.5),
+                    _ => unreachable!()
+                };
+
                 tiles.add(DrawParam {
-                    src: Rect::new(0.0, 0.0, 0.5, 0.5),
+                    src: uvs,
                     dest: Point2::new(fx, fy + 1.0),
                     scale: Point2::new(1.0 / 64.0, -1.0 / 64.0),
                     .. Default::default()
