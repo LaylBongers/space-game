@@ -3,7 +3,7 @@ use ggez::graphics::spritebatch::{SpriteBatch};
 use ggez::graphics::{self, MeshBuilder, DrawParam, Rect};
 use nalgebra::{Point2};
 
-use model::{Camera};
+use model::{Camera, ObjectClasses};
 use model::ship::{Ship};
 
 pub struct Bounds {
@@ -28,10 +28,11 @@ impl Bounds {
 }
 
 pub fn draw_ship(
-    ctx: &mut Context, ship: &Ship, camera: &Camera, tiles: &mut SpriteBatch,
+    ctx: &mut Context, ship: &Ship, camera: &Camera, object_classes: &ObjectClasses,
+    tiles: &mut SpriteBatch,
 ) -> GameResult<()> {
 
-    draw_tiles(ctx, ship, camera, tiles)?;
+    draw_tiles(ctx, ship, camera, object_classes, tiles)?;
     draw_tasks(ctx, ship)?;
     draw_units(ctx, ship)?;
 
@@ -39,7 +40,8 @@ pub fn draw_ship(
 }
 
 fn draw_tiles(
-    ctx: &mut Context, ship: &Ship, camera: &Camera, tiles: &mut SpriteBatch,
+    ctx: &mut Context, ship: &Ship, camera: &Camera, object_classes: &ObjectClasses,
+    tiles: &mut SpriteBatch,
 ) -> GameResult<()> {
     let bounds = Bounds::calculate(ship, camera);
 
@@ -61,11 +63,7 @@ fn draw_tiles(
 
             // Add graphic for objects
             if let Some(ref object) = tile.object {
-                let uvs = match object.class.0 {
-                    0 => Rect::new(0.0, 0.0, 0.5, 0.5),
-                    1 => Rect::new(0.5, 0.0, 0.5, 0.5),
-                    _ => unreachable!()
-                };
+                let uvs = object_classes.get(object.class).unwrap().uvs();
 
                 tiles.add(DrawParam {
                     src: uvs,

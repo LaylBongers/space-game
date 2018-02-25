@@ -1,5 +1,8 @@
+use ggez::graphics::{Rect};
+
 pub trait ObjectClass {
-    fn is_walkable(&self) -> bool { false }
+    fn uvs(&self) -> Rect;
+    fn is_walkable(&self) -> bool;
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Deserialize, Serialize)]
@@ -27,10 +30,15 @@ impl ObjectClasses {
 }
 
 pub struct GenericObjectClass {
+    pub uvs: Rect,
     pub walkable: bool,
 }
 
 impl ObjectClass for GenericObjectClass {
+    fn uvs(&self) -> Rect {
+        self.uvs
+    }
+
     fn is_walkable(&self) -> bool {
         self.walkable
     }

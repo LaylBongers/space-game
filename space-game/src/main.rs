@@ -25,7 +25,7 @@ use ggez::timer;
 use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use ggez::graphics::spritebatch::{SpriteBatch};
-use ggez::graphics::{self, Font, Text, Image};
+use ggez::graphics::{self, Font, Text, Image, Rect};
 use ggez::error::{GameError};
 use nalgebra::{Vector2, Point2};
 use slog::{Logger};
@@ -132,8 +132,12 @@ impl MainState {
 
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();
-        object_classes.register(GenericObjectClass { walkable: false, });
-        object_classes.register(GenericObjectClass { walkable: true, });
+        object_classes.register(GenericObjectClass {
+            uvs: Rect::new(0.0, 0.0, 0.5, 0.5), walkable: false,
+        });
+        object_classes.register(GenericObjectClass {
+            uvs: Rect::new(0.5, 0.0, 0.5, 0.5), walkable: true,
+        });
 
         // Create the starter ship
         let ship = Ship::starter(&log);
@@ -193,9 +197,9 @@ impl EventHandler for MainState {
         graphics::apply_transformations(ctx)?;
 
         // Draw everything in the world
-        view::draw_ship(ctx, &self.ship, &self.camera, &mut self.tiles)?;
+        view::draw_ship(ctx, &self.ship, &self.camera, &self.object_classes, &mut self.tiles)?;
         view::draw_build_graphics(
-            ctx, &self.build_input, &self.ship, &self.camera, &mut self.tiles
+            ctx, &self.build_input, &self.ship, &self.camera, &self.object_classes, &mut self.tiles
         )?;
 
         // Swith the projection back to pixels rendering for UI

@@ -9,12 +9,12 @@ use nalgebra::{Point2, Vector2};
 
 use controller::{self, BuildInputController, BuildState, BuildChoice};
 use model::ship::{Ship};
-use model::{Camera};
+use model::{Camera, ObjectClasses};
 use view::ship::{Bounds};
 
 pub fn draw_build_graphics(
     ctx: &mut Context, build_input: &BuildInputController,
-    ship: &Ship, camera: &Camera, tiles: &mut SpriteBatch,
+    ship: &Ship, camera: &Camera, object_classes: &ObjectClasses, tiles: &mut SpriteBatch,
 ) -> GameResult<()> {
     // If clicking won't do anything, we don't want to draw an indicator
     if *build_input.build_choice() == BuildChoice::None {
@@ -22,7 +22,7 @@ pub fn draw_build_graphics(
     }
 
     draw_grid(ctx, ship, camera)?;
-    draw_build_placeholder(ctx, build_input, tiles)?;
+    draw_build_placeholder(ctx, build_input, object_classes, tiles)?;
 
     Ok(())
 }
@@ -61,18 +61,15 @@ fn draw_grid(
 }
 
 fn draw_build_placeholder(
-    ctx: &mut Context, build_input: &BuildInputController, tiles: &mut SpriteBatch,
+    ctx: &mut Context, build_input: &BuildInputController, object_classes: &ObjectClasses,
+    tiles: &mut SpriteBatch,
 ) -> GameResult<()> {
     // Check what we need to draw
     let uvs = match *build_input.build_choice() {
         BuildChoice::Floor =>
             Some(Rect::new(0.0, 0.5, 0.5, 0.5)),
         BuildChoice::Object(id) =>
-            Some(match id.0 {
-                0 => Rect::new(0.0, 0.0, 0.5, 0.5),
-                1 => Rect::new(0.5, 0.0, 0.5, 0.5),
-                _ => unreachable!()
-            }),
+            Some(object_classes.get(id).unwrap().uvs()),
         _ => None
     };
 
