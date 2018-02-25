@@ -1,4 +1,5 @@
 use nalgebra::{Vector2, Point2};
+use model::{ObjectClassId};
 
 #[derive(Deserialize, Serialize)]
 pub struct Tiles {
@@ -24,7 +25,7 @@ impl Tiles {
         self.size
     }
 
-    pub fn tile(&self, position: Point2<i32>) -> Result<&Tile, TilesError> {
+    pub fn get(&self, position: Point2<i32>) -> Result<&Tile, TilesError> {
         if self.is_in_bounds(position) {
             Ok(&self.tiles[self.index(position)])
         } else {
@@ -32,7 +33,7 @@ impl Tiles {
         }
     }
 
-    pub fn tile_mut(&mut self, position: Point2<i32>) -> Result<&mut Tile, TilesError> {
+    pub fn get_mut(&mut self, position: Point2<i32>) -> Result<&mut Tile, TilesError> {
         if self.is_in_bounds(position) {
             let index = self.index(position);
             Ok(&mut self.tiles[index])
@@ -69,7 +70,7 @@ pub enum TilesError {
 #[derive(Deserialize, Serialize)]
 pub struct Tile {
     pub floor: bool,
-    pub object: Option<ShipObject>,
+    pub object: Option<Object>,
 }
 
 impl Tile {
@@ -82,17 +83,14 @@ impl Tile {
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct ShipObject {
-    pub class: ShipObjectClassId,
+pub struct Object {
+    pub class: ObjectClassId,
 }
 
-impl ShipObject {
-    pub fn new(class: ShipObjectClassId) -> Self {
-        ShipObject {
+impl Object {
+    pub fn new(class: ObjectClassId) -> Self {
+        Object {
             class,
         }
     }
 }
-
-#[derive(Copy, Clone, Eq, PartialEq, Deserialize, Serialize)]
-pub struct ShipObjectClassId(pub i32);

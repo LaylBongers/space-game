@@ -1,6 +1,7 @@
 use nalgebra::{Point2, Vector2};
 use slog::{Logger};
 
+use model::{ObjectClasses};
 use model::ship::{Tiles, Unit, TaskQueue};
 
 #[derive(Deserialize, Serialize)]
@@ -26,7 +27,7 @@ impl Ship {
         let mut ship = Ship::empty(Vector2::new(100, 100));
         for y in 47..53 {
             for x in 48..52 {
-                ship.tiles.tile_mut(Point2::new(x, y)).unwrap().floor = true;
+                ship.tiles.get_mut(Point2::new(x, y)).unwrap().floor = true;
             }
         }
         ship.add_unit(Unit::new(Point2::new(50.5, 50.5)));
@@ -43,14 +44,14 @@ impl Ship {
         self.units.push(unit);
     }
 
-    pub fn update(&mut self, log: &Logger, delta: f32) {
+    pub fn update(&mut self, log: &Logger, delta: f32, object_classes: &ObjectClasses) {
         if self.tiles.check_changed() {
             // Since the world has changed, we can mark all tasks as being possible again
             self.task_queue.clear_unreachable();
         }
 
         for unit in &mut self.units {
-            unit.update(log, delta, &mut self.tiles, &mut self.task_queue);
+            unit.update(log, delta, &mut self.tiles, &mut self.task_queue, object_classes);
         }
 
         self.task_queue.update(log);

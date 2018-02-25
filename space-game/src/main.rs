@@ -40,7 +40,7 @@ use markedly::{Ui, ComponentEvents};
 use markedly_ggez::{GgezRenderer};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
-use model::{Camera};
+use model::{Camera, ObjectClasses, GenericObjectClass};
 use model::ship::{Ship};
 
 pub fn main() {
@@ -84,6 +84,8 @@ pub fn main() {
 
 struct MainState {
     log: Logger,
+
+    // Ui
     ui: Ui,
     ui_input: UiInput,
     ui_font: Font,
@@ -91,6 +93,7 @@ struct MainState {
 
     // Models
     camera: Camera,
+    object_classes: ObjectClasses,
     ship: Ship,
 
     // Controllers
@@ -127,6 +130,11 @@ impl MainState {
         let screen_size_f = Vector2::new(screen_size.x as f32, screen_size.y as f32);
         let (mut ui, root_events) = Ui::new(&root_template, &style, screen_size_f, &classes)?;
 
+        // Set up all the objects we can place in ships
+        let mut object_classes = ObjectClasses::new();
+        object_classes.register(GenericObjectClass { walkable: false, });
+        object_classes.register(GenericObjectClass { walkable: true, });
+
         // Create the starter ship
         let ship = Ship::starter(&log);
 
@@ -138,12 +146,14 @@ impl MainState {
 
         Ok(MainState {
             log,
+
             ui,
             ui_input,
             ui_font,
             root_events,
 
             camera,
+            object_classes,
             ship,
 
             build_input,
@@ -165,7 +175,7 @@ impl EventHandler for MainState {
 
             self.build_input.update(&mut self.ui)?;
             self.save_input.update(&self.log, ctx, &mut self.ship)?;
-            self.ship.update(&self.log, DELTA);
+            self.ship.update(&self.log, DELTA, &self.object_classes);
         }
 
         Ok(())

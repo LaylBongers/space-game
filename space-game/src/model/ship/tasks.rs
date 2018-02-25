@@ -3,13 +3,13 @@ use nalgebra::{Point2};
 use metrohash::{MetroHashMap};
 use slog::{Logger};
 
-use model::ship::{ShipObjectClassId};
+use model::{ObjectClassId};
 
 #[derive(Deserialize, Serialize)]
 pub struct TaskQueue {
     // Faster non-crypto hasher for small & medium key sizes
     tasks: MetroHashMap<TaskId, Task>,
-    next_task_id: i32,
+    next_task_id: u32,
 }
 
 impl TaskQueue {
@@ -117,12 +117,12 @@ pub enum TaskQueueError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq, Deserialize, Serialize)]
-pub struct TaskId(pub i32);
+pub struct TaskId(pub u32);
 
 #[derive(Deserialize, Serialize)]
 pub struct Task {
     position: Point2<i32>,
-    object_class: ShipObjectClassId,
+    object_class: ObjectClassId,
     assigned: bool,
     unreachable: bool,
 
@@ -131,7 +131,7 @@ pub struct Task {
 }
 
 impl Task {
-    pub fn new(position: Point2<i32>, object_class: ShipObjectClassId, work_target: f32) -> Self {
+    pub fn new(position: Point2<i32>, object_class: ObjectClassId, work_target: f32) -> Self {
         Task {
             position,
             object_class,
@@ -147,7 +147,7 @@ impl Task {
         self.position
     }
 
-    pub fn object_class(&self) -> ShipObjectClassId {
+    pub fn object_class(&self) -> ObjectClassId {
         self.object_class
     }
 

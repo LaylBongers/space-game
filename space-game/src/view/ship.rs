@@ -45,7 +45,7 @@ fn draw_tiles(
 
     for y in bounds.start.y..bounds.end.y {
         for x in bounds.start.x..bounds.end.x {
-            let tile = ship.tiles.tile(Point2::new(x, y)).unwrap();
+            let tile = ship.tiles.get(Point2::new(x, y)).unwrap();
 
             let (fx, fy) = (x as f32, y as f32);
 

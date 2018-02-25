@@ -3,7 +3,8 @@ use nalgebra::{Point2};
 use slog::{Logger};
 use pathfinding;
 
-use model::ship::{TaskId, TaskQueue, ShipObject, Tiles, Tile, TilesError};
+use model::{ObjectClasses};
+use model::ship::{TaskId, TaskQueue, Object, Tiles, Tile, TilesError};
 
 #[derive(Deserialize, Serialize)]
 pub struct Unit {
@@ -29,14 +30,16 @@ impl Unit {
     }
 
     pub fn update(
-        &mut self, log: &Logger, delta: f32, tiles: &mut Tiles, task_queue: &mut TaskQueue
+        &mut self, log: &Logger, delta: f32,
+        tiles: &mut Tiles, task_queue: &mut TaskQueue, object_classes: &ObjectClasses
     ) {
-        self.update_task(log, delta, tiles, task_queue);
+        self.update_task(log, delta, tiles, task_queue, object_classes);
         self.update_movement(delta);
     }
 
     fn update_task(
-        &mut self, log: &Logger, delta: f32, tiles: &mut Tiles, task_queue: &mut TaskQueue
+        &mut self, log: &Logger, delta: f32,
+        tiles: &mut Tiles, task_queue: &mut TaskQueue, object_classes: &ObjectClasses
     ) {
         // A lot of the functionality in here is sequential steps to complete a task checked every
         // frame. For performance it may be beneficial to restructure it into something else that
@@ -68,13 +71,13 @@ impl Unit {
 
                 // If the work's done, we can add an object to the tile
                 if task.is_done() {
-                    tiles.tile_mut(task.position()).unwrap()
-                        .object = Some(ShipObject::new(task.object_class()));
+                    tiles.get_mut(task.position()).unwrap()
+                        .object = Some(Object::new(task.object_class()));
                     tiles.mark_changed();
                 }
             } else {
                 // We're not there, find a path to our destination
-                if !self.path_to(task.position(), tiles, false) {
+                if !self.path_to(task.position(), false, tiles, object_classes) {
                     // We couldn't find a path, mark the task as unreachable
                     task.set_unreachable(true);
                     task.set_assigned(false);
@@ -93,7 +96,10 @@ impl Unit {
     }
 
     /// Finds a path to the goal, returns false if no path could be found.
-    fn path_to(&mut self, goal: Point2<i32>, tiles: &Tiles, goal_inclusive: bool) -> bool {
+    fn path_to(
+        &mut self, goal: Point2<i32>, goal_inclusive: bool,
+        tiles: &Tiles, object_classes: &ObjectClasses,
+    ) -> bool {
         // Calculate some advance values relevant to pathfinding
         let costs = Costs {
             straight: 100,
@@ -105,7 +111,7 @@ impl Unit {
         // Keep in mind our path following wants the path in reverse
         let result = pathfinding::astar(
             &goal,
-            |node| neighbors(*node, start, goal, goal_inclusive, tiles, &costs),
+            |node| neighbors(*node, start, goal, goal_inclusive, &costs, tiles, object_classes),
             |node| heuristic(*node, start, &costs),
             |node| *node == start,
         );
@@ -165,7 +171,8 @@ struct Costs {
 
 fn neighbors(
     node: Point2<i32>, start: Point2<i32>, goal: Point2<i32>,
-    goal_inclusive: bool, tiles: &Tiles, costs: &Costs
+    goal_inclusive: bool, costs: &Costs,
+    tiles: &Tiles, object_classes: &ObjectClasses
 ) -> Vec<(Point2<i32>, i32)> {
     let mut neighbors = Vec::new();
 
@@ -179,12 +186,12 @@ fn neighbors(
             }
 
             // Retrieve the tile data itself
-            let tile_res =  tiles.tile(neighbor);
+            let tile_res =  tiles.get(neighbor);
 
             // Make sure we can walk over this tile
             // We always allow the start, we want to move off where we are even if it's blocked
             // We start at the goal anyways, so we don't have to add an exception for that
-            if !is_walkable(tile_res) &&
+            if !is_walkable(tile_res, object_classes) &&
                 !(neighbor == start)
             {
                 continue
@@ -198,8 +205,8 @@ fn neighbors(
                 // Except, if it's the start and the end's not inclusive, we can ignore that
                 // because we're only trying to reach it one tile away, not move to it
                 if !(!goal_inclusive && node == goal) {
-                    if !is_walkable(tiles.tile(Point2::new(x, node.y))) ||
-                       !is_walkable(tiles.tile(Point2::new(node.x, y))) {
+                    if !is_walkable(tiles.get(Point2::new(x, node.y)), object_classes) ||
+                       !is_walkable(tiles.get(Point2::new(node.x, y)), object_classes) {
                         continue
                     }
                 }
@@ -214,9 +221,12 @@ fn neighbors(
     neighbors
 }
 
-fn is_walkable(tile_res: Result<&Tile, TilesError>) -> bool {
+fn is_walkable(tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClasses) -> bool {
     if let Ok(tile) = tile_res {
-        tile.floor && tile.object.is_none()
+        tile.floor && tile.object
+            .as_ref()
+            .map(|o| object_classes.get(o.class).unwrap().is_walkable())
+            .unwrap_or(true)
     } else {
         false
     }
