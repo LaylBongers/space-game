@@ -28,7 +28,9 @@ number = { "0" | ('1'..'9' ~ '0'..'9'*) }
 default = @{ "default" }
 
 // Script
-script_value = @{ "@" ~ (!("," | newline) ~ any)* ~ &"," }
+script_value = @{ "@" ~ (script_parens | !("(" | script_value_end) ~ any)* ~ &script_value_end }
+script_value_end = { "," | "}" }
+script_parens = { "(" ~ (script_parens | !("(" | ")") ~ any)* ~ ")" }
 
 // Whitespace
 spacing = _{ " " | "\t" }
