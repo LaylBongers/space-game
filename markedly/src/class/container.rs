@@ -4,6 +4,7 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory};
 use render::{Renderer};
+use scripting::{ScriptRuntime};
 use {Color, Attributes};
 
 /// A container component class, functions as a generic container for other components.
@@ -12,7 +13,7 @@ pub struct ContainerClass {
 }
 
 impl ComponentClassFactory for ContainerClass {
-    fn new(attributes: &Attributes) -> Result<Self, String> {
+    fn new(attributes: &Attributes, _runtime: &ScriptRuntime) -> Result<Self, String> {
         Ok(ContainerClass {
             color: attributes.attribute_optional("color", |v| v.as_color())?,
         })

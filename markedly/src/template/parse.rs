@@ -187,6 +187,8 @@ fn parse_value(pair: Pair<Rule>) -> Value {
         },
         Rule::default =>
             Value::Default,
+        Rule::script_value =>
+            Value::Script(pair_str[1..pair_str.len()].into()),
         _ => unreachable!(),
     }
 }

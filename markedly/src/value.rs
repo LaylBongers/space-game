@@ -1,4 +1,5 @@
 use nalgebra::{Point2, Vector2};
+use scripting::{ScriptRuntime};
 
 /// A generic attribute value, will be read in by components.
 #[derive(Debug, PartialEq, Clone)]
@@ -15,13 +16,16 @@ pub enum Value {
     Tuple(Vec<Value>),
     /// A null value.
     Default,
+    /// A script that will be evaluated by the scripting engine.
+    Script(String),
 }
 
 impl Value {
     /// Gets the string content of this value, or returns an error.
-    pub fn as_string(&self) -> Result<String, String> {
+    pub fn as_string(&self, runtime: &ScriptRuntime) -> Result<String, String> {
         match *self {
             Value::String(ref value) => Ok(value.clone()),
+            Value::Script(ref script) => runtime.eval_string(script),
             _ => Err("Value is not a string".into()),
         }
     }

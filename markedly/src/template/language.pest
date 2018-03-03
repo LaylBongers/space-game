@@ -8,7 +8,7 @@ style_class = { "." ~ identifier }
 // Attributes
 attributes = !{ "{" ~ (key_value ~ ("," ~ key_value)* ~ ","?)? ~ "}" }
 key_value = { identifier ~ ":" ~ value }
-value = { string | percentage | float | integer | tuple | default }
+value = { string | percentage | float | integer | tuple | default | script_value }
 
 // Identifiers
 identifier_char = _{ 'a'..'z' | 'A'..'Z' | '0'..'9' | "_" | "-" }
@@ -26,6 +26,9 @@ percentage = @{ "-"? ~ number ~ "%" }
 number = { "0" | ('1'..'9' ~ '0'..'9'*) }
 
 default = @{ "default" }
+
+// Script
+script_value = @{ "@" ~ (!("," | newline) ~ any)* ~ &"," }
 
 // Whitespace
 spacing = _{ " " | "\t" }

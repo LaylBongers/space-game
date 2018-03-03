@@ -35,6 +35,7 @@ use sloggers::types::{Severity};
 
 use markedly::class::{ComponentClasses};
 use markedly::input::{UiInput};
+use markedly::scripting::{ScriptRuntime};
 use markedly::template::{Template, Style};
 use markedly::{Ui, ComponentEvents};
 use markedly_ggez::{GgezRenderer};
@@ -89,6 +90,7 @@ struct MainState {
     ui: Ui,
     ui_input: UiInput,
     ui_font: Font,
+    //ui_runtime: ScriptRuntime,
     root_events: ComponentEvents,
 
     // Models
@@ -121,14 +123,15 @@ impl MainState {
 
         let ui_input = UiInput::new();
         let ui_font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
+        let ui_runtime = ScriptRuntime::new();
 
         // Set up the UI itself
-        let style_file = ctx.filesystem.open("/markedly/style.mark")?;
-        let style = Style::from_reader(style_file)?;
-        let root_template_file = ctx.filesystem.open("/markedly/root.mark")?;
-        let root_template = Template::from_reader(root_template_file)?;
+        let style = Style::from_reader(ctx.filesystem.open("/markedly/style.mark")?)?;
+        let root_template = Template::from_reader(ctx.filesystem.open("/markedly/root.mark")?)?;
         let screen_size_f = Vector2::new(screen_size.x as f32, screen_size.y as f32);
-        let (mut ui, root_events) = Ui::new(&root_template, &style, screen_size_f, &classes)?;
+        let (mut ui, root_events) = Ui::new(
+            &root_template, &style, screen_size_f, &classes, &ui_runtime
+        )?;
 
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();
@@ -142,9 +145,9 @@ impl MainState {
         // Create the starter ship
         let ship = Ship::starter(&log);
 
-        let build_input = BuildInputController::new(ctx, &mut ui, &style, &classes)?;
+        let build_input = BuildInputController::new(ctx, &mut ui, &style, &classes, &ui_runtime)?;
         let camera_input = CameraInputController::new();
-        let save_input = SaveInputController::new(ctx, &mut ui, &style, &classes)?;
+        let save_input = SaveInputController::new(ctx, &mut ui, &style, &classes, &ui_runtime)?;
 
         let tiles = SpriteBatch::new(Image::new(ctx, "/tiles.png")?);
 
@@ -154,6 +157,7 @@ impl MainState {
             ui,
             ui_input,
             ui_font,
+            //ui_runtime,
             root_events,
 
             camera,

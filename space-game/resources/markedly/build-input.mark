@@ -1,7 +1,7 @@
 container
     button {
         position: (3.0, 3.0),
-        text: "Floor",
+        text: @"Floor",
         on-pressed: "build-floor",
     }
     button {

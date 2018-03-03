@@ -4,6 +4,7 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory};
 use render::{Renderer};
+use scripting::{ScriptRuntime};
 use {Color, ComponentEventsClient, Attributes};
 
 /// A button component class, raises events on click.
@@ -18,7 +19,7 @@ pub struct ButtonClass {
 }
 
 impl ComponentClassFactory for ButtonClass {
-    fn new(attributes: &Attributes) -> Result<Self, String> {
+    fn new(attributes: &Attributes, runtime: &ScriptRuntime) -> Result<Self, String> {
         Ok(ButtonClass {
             color: attributes.attribute_optional(
                 "color", |v| v.as_color()
@@ -29,8 +30,8 @@ impl ComponentClassFactory for ButtonClass {
             text_color: attributes.attribute(
                 "text-color", |v| v.as_color(), Color::new_u8(0, 0, 0)
             )?,
-            text: attributes.attribute_optional("text", |v| v.as_string())?,
-            on_pressed: attributes.attribute_optional("on-pressed", |v| v.as_string())?,
+            text: attributes.attribute_optional("text", |v| v.as_string(runtime))?,
+            on_pressed: attributes.attribute_optional("on-pressed", |v| v.as_string(runtime))?,
 
             hovering: false,
         })

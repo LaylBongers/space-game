@@ -1,6 +1,7 @@
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClasses, ComponentClass};
+use scripting::{ScriptRuntime};
 use template::{ComponentTemplate, Style};
 use {ComponentId, ComponentEvents, ComponentEventsClient, Attributes, Value};
 
@@ -20,11 +21,11 @@ impl Component {
     pub(crate) fn from_template(
         template: &ComponentTemplate, style: &Style,
         parent_size: Vector2<f32>, classes: &ComponentClasses,
-        events: &ComponentEvents,
+        events: &ComponentEvents, runtime: &ScriptRuntime
     ) -> Result<Self, String> {
         let attributes = Attributes::resolve(template, style);
 
-        let class = classes.create(template, &attributes)?;
+        let class = classes.create(template, &attributes, runtime)?;
 
         let position = attributes.attribute(
             "position", |v| v.as_point(parent_size), Point2::new(0.0, 0.0)
@@ -34,7 +35,7 @@ impl Component {
         )?;
 
         let docking = attributes.attribute(
-            "docking", |v| Docking::from_value(v), (Docking::Start, Docking::Start)
+            "docking", |v| Docking::from_value(v, runtime), (Docking::Start, Docking::Start)
         )?;
 
         Ok(Component {
@@ -75,7 +76,7 @@ pub enum Docking {
 }
 
 impl Docking {
-    pub fn from_value(value: &Value) -> Result<(Self, Self), String> {
+    pub fn from_value(value: &Value, runtime: &ScriptRuntime) -> Result<(Self, Self), String> {
         let vec = value.as_vec()?;
 
         if vec.len() != 2 {
@@ -83,13 +84,13 @@ impl Docking {
         }
 
         Ok((
-            Self::from_value_individual(&vec[0])?,
-            Self::from_value_individual(&vec[1])?,
+            Self::from_value_individual(&vec[0], runtime)?,
+            Self::from_value_individual(&vec[1], runtime)?,
         ))
     }
 
-    fn from_value_individual(value: &Value) -> Result<Self, String> {
-        match value.as_string()?.as_str() {
+    fn from_value_individual(value: &Value, runtime: &ScriptRuntime) -> Result<Self, String> {
+        match value.as_string(runtime)?.as_str() {
             "start" => Ok(Docking::Start),
             "end" => Ok(Docking::End),
             _ => Err("Values must be either \"start\" or \"end\"".into())

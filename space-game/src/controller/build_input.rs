@@ -6,6 +6,7 @@ use nalgebra::{Point2};
 use markedly::template::{Template, Style};
 use markedly::input::{UiInput};
 use markedly::class::{ComponentClasses};
+use markedly::scripting::{ScriptRuntime};
 use markedly::{Ui, ComponentEvents};
 
 use model::{Camera, ObjectClassId};
@@ -23,9 +24,10 @@ pub struct BuildInputController {
 
 impl BuildInputController {
     pub fn new(
-        ctx: &mut Context, ui: &mut Ui, style: &Style, classes: &ComponentClasses
+        ctx: &mut Context, ui: &mut Ui, style: &Style, classes: &ComponentClasses,
+        ui_runtime: &ScriptRuntime,
     ) -> GameResult<Self> {
-        let ui = BuildInputUiController::new(ctx, ui, style, classes)?;
+        let ui = BuildInputUiController::new(ctx, ui, style, classes, ui_runtime)?;
 
         let mut place_sound = Source::new(ctx, "/object_placed.ogg")?;
         place_sound.set_volume(0.2);
@@ -233,11 +235,12 @@ struct BuildInputUiController {
 
 impl BuildInputUiController {
     pub fn new(
-        ctx: &mut Context, ui: &mut Ui, style: &Style, classes: &ComponentClasses
+        ctx: &mut Context, ui: &mut Ui, style: &Style, classes: &ComponentClasses,
+        ui_runtime: &ScriptRuntime,
     ) -> GameResult<Self> {
         let template_file = ctx.filesystem.open("/markedly/build-input.mark")?;
         let template = Template::from_reader(template_file)?;
-        let events = ui.insert_template(&template, style, "top-menu", &classes)?;
+        let events = ui.insert_template(&template, style, "top-menu", &classes, ui_runtime)?;
 
         Ok(BuildInputUiController {
             events,

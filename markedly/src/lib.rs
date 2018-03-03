@@ -6,10 +6,12 @@ extern crate pest_derive;
 extern crate nalgebra;
 extern crate palette;
 extern crate metrohash;
+extern crate rlua;
 
 pub mod class;
 pub mod input;
 pub mod render;
+pub mod scripting;
 pub mod template;
 
 mod attributes;
