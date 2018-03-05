@@ -20,13 +20,12 @@ mod view;
 use std::env;
 use std::path;
 
-use ggez::{Context, GameResult};
+use ggez::{Context, GameResult, GameError};
 use ggez::timer;
 use ggez::conf::{Conf, WindowMode, WindowSetup};
 use ggez::event::{self, EventHandler, MouseButton, MouseState};
 use ggez::graphics::spritebatch::{SpriteBatch};
 use ggez::graphics::{self, Font, Text, Image, Rect};
-use ggez::error::{GameError};
 use nalgebra::{Vector2, Point2};
 use slog::{Logger};
 use sloggers::{Build};
@@ -77,7 +76,10 @@ pub fn main() {
 
     // Check if it ran successfully
     if let Err(e) = result {
-        error!(log, "Error encountered: {}", e);
+        match e {
+            GameError::UnknownError(text) => error!(log, "Fatal:\n{}", text),
+            e => error!(log, "Fatal: {}", e)
+        }
     } else {
         info!(log, "Game exited cleanly");
     }
@@ -214,7 +216,7 @@ impl EventHandler for MainState {
         {
             let mut renderer = GgezRenderer::new(ctx, &self.ui_font);
             markedly::render::render(&mut renderer, &self.ui)
-                .map_err(|e| GameError::UnknownError(e.description().to_string()))?;
+                .map_err(|e| format!("{:#?}", e))?;
         }
 
         // Draw an FPS counter

@@ -1,5 +1,3 @@
-use std::error::{Error as RError};
-
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory};
@@ -23,7 +21,7 @@ impl ComponentClassFactory for ContainerClass {
 impl ComponentClass for ContainerClass {
     fn render(
         &self, renderer: &mut Renderer, position: Point2<f32>, size: Vector2<f32>
-    ) -> Result<(), Box<RError>> {
+    ) -> Result<(), Error> {
         if let Some(color) = self.color {
             renderer.rectangle(position, size, color)?;
         }

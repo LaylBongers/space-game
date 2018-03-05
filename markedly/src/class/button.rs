@@ -1,5 +1,3 @@
-use std::error::{Error as RError};
-
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory};
@@ -41,7 +39,7 @@ impl ComponentClassFactory for ButtonClass {
 impl ComponentClass for ButtonClass {
     fn render(
         &self, renderer: &mut Renderer, position: Point2<f32>, size: Vector2<f32>
-    ) -> Result<(), Box<RError>> {
+    ) -> Result<(), Error> {
         let current_color = if self.hovering && self.color_hovering.is_some() {
             self.color_hovering
         } else {
