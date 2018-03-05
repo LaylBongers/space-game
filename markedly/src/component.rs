@@ -5,6 +5,31 @@ use scripting::{ScriptRuntime};
 use template::{ComponentTemplate};
 use {ComponentId, ComponentEvents, Attributes, Value, Error, UiContext};
 
+/// Core attributes all components share.
+pub struct ComponentAttributes {
+    pub position: Point2<f32>,
+    pub size: Vector2<f32>,
+    pub docking: (Docking, Docking),
+}
+
+impl ComponentAttributes {
+    pub fn load(
+        parent_size: Vector2<f32>, attributes: &Attributes, runtime: &ScriptRuntime
+    ) -> Result<Self, Error> {
+        Ok(ComponentAttributes {
+            position: attributes.attribute(
+                "position", |v| v.as_point(parent_size, runtime), Point2::new(0.0, 0.0)
+            )?,
+            size: attributes.attribute(
+                "size", |v| v.as_vector(parent_size, runtime), parent_size
+            )?,
+            docking: attributes.attribute(
+                "docking", |v| Docking::from_value(v, runtime), (Docking::Start, Docking::Start)
+            )?,
+        })
+    }
+}
+
 /// A runtime component.
 pub struct Component {
     pub(crate) class: Box<ComponentClass>,
@@ -13,9 +38,7 @@ pub struct Component {
     template: ComponentTemplate,
 
     pub(crate) children: Vec<ComponentId>,
-    pub(crate) position: Point2<f32>,
-    pub(crate) size: Vector2<f32>,
-    docking: (Docking, Docking),
+    pub(crate) attributes: ComponentAttributes,
 }
 
 impl Component {
@@ -28,17 +51,7 @@ impl Component {
         let attributes = Attributes::resolve(template, context)?;
 
         let class = context.classes.create(template, &attributes, runtime)?;
-
-        let position = attributes.attribute(
-            "position", |v| v.as_point(parent_size, runtime), Point2::new(0.0, 0.0)
-        )?;
-        let size = attributes.attribute(
-            "size", |v| v.as_vector(parent_size, runtime), parent_size
-        )?;
-
-        let docking = attributes.attribute(
-            "docking", |v| Docking::from_value(v, runtime), (Docking::Start, Docking::Start)
-        )?;
+        let component_attributes = ComponentAttributes::load(parent_size, &attributes, runtime)?;
 
         Ok(Component {
             class,
@@ -48,9 +61,7 @@ impl Component {
             template: template.clone(),
 
             children: Vec::new(),
-            position,
-            size,
-            docking,
+            attributes: component_attributes,
         })
     }
 
@@ -67,17 +78,19 @@ impl Component {
     pub(crate) fn compute_position(
         &self, computed_parent_position: Point2<f32>, parent_size: Vector2<f32>
     ) -> Point2<f32> {
-        let x = match self.docking.0 {
+        let x = match self.attributes.docking.0 {
             Docking::Start =>
-                computed_parent_position.x + self.position.x,
+                computed_parent_position.x + self.attributes.position.x,
             Docking::End =>
-                computed_parent_position.x + self.position.x + parent_size.x - self.size.x,
+                computed_parent_position.x + self.attributes.position.x +
+                    parent_size.x - self.attributes.size.x,
         };
-        let y = match self.docking.1 {
+        let y = match self.attributes.docking.1 {
             Docking::Start =>
-                computed_parent_position.y + self.position.y,
+                computed_parent_position.y + self.attributes.position.y,
             Docking::End =>
-                computed_parent_position.y + self.position.y + parent_size.y - self.size.y,
+                computed_parent_position.y + self.attributes.position.y +
+                    parent_size.y - self.attributes.size.y,
         };
 
         Point2::new(x, y)

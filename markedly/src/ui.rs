@@ -103,7 +103,7 @@ impl Ui {
         // Make sure we found something and retrieve some basic data we need
         let parent_id = found_parent_id
             .ok_or(format!("Unable to find component with style class {}", style_class))?;
-        let size = self.get(parent_id).unwrap().size;
+        let size = self.get(parent_id).unwrap().attributes.size;
 
         // Prepare the scripting engine with the model data
         let model = model.unwrap_or(HashMap::new());
@@ -132,7 +132,7 @@ impl Ui {
         let mut component = Component::from_template(
             template, events, parent_size, context,
         )?;
-        let size = component.size;
+        let size = component.attributes.size;
         let id = self.next_id;
         self.next_id.0 += 1;
 

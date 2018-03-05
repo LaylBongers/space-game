@@ -31,10 +31,10 @@ fn render_component<R: Renderer>(
     let computed_position = component.compute_position(computed_parent_position, parent_size);
 
     // Let the component's class render itself
-    component.class.render(renderer, computed_position, component.size)?;
+    component.class.render(renderer, computed_position, component.attributes.size)?;
 
     for child in &component.children {
-        render_component(renderer, ui, *child, computed_position, component.size)?;
+        render_component(renderer, ui, *child, computed_position, component.attributes.size)?;
     }
 
     Ok(())

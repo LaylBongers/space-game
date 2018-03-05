@@ -76,8 +76,8 @@ fn find_at_position(
     // If the position isn't over us, it also won't be over any children, so just return none
     if position.x < computed_position.x ||
         position.y < computed_position.y ||
-        position.x > computed_position.x + component.size.x ||
-        position.y > computed_position.y + component.size.y {
+        position.x > computed_position.x + component.attributes.size.x ||
+        position.y > computed_position.y + component.attributes.size.y {
         return None
     }
 
@@ -94,7 +94,7 @@ fn find_at_position(
     // recursively find the deepest matching child like this.
     for child_id in &component.children {
         if let Some(id) = find_at_position(
-            position, ui, *child_id, computed_position, component.size
+            position, ui, *child_id, computed_position, component.attributes.size
         ) {
             found_id = Some(id);
         }
