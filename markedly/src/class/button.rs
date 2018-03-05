@@ -22,13 +22,13 @@ impl ComponentClassFactory for ButtonClass {
     fn new(attributes: &Attributes, runtime: &ScriptRuntime) -> Result<Self, String> {
         Ok(ButtonClass {
             color: attributes.attribute_optional(
-                "color", |v| v.as_color()
+                "color", |v| v.as_color(runtime)
             )?,
             color_hovering: attributes.attribute_optional(
-                "color-hovering", |v| v.as_color()
+                "color-hovering", |v| v.as_color(runtime)
             )?,
             text_color: attributes.attribute(
-                "text-color", |v| v.as_color(), Color::new_u8(0, 0, 0)
+                "text-color", |v| v.as_color(runtime), Color::new_u8(0, 0, 0)
             )?,
             text: attributes.attribute_optional("text", |v| v.as_string(runtime))?,
             on_pressed: attributes.attribute_optional("on-pressed", |v| v.as_string(runtime))?,

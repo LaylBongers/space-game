@@ -23,15 +23,15 @@ impl Component {
         parent_size: Vector2<f32>, classes: &ComponentClasses,
         events: &ComponentEvents, runtime: &ScriptRuntime
     ) -> Result<Self, String> {
-        let attributes = Attributes::resolve(template, style);
+        let attributes = Attributes::resolve(template, style, runtime)?;
 
         let class = classes.create(template, &attributes, runtime)?;
 
         let position = attributes.attribute(
-            "position", |v| v.as_point(parent_size), Point2::new(0.0, 0.0)
+            "position", |v| v.as_point(parent_size, runtime), Point2::new(0.0, 0.0)
         )?;
         let size = attributes.attribute(
-            "size", |v| v.as_vector(parent_size), parent_size
+            "size", |v| v.as_vector(parent_size, runtime), parent_size
         )?;
 
         let docking = attributes.attribute(

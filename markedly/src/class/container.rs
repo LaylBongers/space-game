@@ -13,9 +13,9 @@ pub struct ContainerClass {
 }
 
 impl ComponentClassFactory for ContainerClass {
-    fn new(attributes: &Attributes, _runtime: &ScriptRuntime) -> Result<Self, String> {
+    fn new(attributes: &Attributes, runtime: &ScriptRuntime) -> Result<Self, String> {
         Ok(ContainerClass {
-            color: attributes.attribute_optional("color", |v| v.as_color())?,
+            color: attributes.attribute_optional("color", |v| v.as_color(runtime))?,
         })
     }
 }

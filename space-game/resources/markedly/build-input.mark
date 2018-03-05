@@ -1,8 +1,10 @@
 container
     button {
         position: (3.0, 3.0),
-        text: @string.gsub("floor", "^%l", string.upper),
+        text: ={ string.gsub("floor", "^%l", string.upper) },
         on-pressed: "build-floor",
+
+        color: (120, 255, 120, 0.8) ?{ model.build_floor_active },
     }
     button {
         position: (78.0, 3.0),

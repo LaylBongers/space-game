@@ -31,27 +31,32 @@ impl Value {
     }
 
     /// Gets the integer content of this value, or returns an error.
-    pub fn as_integer(&self) -> Result<i32, String> {
+    pub fn as_integer(&self, runtime: &ScriptRuntime) -> Result<i32, String> {
         match *self {
             Value::Integer(value) => Ok(value),
+            Value::Script(ref script) => runtime.eval_integer(script),
             _ => Err("Value is not an integer".into()),
         }
     }
 
     /// Gets the floating point content of this value, or returns an error.
-    pub fn as_float(&self) -> Result<f32, String> {
+    pub fn as_float(&self, runtime: &ScriptRuntime) -> Result<f32, String> {
         match *self {
             Value::Float(value) => Ok(value),
+            Value::Script(ref script) => runtime.eval_float(script),
             _ => Err("Value is not a float".into()),
         }
     }
 
     /// Gets the floating point content of this value, calculates a percentage floating point
     /// value, or returns an error.
-    pub fn as_float_or_percentage(&self, percent_100: f32) -> Result<f32, String> {
+    pub fn as_float_or_percentage(
+        &self, percent_100: f32, runtime: &ScriptRuntime
+    ) -> Result<f32, String> {
         match *self {
             Value::Float(value) => Ok(value),
             Value::Percentage(value) => Ok((value as f32 / 100.0) * percent_100),
+            Value::Script(ref script) => runtime.eval_float(script),
             _ => Err("Value is not a float or percentage".into()),
         }
     }
@@ -65,18 +70,22 @@ impl Value {
     }
 
     /// Gets the point content of this value, or returns an error.
-    pub fn as_point(&self, percent_100: Vector2<f32>) -> Result<Point2<f32>, String> {
-        self.as_vector(percent_100)
+    pub fn as_point(
+        &self, percent_100: Vector2<f32>, runtime: &ScriptRuntime
+    ) -> Result<Point2<f32>, String> {
+        self.as_vector(percent_100, runtime)
             .map(|v| Point2::from_coordinates(v))
     }
 
     /// Gets the vector content of this value, or returns an error.
-    pub fn as_vector(&self, percent_100: Vector2<f32>) -> Result<Vector2<f32>, String> {
+    pub fn as_vector(
+        &self, percent_100: Vector2<f32>, runtime: &ScriptRuntime
+    ) -> Result<Vector2<f32>, String> {
         if let Value::Tuple(ref values) = *self {
             if values.len() == 2 {
-                let x = values[0].as_float_or_percentage(percent_100.x)
+                let x = values[0].as_float_or_percentage(percent_100.x, runtime)
                     .map_err(|e| format!("Value 1: {}", e))?;
-                let y = values[1].as_float_or_percentage(percent_100.y)
+                let y = values[1].as_float_or_percentage(percent_100.y, runtime)
                     .map_err(|e| format!("Value 2: {}", e))?;
 
                 Ok(Vector2::new(x, y))
@@ -89,18 +98,18 @@ impl Value {
     }
 
     /// Gets the color content of this value, or returns an error.
-    pub fn as_color(&self) -> Result<Color, String> {
+    pub fn as_color(&self, runtime: &ScriptRuntime) -> Result<Color, String> {
         if let Value::Tuple(ref values) = *self {
             let has_alpha = values.len() == 4;
             if values.len() == 3 || has_alpha {
-                let red = values[0].as_integer()
+                let red = values[0].as_integer(runtime)
                     .map_err(|e| format!("Value 1: {}", e))?;
-                let green = values[1].as_integer()
+                let green = values[1].as_integer(runtime)
                     .map_err(|e| format!("Value 2: {}", e))?;
-                let blue = values[2].as_integer()
+                let blue = values[2].as_integer(runtime)
                     .map_err(|e| format!("Value 3: {}", e))?;
                 let alpha = if has_alpha {
-                    let alpha = values[3].as_float()
+                    let alpha = values[3].as_float(runtime)
                         .map_err(|e| format!("Value 4: {}", e))?;
                     range_f(alpha, "Value 4", 0.0, 1.0)?;
                     (255.0 * alpha).round() as u8

@@ -5,6 +5,6 @@ mod parse;
 mod style;
 mod template;
 
-pub use self::component::{ComponentTemplate};
+pub use self::component::{ComponentTemplate, TemplateAttribute};
 pub use self::style::{Style};
 pub use self::template::{Template};

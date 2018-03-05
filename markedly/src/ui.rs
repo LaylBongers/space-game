@@ -70,6 +70,9 @@ impl Ui {
             .ok_or(format!("Unable to find component with style class {}", style_class))?;
         let size = self.get(parent_id).unwrap().size;
 
+        // Prepare the scripting engine with the model data
+        runtime.set_model()?;
+
         // Recursively add the template
         let events = ComponentEvents::new();
         let id = self.load_component(&template.root, style, size, classes, &events, runtime)?;

@@ -1,5 +1,6 @@
 use std::collections::{HashMap};
 
+use scripting::{ScriptRuntime};
 use template::{ComponentTemplate, Style};
 use {Value};
 
@@ -11,28 +12,37 @@ pub struct Attributes {
 
 impl Attributes {
     /// Resolves the final attributes of the current component from its template and the style.
-    pub fn resolve(template: &ComponentTemplate, style: &Style) -> Self {
+    pub fn resolve(
+        template: &ComponentTemplate, style: &Style, runtime: &ScriptRuntime,
+    ) -> Result<Self, String> {
         let mut attributes = HashMap::new();
+
+        // Attributes should always be added, and thus overwritten, in the sequence they were in in
+        // the template
 
         // Add any styles from the stylesheet
         for component in &style.components {
             if component.class == template.class {
-                for (key, value) in &component.attributes {
-                    attributes.insert(key.clone(), value.clone());
+                for attribute in &component.attributes {
+                    if attribute.check_conditional(runtime)? {
+                        attributes.insert(attribute.key.clone(), attribute.value.clone());
+                    }
                 }
             }
         }
 
         // Overwrite any style resolved attributes with this component's set attributes
-        for (key, value) in &template.attributes {
-            attributes.insert(key.clone(), value.clone());
+        for attribute in &template.attributes {
+            if attribute.check_conditional(runtime)? {
+                attributes.insert(attribute.key.clone(), attribute.value.clone());
+            }
         }
 
-        Attributes {
+        Ok(Attributes {
             component_class: template.class.clone(),
             component_line: template.line,
             attributes,
-        }
+        })
     }
 
     pub fn attribute<O, F: FnOnce(&Value) -> Result<O, String>>(

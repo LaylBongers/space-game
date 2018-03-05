@@ -35,6 +35,10 @@
         'match': '\\b[0-9]+\\.[0-9][0-9_]*([eE][+-]?[0-9_]+)?\\b'
         'name': 'constant.numeric.float.markedly'
     }, {
+        'comment': 'Percentage'
+        'match': '\\b[0-9]+%'
+        'name': 'constant.numeric.float.markedly'
+    }, {
         'comment': 'Integer'
         'match': '\\b[0-9]+\\b'
         'name': 'constant.numeric.float.markedly'

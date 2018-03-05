@@ -7,7 +7,7 @@ style_class = { "." ~ identifier }
 
 // Attributes
 attributes = !{ "{" ~ (key_value ~ ("," ~ key_value)* ~ ","?)? ~ "}" }
-key_value = { identifier ~ ":" ~ value }
+key_value = { identifier ~ ":" ~ value ~ script_conditional? }
 value = { string | percentage | float | integer | tuple | default | script_value }
 
 // Identifiers
@@ -28,9 +28,11 @@ number = { "0" | ('1'..'9' ~ '0'..'9'*) }
 default = @{ "default" }
 
 // Script
-script_value = @{ "@" ~ (script_parens | !("(" | script_value_end) ~ any)* ~ &script_value_end }
-script_value_end = { "," | "}" }
-script_parens = { "(" ~ (script_parens | !("(" | ")") ~ any)* ~ ")" }
+script_value = @{ "=" ~ script }
+script_conditional = @{ "?" ~ script }
+
+script = { "{" ~ (script_inner_braces | !("{" | "}") ~ any)* ~ "}" }
+script_inner_braces = { "{" ~ (script_inner_braces | !("{" | "}") ~ any)* ~ "}" }
 
 // Whitespace
 spacing = _{ " " | "\t" }

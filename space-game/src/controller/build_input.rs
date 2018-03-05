@@ -258,8 +258,6 @@ impl BuildInputUiController {
                 _ => {}
             }
         }
-
-        //ui.get_mut(button).color = (120, 255, 120);
     }
 
     fn clear_active_button(&mut self, _ui: &mut Ui) {

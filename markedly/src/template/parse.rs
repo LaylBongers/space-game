@@ -1,8 +1,6 @@
-use std::collections::{HashMap};
-
 use pest::iterators::{Pair};
 
-use template::{ComponentTemplate};
+use template::{ComponentTemplate, TemplateAttribute};
 use {Value};
 
 #[derive(Parser)]
@@ -105,7 +103,7 @@ fn parse_component(pair: Pair<Rule>) -> Result<(ComponentTemplate, usize), Strin
     Ok((ComponentTemplate {
         class: class.unwrap(),
         style_class,
-        attributes: attributes.unwrap_or_else(|| HashMap::new()),
+        attributes: attributes.unwrap_or_else(|| Vec::new()),
         children: Vec::new(),
         line,
     }, indentation))
@@ -131,16 +129,17 @@ fn parse_indentation(pair: Pair<Rule>) -> Result<usize, String> {
     Ok(spacing/4)
 }
 
-fn parse_attributes(pair: Pair<Rule>) -> Result<HashMap<String, Value>, String> {
+fn parse_attributes(pair: Pair<Rule>) -> Result<Vec<TemplateAttribute>, String> {
     assert_eq!(pair.as_rule(), Rule::attributes);
 
-    let mut attributes: HashMap<String, Value> = HashMap::new();
+    let mut attributes: Vec<TemplateAttribute> = Vec::new();
 
     for key_value_pair in pair.into_inner() {
         assert_eq!(key_value_pair.as_rule(), Rule::key_value);
 
         let mut key: Option<String> = None;
         let mut value: Option<Value> = None;
+        let mut script_conditional: Option<String> = None;
 
         for pair in key_value_pair.clone().into_inner() {
             match pair.as_rule() {
@@ -148,17 +147,20 @@ fn parse_attributes(pair: Pair<Rule>) -> Result<HashMap<String, Value>, String> 
                     key = Some(pair.as_str().into()),
                 Rule::value =>
                     value = Some(parse_value(pair)),
+                Rule::script_conditional => {
+                    let pair_str = pair.as_str();
+                    script_conditional = Some(pair_str[2..pair_str.len()-1].into());
+                }
                 _ => unreachable!(),
             }
         }
 
-        // Do not allow duplicate keys
-        if attributes.contains_key(key.as_ref().unwrap()) {
-            let (line, _col) = key_value_pair.into_span().start_pos().line_col();
-            return Err(format!("Key {} occurs more than once at line {}", key.unwrap(), line))
-        }
-
-        attributes.insert(key.unwrap(), value.unwrap());
+        // We allow duplicate keys, when attributes are resolved it will pick the last one
+        attributes.push(TemplateAttribute {
+            key: key.unwrap(),
+            value: value.unwrap(),
+            script_conditional,
+        });
     }
 
     Ok(attributes)
@@ -188,7 +190,7 @@ fn parse_value(pair: Pair<Rule>) -> Value {
         Rule::default =>
             Value::Default,
         Rule::script_value =>
-            Value::Script(pair_str[1..pair_str.len()].into()),
+            Value::Script(pair_str[2..pair_str.len()-1].into()),
         _ => unreachable!(),
     }
 }
