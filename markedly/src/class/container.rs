@@ -19,6 +19,13 @@ impl ComponentClassFactory for ContainerClass {
 }
 
 impl ComponentClass for ContainerClass {
+    fn update_attributes(
+        &mut self, attributes: &Attributes, runtime: &ScriptRuntime,
+    ) -> Result<(), Error> {
+        self.color = attributes.attribute_optional("color", |v| v.as_color(runtime))?;
+        Ok(())
+    }
+
     fn render(
         &self, renderer: &mut Renderer, position: Point2<f32>, size: Vector2<f32>
     ) -> Result<(), Error> {

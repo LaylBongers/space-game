@@ -1,5 +1,13 @@
+use std::collections::{HashMap};
 use rlua::{Lua};
 use {Error};
+
+pub type Model = HashMap<String, ScriptValue>;
+
+pub enum ScriptValue {
+    Bool(bool),
+    String(String),
+}
 
 pub struct ScriptRuntime {
     lua: Lua,
@@ -14,11 +22,16 @@ impl ScriptRuntime {
         }
     }
 
-    pub fn set_model(&self) -> Result<(), Error> {
+    pub fn set_model(&self, model: &Model) -> Result<(), Error> {
         let globals = self.lua.globals();
 
         let model_table = self.lua.create_table()?;
-        model_table.set("build_floor_active", true)?;
+        for (key, value) in model {
+            match *value {
+                ScriptValue::Bool(value) => model_table.set(key.as_str(), value)?,
+                ScriptValue::String(ref value) => model_table.set(key.as_str(), value.as_str())?,
+            }
+        }
 
         globals.set("model", model_table)?;
 

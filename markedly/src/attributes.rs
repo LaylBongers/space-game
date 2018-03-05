@@ -1,8 +1,7 @@
 use std::collections::{HashMap};
 
-use scripting::{ScriptRuntime};
-use template::{ComponentTemplate, Style};
-use {Value, Error};
+use template::{ComponentTemplate};
+use {Value, Error, UiContext};
 
 pub struct Attributes {
     attributes: HashMap<String, Value>,
@@ -13,7 +12,7 @@ pub struct Attributes {
 impl Attributes {
     /// Resolves the final attributes of the current component from its template and the style.
     pub fn resolve(
-        template: &ComponentTemplate, style: &Style, runtime: &ScriptRuntime,
+        template: &ComponentTemplate, context: &UiContext,
     ) -> Result<Self, Error> {
         let mut attributes = HashMap::new();
 
@@ -21,10 +20,10 @@ impl Attributes {
         // the template
 
         // Add any styles from the stylesheet
-        for component in &style.components {
+        for component in &context.style.components {
             if component.class == template.class {
                 for attribute in &component.attributes {
-                    if attribute.check_conditional(runtime)? {
+                    if attribute.check_conditional(&context.runtime)? {
                         attributes.insert(attribute.key.clone(), attribute.value.clone());
                     }
                 }
@@ -33,7 +32,7 @@ impl Attributes {
 
         // Overwrite any style resolved attributes with this component's set attributes
         for attribute in &template.attributes {
-            if attribute.check_conditional(runtime)? {
+            if attribute.check_conditional(&context.runtime)? {
                 attributes.insert(attribute.key.clone(), attribute.value.clone());
             }
         }

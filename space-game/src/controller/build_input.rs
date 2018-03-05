@@ -1,13 +1,14 @@
+use std::collections::{HashMap};
+
 use ggez::{Context, GameResult};
 use ggez::audio::{Source};
 use ggez::event::{MouseButton};
 use nalgebra::{Point2};
 
-use markedly::template::{Template, Style};
+use markedly::template::{Template};
 use markedly::input::{UiInput};
-use markedly::class::{ComponentClasses};
-use markedly::scripting::{ScriptRuntime};
-use markedly::{Ui, ComponentEvents};
+use markedly::scripting::{ScriptValue};
+use markedly::{Ui, ComponentEvents, UiContext};
 
 use model::{Camera, ObjectClassId};
 use model::ship::{Ship, Task};
@@ -24,10 +25,9 @@ pub struct BuildInputController {
 
 impl BuildInputController {
     pub fn new(
-        ctx: &mut Context, ui: &mut Ui, style: &Style, classes: &ComponentClasses,
-        ui_runtime: &ScriptRuntime,
+        ctx: &mut Context, ui: &mut Ui, ui_context: &UiContext,
     ) -> GameResult<Self> {
-        let ui = BuildInputUiController::new(ctx, ui, style, classes, ui_runtime)?;
+        let ui = BuildInputUiController::new(ctx, ui, ui_context)?;
 
         let mut place_sound = Source::new(ctx, "/object_placed.ogg")?;
         place_sound.set_volume(0.2);
@@ -77,7 +77,7 @@ impl BuildInputController {
     }
 
     pub fn handle_mouse_up(
-        &mut self, button: MouseButton, ship: &mut Ship, ui: &mut Ui
+        &mut self, button: MouseButton, ship: &mut Ship,
     ) {
         if self.build_choice == BuildChoice::None {
             return
@@ -85,7 +85,7 @@ impl BuildInputController {
 
         match button {
             MouseButton::Left => self.handle_build_up(ship),
-            MouseButton::Right => self.handle_cancel_up(ui),
+            MouseButton::Right => self.handle_cancel_up(),
             _ => {},
         }
     }
@@ -167,10 +167,10 @@ impl BuildInputController {
         }
     }
 
-    fn handle_cancel_up(&mut self, ui: &mut Ui) {
+    fn handle_cancel_up(&mut self) {
         self.build_state = BuildState::Hovering { position: self.last_tile_position };
         self.build_choice = BuildChoice::None;
-        self.ui.clear_active_button(ui);
+        self.ui.clear_active_button();
     }
 
     pub fn handle_mouse_move(
@@ -235,13 +235,17 @@ struct BuildInputUiController {
 
 impl BuildInputUiController {
     pub fn new(
-        ctx: &mut Context, ui: &mut Ui, style: &Style, classes: &ComponentClasses,
-        ui_runtime: &ScriptRuntime,
+        ctx: &mut Context, ui: &mut Ui, ui_context: &UiContext,
     ) -> GameResult<Self> {
         let template_file = ctx.filesystem.open("/markedly/build-input.mark")?;
         let template = Template::from_reader(template_file)?;
-        let events = ui.insert_template(&template, style, "top-menu", &classes, ui_runtime)
-            .map_err(|e| format!("{:#?}", e))?;
+
+        let mut model = HashMap::new();
+        model.insert("build_floor_active".into(), ScriptValue::Bool(true));
+
+        let events = ui.insert_template(
+            &template, Some(model), "top-menu", ui_context,
+        ).map_err(|e| format!("{:#?}", e))?;
 
         Ok(BuildInputUiController {
             events,
@@ -261,6 +265,9 @@ impl BuildInputUiController {
         }
     }
 
-    fn clear_active_button(&mut self, _ui: &mut Ui) {
+    fn clear_active_button(&mut self) {
+        self.events.change_model(|model| {
+            model.insert("build_floor_active".into(), ScriptValue::Bool(false));
+        });
     }
 }

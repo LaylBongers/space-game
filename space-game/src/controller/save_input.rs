@@ -3,10 +3,8 @@ use slog::{Logger};
 use serde::{Deserialize, Serialize};
 use rmp_serde::{Deserializer, Serializer};
 
-use markedly::class::{ComponentClasses};
-use markedly::scripting::{ScriptRuntime};
-use markedly::template::{Template, Style};
-use markedly::{Ui, ComponentEvents};
+use markedly::template::{Template};
+use markedly::{Ui, ComponentEvents, UiContext};
 
 use model::ship::{Ship};
 
@@ -16,12 +14,11 @@ pub struct SaveInputController {
 
 impl SaveInputController {
     pub fn new(
-        ctx: &mut Context, ui: &mut Ui, style: &Style, classes: &ComponentClasses,
-        ui_runtime: &ScriptRuntime,
+        ctx: &mut Context, ui: &mut Ui, ui_context: &UiContext,
     ) -> GameResult<Self> {
         let template_file = ctx.filesystem.open("/markedly/save-input.mark")?;
         let template = Template::from_reader(template_file)?;
-        let events = ui.insert_template(&template, style, "top-menu", &classes, ui_runtime)
+        let events = ui.insert_template(&template, None, "top-menu", ui_context)
             .map_err(|e| format!("{:#?}", e))?;
 
         Ok(SaveInputController {

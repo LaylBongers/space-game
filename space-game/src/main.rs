@@ -36,7 +36,7 @@ use markedly::class::{ComponentClasses};
 use markedly::input::{UiInput};
 use markedly::scripting::{ScriptRuntime};
 use markedly::template::{Template, Style};
-use markedly::{Ui, ComponentEvents};
+use markedly::{Ui, ComponentEvents, UiContext};
 use markedly_ggez::{GgezRenderer};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
@@ -89,10 +89,10 @@ struct MainState {
     log: Logger,
 
     // Ui
+    ui_context: UiContext,
     ui: Ui,
     ui_input: UiInput,
     ui_font: Font,
-    //ui_runtime: ScriptRuntime,
     root_events: ComponentEvents,
 
     // Models
@@ -125,15 +125,17 @@ impl MainState {
 
         let ui_input = UiInput::new();
         let ui_font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
-        let ui_runtime = ScriptRuntime::new();
+        let ui_context = UiContext {
+            classes,
+            runtime: ScriptRuntime::new(),
+            style: Style::from_reader(ctx.filesystem.open("/markedly/style.mark")?)?,
+            screen_size: Vector2::new(screen_size.x as f32, screen_size.y as f32),
+        };
 
         // Set up the UI itself
-        let style = Style::from_reader(ctx.filesystem.open("/markedly/style.mark")?)?;
         let root_template = Template::from_reader(ctx.filesystem.open("/markedly/root.mark")?)?;
-        let screen_size_f = Vector2::new(screen_size.x as f32, screen_size.y as f32);
-        let (mut ui, root_events) = Ui::new(
-            &root_template, &style, screen_size_f, &classes, &ui_runtime
-        ).map_err(|e| format!("{:#?}", e))?;
+        let (mut ui, root_events) = Ui::new(&root_template, &ui_context)
+            .map_err(|e| format!("{:#?}", e))?;
 
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();
@@ -147,19 +149,19 @@ impl MainState {
         // Create the starter ship
         let ship = Ship::starter(&log);
 
-        let build_input = BuildInputController::new(ctx, &mut ui, &style, &classes, &ui_runtime)?;
+        let build_input = BuildInputController::new(ctx, &mut ui, &ui_context)?;
         let camera_input = CameraInputController::new();
-        let save_input = SaveInputController::new(ctx, &mut ui, &style, &classes, &ui_runtime)?;
+        let save_input = SaveInputController::new(ctx, &mut ui, &ui_context)?;
 
         let tiles = SpriteBatch::new(Image::new(ctx, "/tiles.png")?);
 
         Ok(MainState {
             log,
 
+            ui_context,
             ui,
             ui_input,
             ui_font,
-            //ui_runtime,
             root_events,
 
             camera,
@@ -186,6 +188,9 @@ impl EventHandler for MainState {
             self.build_input.update(&mut self.ui)?;
             self.save_input.update(&self.log, ctx, &mut self.ship)?;
             self.ship.update(&self.log, DELTA, &self.object_classes);
+
+            self.ui.update_ui_from_models(&self.ui_context)
+                .map_err(|e| format!("{:#?}", e))?;
         }
 
         Ok(())
@@ -245,7 +250,7 @@ impl EventHandler for MainState {
     ) {
         self.ui_input.handle_drag_ended(Point2::new(x as f32, y as f32), &mut self.ui);
 
-        self.build_input.handle_mouse_up(button, &mut self.ship, &mut self.ui);
+        self.build_input.handle_mouse_up(button, &mut self.ship);
         self.camera_input.handle_mouse_up(button);
     }
 

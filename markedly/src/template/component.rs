@@ -2,7 +2,7 @@ use scripting::{ScriptRuntime};
 use {Value, Error};
 
 /// A component in a template or style.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ComponentTemplate {
     /// The component class this component has.
     pub class: String,
@@ -16,7 +16,7 @@ pub struct ComponentTemplate {
     pub line: usize,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct TemplateAttribute {
     pub key: String,
     pub value: Value,

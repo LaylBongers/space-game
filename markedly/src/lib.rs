@@ -24,6 +24,18 @@ mod value;
 pub use attributes::{Attributes};
 pub use component::{Component};
 pub use error::{Error};
-pub use events::{ComponentEvents, ComponentEventsClient};
+pub use events::{ComponentEvents};
 pub use ui::{Ui, ComponentId};
 pub use value::{Value, Color};
+
+use nalgebra::{Vector2};
+use class::{ComponentClasses};
+use scripting::{ScriptRuntime};
+use template::{Style};
+
+pub struct UiContext {
+    pub classes: ComponentClasses,
+    pub runtime: ScriptRuntime,
+    pub style: Style,
+    pub screen_size: Vector2<f32>,
+}

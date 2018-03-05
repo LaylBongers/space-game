@@ -1,15 +1,16 @@
 use nalgebra::{Point2, Vector2};
 
-use class::{ComponentClasses, ComponentClass};
+use class::{ComponentClass};
 use scripting::{ScriptRuntime};
-use template::{ComponentTemplate, Style};
-use {ComponentId, ComponentEvents, ComponentEventsClient, Attributes, Value, Error};
+use template::{ComponentTemplate};
+use {ComponentId, ComponentEvents, Attributes, Value, Error, UiContext};
 
 /// A runtime component.
 pub struct Component {
     pub(crate) class: Box<ComponentClass>,
     pub(crate) style_class: Option<String>,
-    pub(crate) events_sender: ComponentEventsClient,
+    pub(crate) events: ComponentEvents,
+    template: ComponentTemplate,
 
     pub(crate) children: Vec<ComponentId>,
     pub(crate) position: Point2<f32>,
@@ -19,13 +20,14 @@ pub struct Component {
 
 impl Component {
     pub(crate) fn from_template(
-        template: &ComponentTemplate, style: &Style,
-        parent_size: Vector2<f32>, classes: &ComponentClasses,
-        events: &ComponentEvents, runtime: &ScriptRuntime
+        template: &ComponentTemplate, events: &ComponentEvents,
+        parent_size: Vector2<f32>,
+        context: &UiContext,
     ) -> Result<Self, Error> {
-        let attributes = Attributes::resolve(template, style, runtime)?;
+        let runtime = &context.runtime;
+        let attributes = Attributes::resolve(template, context)?;
 
-        let class = classes.create(template, &attributes, runtime)?;
+        let class = context.classes.create(template, &attributes, runtime)?;
 
         let position = attributes.attribute(
             "position", |v| v.as_point(parent_size, runtime), Point2::new(0.0, 0.0)
@@ -41,13 +43,25 @@ impl Component {
         Ok(Component {
             class,
             style_class: template.style_class.clone(),
-            events_sender: events.create_client(),
+            events: events.clone(),
+            // TODO: This seems very expensive to store, find alternatives
+            template: template.clone(),
 
             children: Vec::new(),
             position,
             size,
             docking,
         })
+    }
+
+    pub(crate) fn update_attributes(&mut self, context: &UiContext) -> Result<(), Error> {
+        // TODO: Update own attributes
+
+        let runtime = &context.runtime;
+        let attributes = Attributes::resolve(&self.template, context)?;
+        self.class.update_attributes(&attributes, runtime)?;
+
+        Ok(())
     }
 
     pub(crate) fn compute_position(
