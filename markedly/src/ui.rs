@@ -4,7 +4,7 @@ use metrohash::{MetroHashMap};
 use class::{ComponentClasses};
 use scripting::{ScriptRuntime};
 use template::{Template, ComponentTemplate, Style};
-use {Component, ComponentEvents};
+use {Component, ComponentEvents, Error};
 
 /// A self-contained UI.
 pub struct Ui {
@@ -19,7 +19,7 @@ impl Ui {
         root: &Template, style: &Style,
         screen_size: Vector2<f32>, classes: &ComponentClasses,
         runtime: &ScriptRuntime,
-    ) -> Result<(Self, ComponentEvents), String> {
+    ) -> Result<(Self, ComponentEvents), Error> {
         let mut ui = Ui {
             components: MetroHashMap::default(),
             next_id: ComponentId(0),
@@ -54,7 +54,7 @@ impl Ui {
         template: &Template, style: &Style,
         style_class: &str, classes: &ComponentClasses,
         runtime: &ScriptRuntime,
-    ) -> Result<ComponentEvents, String> {
+    ) -> Result<ComponentEvents, Error> {
         // Find the first component that has a style class matching what we were asked for
         let mut found_parent_id = None;
         for (key, component) in &self.components {
@@ -88,7 +88,7 @@ impl Ui {
         template: &ComponentTemplate, style: &Style,
         parent_size: Vector2<f32>, classes: &ComponentClasses,
         events: &ComponentEvents, runtime: &ScriptRuntime
-    ) -> Result<ComponentId, String> {
+    ) -> Result<ComponentId, Error> {
         // Load the component itself from the template
         let mut component = Component::from_template(
             template, style, parent_size, classes, events, runtime,

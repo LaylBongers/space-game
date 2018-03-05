@@ -3,7 +3,7 @@ use nalgebra::{Point2, Vector2};
 use class::{ComponentClasses, ComponentClass};
 use scripting::{ScriptRuntime};
 use template::{ComponentTemplate, Style};
-use {ComponentId, ComponentEvents, ComponentEventsClient, Attributes, Value};
+use {ComponentId, ComponentEvents, ComponentEventsClient, Attributes, Value, Error};
 
 /// A runtime component.
 pub struct Component {
@@ -22,7 +22,7 @@ impl Component {
         template: &ComponentTemplate, style: &Style,
         parent_size: Vector2<f32>, classes: &ComponentClasses,
         events: &ComponentEvents, runtime: &ScriptRuntime
-    ) -> Result<Self, String> {
+    ) -> Result<Self, Error> {
         let attributes = Attributes::resolve(template, style, runtime)?;
 
         let class = classes.create(template, &attributes, runtime)?;
@@ -76,7 +76,7 @@ pub enum Docking {
 }
 
 impl Docking {
-    pub fn from_value(value: &Value, runtime: &ScriptRuntime) -> Result<(Self, Self), String> {
+    pub fn from_value(value: &Value, runtime: &ScriptRuntime) -> Result<(Self, Self), Error> {
         let vec = value.as_vec()?;
 
         if vec.len() != 2 {
@@ -89,7 +89,7 @@ impl Docking {
         ))
     }
 
-    fn from_value_individual(value: &Value, runtime: &ScriptRuntime) -> Result<Self, String> {
+    fn from_value_individual(value: &Value, runtime: &ScriptRuntime) -> Result<Self, Error> {
         match value.as_string(runtime)?.as_str() {
             "start" => Ok(Docking::Start),
             "end" => Ok(Docking::End),

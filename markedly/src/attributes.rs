@@ -2,7 +2,7 @@ use std::collections::{HashMap};
 
 use scripting::{ScriptRuntime};
 use template::{ComponentTemplate, Style};
-use {Value};
+use {Value, Error};
 
 pub struct Attributes {
     attributes: HashMap<String, Value>,
@@ -14,7 +14,7 @@ impl Attributes {
     /// Resolves the final attributes of the current component from its template and the style.
     pub fn resolve(
         template: &ComponentTemplate, style: &Style, runtime: &ScriptRuntime,
-    ) -> Result<Self, String> {
+    ) -> Result<Self, Error> {
         let mut attributes = HashMap::new();
 
         // Attributes should always be added, and thus overwritten, in the sequence they were in in
@@ -45,25 +45,26 @@ impl Attributes {
         })
     }
 
-    pub fn attribute<O, F: FnOnce(&Value) -> Result<O, String>>(
+    pub fn attribute<O, F: FnOnce(&Value) -> Result<O, Error>>(
         &self, key: &str, map: F, default: O
-    ) -> Result<O, String> {
+    ) -> Result<O, Error> {
         self.attributes.get(key)
             .map(map)
             .unwrap_or(Ok(default))
-            .map_err(|e| format!(
-                // Error reporting here is done by what component is being resolved, rather than
-                // where the attribute came from. Both of these are relevant information for
-                // resolving the error, so this needs to be changed to both.
-                "In component \"{}\" at line {}, invalid field \"{}\": {}",
-                self.component_class, self.component_line,
-                key, e
-            ))
+            // Error reporting here is done by what component is being resolved, rather than
+            // where the attribute came from, for example a style file. Both of these are relevant
+            // information for resolving the error, so this needs to be changed to both.
+            .map_err(|error| Error::Attribute {
+                component: self.component_class.clone(),
+                line: self.component_line,
+                field: key.into(),
+                inner: Box::new(error),
+            })
     }
 
-    pub fn attribute_optional<O, F: FnOnce(&Value) -> Result<O, String>>(
+    pub fn attribute_optional<O, F: FnOnce(&Value) -> Result<O, Error>>(
         &self, key: &str, map: F,
-    ) -> Result<Option<O>, String> {
+    ) -> Result<Option<O>, Error> {
         self.attributes.get(key)
             .map(|value| {
                 if *value == Value::Default {
@@ -73,13 +74,14 @@ impl Attributes {
                 }
             })
             .unwrap_or(Ok(None))
-            .map_err(|e| format!(
-                // Error reporting here is done by what component is being resolved, rather than
-                // where the attribute came from. Both of these are relevant information for
-                // resolving the error, so this needs to be changed to both.
-                "In component \"{}\" at line {}, Invalid field \"{}\": {}",
-                self.component_class, self.component_line,
-                key, e
-            ))
+            // Error reporting here is done by what component is being resolved, rather than
+            // where the attribute came from, for example a style file. Both of these are relevant
+            // information for resolving the error, so this needs to be changed to both.
+            .map_err(|error| Error::Attribute {
+                component: self.component_class.clone(),
+                line: self.component_line,
+                field: key.into(),
+                inner: Box::new(error),
+            })
     }
 }

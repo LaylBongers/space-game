@@ -1,11 +1,11 @@
-use std::error::{Error};
+use std::error::{Error as RError};
 
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory};
 use render::{Renderer};
 use scripting::{ScriptRuntime};
-use {Color, ComponentEventsClient, Attributes};
+use {Color, ComponentEventsClient, Attributes, Error};
 
 /// A button component class, raises events on click.
 pub struct ButtonClass {
@@ -19,7 +19,7 @@ pub struct ButtonClass {
 }
 
 impl ComponentClassFactory for ButtonClass {
-    fn new(attributes: &Attributes, runtime: &ScriptRuntime) -> Result<Self, String> {
+    fn new(attributes: &Attributes, runtime: &ScriptRuntime) -> Result<Self, Error> {
         Ok(ButtonClass {
             color: attributes.attribute_optional(
                 "color", |v| v.as_color(runtime)
@@ -41,7 +41,7 @@ impl ComponentClassFactory for ButtonClass {
 impl ComponentClass for ButtonClass {
     fn render(
         &self, renderer: &mut Renderer, position: Point2<f32>, size: Vector2<f32>
-    ) -> Result<(), Box<Error>> {
+    ) -> Result<(), Box<RError>> {
         let current_color = if self.hovering && self.color_hovering.is_some() {
             self.color_hovering
         } else {

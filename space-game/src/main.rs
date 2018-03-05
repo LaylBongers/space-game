@@ -131,7 +131,7 @@ impl MainState {
         let screen_size_f = Vector2::new(screen_size.x as f32, screen_size.y as f32);
         let (mut ui, root_events) = Ui::new(
             &root_template, &style, screen_size_f, &classes, &ui_runtime
-        )?;
+        ).map_err(|e| format!("{:#?}", e))?;
 
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();

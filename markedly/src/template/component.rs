@@ -1,5 +1,5 @@
 use scripting::{ScriptRuntime};
-use {Value};
+use {Value, Error};
 
 /// A component in a template or style.
 #[derive(Debug)]
@@ -24,7 +24,7 @@ pub struct TemplateAttribute {
 }
 
 impl TemplateAttribute {
-    pub fn check_conditional(&self, runtime: &ScriptRuntime) -> Result<bool, String> {
+    pub fn check_conditional(&self, runtime: &ScriptRuntime) -> Result<bool, Error> {
         if let Some(ref script) = self.script_conditional {
             runtime.eval_bool(script)
         } else {

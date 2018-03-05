@@ -16,12 +16,14 @@ pub mod template;
 
 mod attributes;
 mod component;
+mod error;
 mod events;
 mod ui;
 mod value;
 
 pub use attributes::{Attributes};
 pub use component::{Component};
+pub use error::{Error};
 pub use events::{ComponentEvents, ComponentEventsClient};
 pub use ui::{Ui, ComponentId};
 pub use value::{Value, Color};

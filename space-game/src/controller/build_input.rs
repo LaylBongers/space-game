@@ -240,7 +240,8 @@ impl BuildInputUiController {
     ) -> GameResult<Self> {
         let template_file = ctx.filesystem.open("/markedly/build-input.mark")?;
         let template = Template::from_reader(template_file)?;
-        let events = ui.insert_template(&template, style, "top-menu", &classes, ui_runtime)?;
+        let events = ui.insert_template(&template, style, "top-menu", &classes, ui_runtime)
+            .map_err(|e| format!("{:#?}", e))?;
 
         Ok(BuildInputUiController {
             events,

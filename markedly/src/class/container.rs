@@ -1,11 +1,11 @@
-use std::error::{Error};
+use std::error::{Error as RError};
 
 use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass, ComponentClassFactory};
 use render::{Renderer};
 use scripting::{ScriptRuntime};
-use {Color, Attributes};
+use {Color, Attributes, Error};
 
 /// A container component class, functions as a generic container for other components.
 pub struct ContainerClass {
@@ -13,7 +13,7 @@ pub struct ContainerClass {
 }
 
 impl ComponentClassFactory for ContainerClass {
-    fn new(attributes: &Attributes, runtime: &ScriptRuntime) -> Result<Self, String> {
+    fn new(attributes: &Attributes, runtime: &ScriptRuntime) -> Result<Self, Error> {
         Ok(ContainerClass {
             color: attributes.attribute_optional("color", |v| v.as_color(runtime))?,
         })
@@ -23,7 +23,7 @@ impl ComponentClassFactory for ContainerClass {
 impl ComponentClass for ContainerClass {
     fn render(
         &self, renderer: &mut Renderer, position: Point2<f32>, size: Vector2<f32>
-    ) -> Result<(), Box<Error>> {
+    ) -> Result<(), Box<RError>> {
         if let Some(color) = self.color {
             renderer.rectangle(position, size, color)?;
         }
