@@ -10,19 +10,27 @@ container
         position: (78.0, 3.0),
         text: "Wall",
         on-pressed: "build-wall",
+
+        color: (120, 255, 120, 0.8) ?{ model.build_wall_active },
     }
     button {
         position: (153.0, 3.0),
         text: "Door",
         on-pressed: "build-door",
+
+        color: (120, 255, 120, 0.8) ?{ model.build_door_active },
     }
     button {
         position: (228.0, 3.0),
         text: "Destroy",
         on-pressed: "destroy",
+
+        color: (120, 255, 120, 0.8) ?{ model.destroy_active },
     }
     button {
         position: (303.0, 3.0),
         text: "Destroy All",
         on-pressed: "destroy-all",
+
+        color: (120, 255, 120, 0.8) ?{ model.destroy_all_active },
     }

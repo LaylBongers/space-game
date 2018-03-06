@@ -53,6 +53,8 @@ impl Ui {
                 // Reloading everything isn't very efficient, it should be changed later to
                 // detect which model values components have been bound to and only update the
                 // relevant ones
+                context.runtime.set_model(&value.model.borrow().0)?;
+
                 Self::update_component_recursive(
                     &mut self.components, *key, &self.models, context
                 )?;

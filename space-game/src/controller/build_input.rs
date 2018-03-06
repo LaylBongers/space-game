@@ -1,5 +1,3 @@
-use std::collections::{HashMap};
-
 use ggez::{Context, GameResult};
 use ggez::audio::{Source};
 use ggez::event::{MouseButton};
@@ -51,8 +49,8 @@ impl BuildInputController {
         &self.build_choice
     }
 
-    pub fn update(&mut self, ui: &mut Ui) -> GameResult<()> {
-        self.ui.update(ui, &mut self.build_choice);
+    pub fn update(&mut self) -> GameResult<()> {
+        self.ui.update(&mut self.build_choice);
 
         if self.build_sound_queued {
             self.place_sound.play()?;
@@ -240,11 +238,8 @@ impl BuildInputUiController {
         let template_file = ctx.filesystem.open("/markedly/build-input.mark")?;
         let template = Template::from_reader(template_file)?;
 
-        let mut model = HashMap::new();
-        model.insert("build_floor_active".into(), ScriptValue::Bool(true));
-
         let events = ui.insert_template(
-            &template, Some(model), "top-menu", ui_context,
+            &template, None, "top-menu", ui_context,
         ).map_err(|e| format!("{:#?}", e))?;
 
         Ok(BuildInputUiController {
@@ -252,7 +247,9 @@ impl BuildInputUiController {
         })
     }
 
-    fn update(&mut self, _ui: &mut Ui, build_choice: &mut BuildChoice) {
+    fn update(&mut self, build_choice: &mut BuildChoice) {
+        let old_choice = build_choice.clone();
+
         while let Some(event) = self.events.next() {
             match event.as_str() {
                 "build-floor" => *build_choice = BuildChoice::Floor,
@@ -263,11 +260,40 @@ impl BuildInputUiController {
                 _ => {}
             }
         }
+
+        if old_choice != *build_choice {
+            self.clear_active_button();
+
+            self.events.change_model(|model| {
+                match *build_choice {
+                    BuildChoice::Floor => {
+                        model.insert("build_floor_active".into(), ScriptValue::Bool(true));
+                    },
+                    BuildChoice::Object(ObjectClassId(0)) => {
+                        model.insert("build_wall_active".into(), ScriptValue::Bool(true));
+                    },
+                    BuildChoice::Object(ObjectClassId(1)) => {
+                        model.insert("build_door_active".into(), ScriptValue::Bool(true));
+                    },
+                    BuildChoice::Destroy => {
+                        model.insert("destroy_active".into(), ScriptValue::Bool(true));
+                    },
+                    BuildChoice::DestroyAll => {
+                        model.insert("destroy_all_active".into(), ScriptValue::Bool(true));
+                    },
+                    _ => {},
+                }
+            });
+        }
     }
 
     fn clear_active_button(&mut self) {
         self.events.change_model(|model| {
             model.insert("build_floor_active".into(), ScriptValue::Bool(false));
+            model.insert("build_wall_active".into(), ScriptValue::Bool(false));
+            model.insert("build_door_active".into(), ScriptValue::Bool(false));
+            model.insert("destroy_active".into(), ScriptValue::Bool(false));
+            model.insert("destroy_all_active".into(), ScriptValue::Bool(false));
         });
     }
 }

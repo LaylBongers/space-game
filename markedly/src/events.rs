@@ -7,7 +7,7 @@ use scripting::{Model};
 #[derive(Clone)]
 pub struct ComponentEvents {
     event_sink: Rc<RefCell<VecDeque<String>>>,
-    model: Rc<RefCell<(Model, bool)>>,
+    pub(crate) model: Rc<RefCell<(Model, bool)>>,
 }
 
 impl ComponentEvents {
