@@ -1,5 +1,5 @@
 use scripting::{ScriptRuntime};
-use template::{Value};
+use template::{TemplateValue};
 use {Error};
 
 /// A template for a component.
@@ -21,7 +21,7 @@ pub struct ComponentTemplate {
 #[derive(Clone, Debug)]
 pub(crate) struct TemplateAttribute {
     pub key: String,
-    pub value: Value,
+    pub value: TemplateValue,
     pub script_conditional: Option<String>,
 }
 

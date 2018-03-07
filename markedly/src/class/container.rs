@@ -3,8 +3,7 @@ use nalgebra::{Point2, Vector2};
 use class::{ComponentClass, ComponentClassFactory};
 use render::{Renderer};
 use scripting::{ScriptRuntime};
-use template::{Color};
-use {Attributes, Error};
+use {Attributes, Error, Color};
 
 /// A container component class, functions as a generic container for other components.
 pub struct ContainerClass {

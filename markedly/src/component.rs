@@ -2,7 +2,7 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass};
 use scripting::{ScriptRuntime};
-use template::{ComponentTemplate, Style, Value};
+use template::{ComponentTemplate, Style, TemplateValue};
 use {ComponentId, ComponentEvents, Attributes, Error, UiContext};
 
 /// Core attributes all components share.
@@ -106,7 +106,9 @@ pub enum Docking {
 }
 
 impl Docking {
-    pub fn from_value(value: &Value, runtime: &ScriptRuntime) -> Result<(Self, Self), Error> {
+    pub fn from_value(
+        value: &TemplateValue, runtime: &ScriptRuntime
+    ) -> Result<(Self, Self), Error> {
         let vec = value.as_vec()?;
 
         if vec.len() != 2 {
@@ -119,7 +121,9 @@ impl Docking {
         ))
     }
 
-    fn from_value_individual(value: &Value, runtime: &ScriptRuntime) -> Result<Self, Error> {
+    fn from_value_individual(
+        value: &TemplateValue, runtime: &ScriptRuntime
+    ) -> Result<Self, Error> {
         match value.as_string(runtime)?.as_str() {
             "start" => Ok(Docking::Start),
             "end" => Ok(Docking::End),

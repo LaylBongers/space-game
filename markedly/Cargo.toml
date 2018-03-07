@@ -7,9 +7,9 @@ authors = ["Layl <LaylConway@users.noreply.github.com>"]
 pest = "1"
 pest_derive = "1"
 nalgebra = "0.13"
-palette = "0.2"
+palette = "0.3"
 metrohash = "1"
 
 # Perhaps move this to an external crate and make the core generic over
 # scripting backends
-rlua = "0.13.0"
+rlua = "0.13"

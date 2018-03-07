@@ -1,10 +1,10 @@
 use nalgebra::{Point2, Vector2};
 use scripting::{ScriptRuntime};
-use {Error};
+use {Error, Color};
 
 /// A template value, to be interpreted by components when created or updated.
 #[derive(Debug, PartialEq, Clone)]
-pub enum Value {
+pub enum TemplateValue {
     /// A string text value.
     String(String),
     /// An integer numeric value.
@@ -14,19 +14,19 @@ pub enum Value {
     /// An integer percentage value.
     Percentage(i32),
     /// A tuple of values.
-    Tuple(Vec<Value>),
+    Tuple(Vec<TemplateValue>),
     /// A null value.
     Default,
     /// A script that will be evaluated by the scripting engine.
     Script(String),
 }
 
-impl Value {
+impl TemplateValue {
     /// Gets the string content of this value, or returns an error.
     pub fn as_string(&self, runtime: &ScriptRuntime) -> Result<String, Error> {
         match *self {
-            Value::String(ref value) => Ok(value.clone()),
-            Value::Script(ref script) => runtime.eval_string(script),
+            TemplateValue::String(ref value) => Ok(value.clone()),
+            TemplateValue::Script(ref script) => runtime.eval_string(script),
             _ => Err("Value is not a string".into()),
         }
     }
@@ -34,8 +34,8 @@ impl Value {
     /// Gets the integer content of this value, or returns an error.
     pub fn as_integer(&self, runtime: &ScriptRuntime) -> Result<i32, Error> {
         match *self {
-            Value::Integer(value) => Ok(value),
-            Value::Script(ref script) => runtime.eval_integer(script),
+            TemplateValue::Integer(value) => Ok(value),
+            TemplateValue::Script(ref script) => runtime.eval_integer(script),
             _ => Err("Value is not an integer".into()),
         }
     }
@@ -43,8 +43,8 @@ impl Value {
     /// Gets the floating point content of this value, or returns an error.
     pub fn as_float(&self, runtime: &ScriptRuntime) -> Result<f32, Error> {
         match *self {
-            Value::Float(value) => Ok(value),
-            Value::Script(ref script) => runtime.eval_float(script),
+            TemplateValue::Float(value) => Ok(value),
+            TemplateValue::Script(ref script) => runtime.eval_float(script),
             _ => Err("Value is not a float".into()),
         }
     }
@@ -55,15 +55,15 @@ impl Value {
         &self, percent_100: f32, runtime: &ScriptRuntime
     ) -> Result<f32, Error> {
         match *self {
-            Value::Float(value) => Ok(value),
-            Value::Percentage(value) => Ok((value as f32 / 100.0) * percent_100),
-            Value::Script(ref script) => runtime.eval_float(script),
+            TemplateValue::Float(value) => Ok(value),
+            TemplateValue::Percentage(value) => Ok((value as f32 / 100.0) * percent_100),
+            TemplateValue::Script(ref script) => runtime.eval_float(script),
             _ => Err("Value is not a float or percentage".into()),
         }
     }
 
-    pub fn as_vec(&self) -> Result<&Vec<Value>, Error> {
-        if let Value::Tuple(ref values) = *self {
+    pub fn as_vec(&self) -> Result<&Vec<TemplateValue>, Error> {
+        if let TemplateValue::Tuple(ref values) = *self {
             Ok(values)
         } else {
             Err("Value is not a tuple".into())
@@ -82,7 +82,7 @@ impl Value {
     pub fn as_vector(
         &self, percent_100: Vector2<f32>, runtime: &ScriptRuntime
     ) -> Result<Vector2<f32>, Error> {
-        if let Value::Tuple(ref values) = *self {
+        if let TemplateValue::Tuple(ref values) = *self {
             if values.len() == 2 {
                 let x = values[0].as_float_or_percentage(percent_100.x, runtime)
                     .map_err(|e| Error::new_value("Value 1", e))?;
@@ -100,7 +100,7 @@ impl Value {
 
     /// Gets the color content of this value, or returns an error.
     pub fn as_color(&self, runtime: &ScriptRuntime) -> Result<Color, Error> {
-        if let Value::Tuple(ref values) = *self {
+        if let TemplateValue::Tuple(ref values) = *self {
             let has_alpha = values.len() == 4;
             if values.len() == 3 || has_alpha {
                 let red = values[0].as_integer(runtime)
@@ -122,7 +122,7 @@ impl Value {
                 range_i(green, "Value 2", 0, 255)?;
                 range_i(blue, "Value 3", 0, 255)?;
 
-                Ok(Color::with_alpha_u8(red as u8, green as u8, blue as u8, alpha))
+                Ok(Color::new_u8(red as u8, green as u8, blue as u8, alpha))
             } else {
                 Err("Tuple is incorrect size".into())
             }
@@ -147,7 +147,3 @@ fn range_f(value: f32, err_id: &str, min: f32, max: f32) -> Result<(), String> {
         Err(format!("{}: Out of range, valid range is {} to {}", err_id, min, max))
     }
 }
-
-/// Re-export of palette's color for convenience so you don't have to add palette to your own
-/// crate unless you need more complex color functionality.
-pub type Color = ::palette::pixel::Srgb;

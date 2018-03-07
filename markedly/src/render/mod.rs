@@ -1,8 +1,7 @@
 //! Rendering functions and backend traits.
 
 use nalgebra::{Point2, Vector2};
-use template::{Color};
-use {ComponentId, Ui, Error};
+use {ComponentId, Ui, Error, Color};
 
 /// A renderer backend, implements how individual rendering operations are done.
 pub trait Renderer {

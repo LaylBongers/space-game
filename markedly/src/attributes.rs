@@ -1,12 +1,12 @@
 use std::collections::{HashMap};
 
-use template::{ComponentTemplate, Style, Value};
+use template::{ComponentTemplate, Style, TemplateValue};
 use {Error, UiContext};
 
 /// A generated attribute bundle for a component, used by the component and its class to receive
 /// data from templates and styles.
 pub struct Attributes {
-    attributes: HashMap<String, Value>,
+    attributes: HashMap<String, TemplateValue>,
     component_class: String,
     component_line: usize,
 }
@@ -46,7 +46,7 @@ impl Attributes {
         })
     }
 
-    pub fn attribute<O, F: FnOnce(&Value) -> Result<O, Error>>(
+    pub fn attribute<O, F: FnOnce(&TemplateValue) -> Result<O, Error>>(
         &self, key: &str, map: F, default: O
     ) -> Result<O, Error> {
         self.attributes.get(key)
@@ -63,12 +63,12 @@ impl Attributes {
             })
     }
 
-    pub fn attribute_optional<O, F: FnOnce(&Value) -> Result<O, Error>>(
+    pub fn attribute_optional<O, F: FnOnce(&TemplateValue) -> Result<O, Error>>(
         &self, key: &str, map: F,
     ) -> Result<Option<O>, Error> {
         self.attributes.get(key)
             .map(|value| {
-                if *value == Value::Default {
+                if *value == TemplateValue::Default {
                     Ok(None)
                 } else {
                     map(value).map(|v| Some(v))

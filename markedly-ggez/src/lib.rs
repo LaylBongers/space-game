@@ -7,8 +7,7 @@ use ggez::graphics::{self, DrawMode, Rect, Font, Text};
 use nalgebra::{Point2, Vector2};
 
 use markedly::render::{Renderer};
-use markedly::template::{Color};
-use markedly::{Error};
+use markedly::{Error, Color};
 
 pub struct GgezRenderer<'a> {
     ctx: &'a mut Context,

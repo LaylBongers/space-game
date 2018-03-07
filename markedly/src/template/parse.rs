@@ -1,6 +1,6 @@
 use pest::iterators::{Pair};
 
-use template::{ComponentTemplate, TemplateAttribute, Value};
+use template::{ComponentTemplate, TemplateAttribute, TemplateValue};
 
 #[derive(Parser)]
 #[grammar = "template/language.pest"]
@@ -137,7 +137,7 @@ fn parse_attributes(pair: Pair<Rule>) -> Result<Vec<TemplateAttribute>, String> 
         assert_eq!(key_value_pair.as_rule(), Rule::key_value);
 
         let mut key: Option<String> = None;
-        let mut value: Option<Value> = None;
+        let mut value: Option<TemplateValue> = None;
         let mut script_conditional: Option<String> = None;
 
         for pair in key_value_pair.clone().into_inner() {
@@ -165,31 +165,31 @@ fn parse_attributes(pair: Pair<Rule>) -> Result<Vec<TemplateAttribute>, String> 
     Ok(attributes)
 }
 
-fn parse_value(pair: Pair<Rule>) -> Value {
+fn parse_value(pair: Pair<Rule>) -> TemplateValue {
     assert_eq!(pair.as_rule(), Rule::value);
     let pair = pair.into_inner().next().unwrap();
 
     let pair_str = pair.as_str();
     match pair.as_rule() {
         Rule::string =>
-            Value::String(pair_str[1..pair_str.len()-1].into()),
+            TemplateValue::String(pair_str[1..pair_str.len()-1].into()),
         Rule::percentage =>
-            Value::Percentage(pair_str[0..pair_str.len()-1].parse().unwrap()),
+            TemplateValue::Percentage(pair_str[0..pair_str.len()-1].parse().unwrap()),
         Rule::integer =>
-            Value::Integer(pair_str.parse().unwrap()),
+            TemplateValue::Integer(pair_str.parse().unwrap()),
         Rule::float =>
-            Value::Float(pair_str.parse().unwrap()),
+            TemplateValue::Float(pair_str.parse().unwrap()),
         Rule::tuple => {
             let mut values = Vec::new();
             for pair in pair.into_inner() {
                 values.push(parse_value(pair));
             }
-            Value::Tuple(values)
+            TemplateValue::Tuple(values)
         },
         Rule::default =>
-            Value::Default,
+            TemplateValue::Default,
         Rule::script_value =>
-            Value::Script(pair_str[2..pair_str.len()-1].into()),
+            TemplateValue::Script(pair_str[2..pair_str.len()-1].into()),
         _ => unreachable!(),
     }
 }

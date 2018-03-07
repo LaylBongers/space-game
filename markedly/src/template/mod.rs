@@ -11,4 +11,4 @@ pub(crate) use self::component::{TemplateAttribute};
 pub use self::component::{ComponentTemplate};
 pub use self::style::{Style};
 pub use self::template::{Template};
-pub use self::value::{Value, Color};
+pub use self::value::{TemplateValue};

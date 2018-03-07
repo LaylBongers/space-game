@@ -27,3 +27,7 @@ pub use attributes::{Attributes};
 pub use error::{Error};
 pub use events::{ComponentEvents};
 pub use ui::{Ui, UiContext};
+
+/// Re-export of palette's color for convenience so you don't have to add palette to your own
+/// crate unless you need more complex color functionality.
+pub type Color = ::palette::Srgba;

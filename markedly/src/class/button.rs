@@ -3,8 +3,7 @@ use nalgebra::{Point2, Vector2};
 use class::{ComponentClass, ComponentClassFactory};
 use render::{Renderer};
 use scripting::{ScriptRuntime};
-use template::{Color};
-use {ComponentEvents, Attributes, Error};
+use {ComponentEvents, Attributes, Error, Color};
 
 pub struct ButtonAttributes {
     color: Option<Color>,
@@ -24,7 +23,7 @@ impl ButtonAttributes {
                 "color-hovering", |v| v.as_color(runtime)
             )?,
             text_color: attributes.attribute(
-                "text-color", |v| v.as_color(runtime), Color::new_u8(0, 0, 0)
+                "text-color", |v| v.as_color(runtime), Color::new_u8(0, 0, 0, 255)
             )?,
             text: attributes.attribute_optional("text", |v| v.as_string(runtime))?,
             on_pressed: attributes.attribute_optional("on-pressed", |v| v.as_string(runtime))?,
