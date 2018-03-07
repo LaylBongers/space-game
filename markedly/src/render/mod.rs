@@ -1,9 +1,10 @@
-//! Rendering functions and backend traits
+//! Rendering functions and backend traits.
 
 use nalgebra::{Point2, Vector2};
 use template::{Color};
 use {ComponentId, Ui, Error};
 
+/// A renderer backend, implements how individual rendering operations are done.
 pub trait Renderer {
     /// Renders a rectangle to the canvas.
     fn rectangle(
@@ -18,6 +19,7 @@ pub trait Renderer {
     ) -> Result<(), Error>;
 }
 
+/// Renders a UI using a renderer backend.
 pub fn render<R: Renderer>(
     renderer: &mut R, ui: &Ui
 ) -> Result<(), Error> {

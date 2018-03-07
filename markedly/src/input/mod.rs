@@ -1,4 +1,4 @@
-//! Systems for handling user input
+//! Systems for handling user input.
 
 use nalgebra::{Point2, Vector2};
 

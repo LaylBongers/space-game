@@ -5,6 +5,8 @@ use pest::{Parser};
 use template::parse::{self, TemplateParser, Rule};
 use template::{ComponentTemplate};
 
+/// A template, used to define how a group of components should be layouted and initialized based
+/// on model data.
 #[derive(Debug)]
 pub struct Template {
     pub root: ComponentTemplate,

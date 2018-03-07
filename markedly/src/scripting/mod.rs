@@ -1,4 +1,4 @@
-//! Scripting runtime types and helpers for interacting with it
+//! Scripting runtime types and helpers for interacting with it.
 
 mod model;
 mod runtime;

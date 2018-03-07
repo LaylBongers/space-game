@@ -1,4 +1,4 @@
-//! Component classes that define functionality and appearance
+//! Component classes that define functionality and appearance.
 
 mod container;
 mod classes;

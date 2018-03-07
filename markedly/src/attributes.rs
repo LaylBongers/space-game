@@ -3,6 +3,8 @@ use std::collections::{HashMap};
 use template::{ComponentTemplate, Style, Value};
 use {Error, UiContext};
 
+/// A generated attribute bundle for a component, used by the component and its class to receive
+/// data from templates and styles.
 pub struct Attributes {
     attributes: HashMap<String, Value>,
     component_class: String,

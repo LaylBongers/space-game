@@ -5,6 +5,7 @@ use pest::{Parser};
 use template::parse::{self, TemplateParser, Rule};
 use template::{ComponentTemplate};
 
+/// A style template, used to define default values and style classes for use in templates.
 #[derive(Debug)]
 pub struct Style {
     pub components: Vec<ComponentTemplate>,

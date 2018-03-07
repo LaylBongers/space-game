@@ -3,11 +3,13 @@ use rlua::{Lua};
 use scripting::{Model};
 use {Error};
 
+/// Keeps track of the scripting engine and data in it.
 pub struct ScriptRuntime {
     lua: Lua,
 }
 
 impl ScriptRuntime {
+    /// Creates a new runtime.
     pub fn new() -> Self {
         let lua = Lua::new();
 
@@ -16,7 +18,7 @@ impl ScriptRuntime {
         }
     }
 
-    pub fn set_model(&self, model: &Model) -> Result<(), Error> {
+    pub(crate) fn set_model(&self, model: &Model) -> Result<(), Error> {
         let globals = self.lua.globals();
 
         let model_table = model.to_lua_table(&self.lua)?;
@@ -25,22 +27,22 @@ impl ScriptRuntime {
         Ok(())
     }
 
-    pub fn eval_bool(&self, source: &str) -> Result<bool, Error> {
+    pub(crate) fn eval_bool(&self, source: &str) -> Result<bool, Error> {
         let value = self.lua.eval(source, None)?;
         Ok(value)
     }
 
-    pub fn eval_integer(&self, source: &str) -> Result<i32, Error> {
+    pub(crate) fn eval_integer(&self, source: &str) -> Result<i32, Error> {
         let value = self.lua.eval(source, None)?;
         Ok(value)
     }
 
-    pub fn eval_float(&self, source: &str) -> Result<f32, Error> {
+    pub(crate) fn eval_float(&self, source: &str) -> Result<f32, Error> {
         let value = self.lua.eval(source, None)?;
         Ok(value)
     }
 
-    pub fn eval_string(&self, source: &str) -> Result<String, Error> {
+    pub(crate) fn eval_string(&self, source: &str) -> Result<String, Error> {
         let value = self.lua.eval(source, None)?;
         Ok(value)
     }
