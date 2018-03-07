@@ -79,20 +79,20 @@ impl Component {
     }
 
     pub(crate) fn compute_position(
-        &self, computed_parent_position: Point2<f32>, parent_size: Vector2<f32>
+        &self, parent_size: Vector2<f32>
     ) -> Point2<f32> {
         let x = match self.attributes.docking.0 {
             Docking::Start =>
-                computed_parent_position.x + self.attributes.position.x,
+                self.attributes.position.x,
             Docking::End =>
-                computed_parent_position.x + self.attributes.position.x +
+                self.attributes.position.x +
                     parent_size.x - self.attributes.size.x,
         };
         let y = match self.attributes.docking.1 {
             Docking::Start =>
-                computed_parent_position.y + self.attributes.position.y,
+                self.attributes.position.y,
             Docking::End =>
-                computed_parent_position.y + self.attributes.position.y +
+                self.attributes.position.y +
                     parent_size.y - self.attributes.size.y,
         };
 

@@ -1,9 +1,9 @@
-use nalgebra::{Point2, Vector2};
+use nalgebra::{Point2};
 
 use class::{ComponentClass, ComponentClassFactory};
 use render::{Renderer};
 use scripting::{ScriptRuntime};
-use {ComponentEvents, Attributes, Error, Color};
+use {ComponentEvents, Attributes, Error, Color, ComponentAttributes, ComponentId};
 
 pub struct ButtonAttributes {
     color: Option<Color>,
@@ -55,7 +55,7 @@ impl ComponentClass for ButtonClass {
     }
 
     fn render(
-        &self, renderer: &mut Renderer, position: Point2<f32>, size: Vector2<f32>
+        &self, id: ComponentId, attributes: &ComponentAttributes, renderer: &mut Renderer,
     ) -> Result<(), Error> {
         let attribs = &self.attributes;
 
@@ -66,11 +66,11 @@ impl ComponentClass for ButtonClass {
         };
 
         if let Some(current_color) = current_color {
-            renderer.rectangle(position, size, current_color)?;
+            renderer.rectangle(id, Point2::new(0.0, 0.0), attributes.size, current_color)?;
         }
 
         if let Some(ref text) = attribs.text {
-            renderer.text(&text, position, size, attribs.text_color)?;
+            renderer.text(id, &text, Point2::new(0.0, 0.0), attributes.size, attribs.text_color)?;
         }
 
         Ok(())

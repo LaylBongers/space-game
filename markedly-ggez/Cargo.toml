@@ -7,3 +7,4 @@ authors = ["Layl <LaylConway@users.noreply.github.com>"]
 ggez = "0.4"
 nalgebra = "0.13"
 markedly = { path = "../markedly" }
+metrohash = "1"

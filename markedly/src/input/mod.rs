@@ -71,7 +71,8 @@ fn find_at_position(
     computed_parent_position: Point2<f32>, parent_size: Vector2<f32>,
 ) -> Option<ComponentId> {
     let component = ui.get(id).unwrap();
-    let computed_position = component.compute_position(computed_parent_position, parent_size);
+    let computed_position = computed_parent_position +
+        component.compute_position(parent_size).coords;
 
     // If the position isn't over us, it also won't be over any children, so just return none
     if position.x < computed_position.x ||

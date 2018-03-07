@@ -18,6 +18,7 @@ pub struct UiContext {
 /// in some other way.
 pub struct Ui {
     style: Style,
+    target_size: Vector2<f32>,
 
     components: MetroHashMap<ComponentId, Component>,
     next_id: ComponentId,
@@ -29,10 +30,11 @@ pub struct Ui {
 impl Ui {
     /// Creates a new UI from a root template.
     pub fn new(
-        root: &Template, style: Style, screen_size: Vector2<f32>, context: &UiContext
+        root: &Template, style: Style, target_size: Vector2<f32>, context: &UiContext
     ) -> Result<(Self, ComponentEvents), Error> {
         let mut ui = Ui {
             style,
+            target_size,
 
             components: MetroHashMap::default(),
             next_id: ComponentId(0),
@@ -42,9 +44,13 @@ impl Ui {
         };
 
         let events = ComponentEvents::new(Model::new());
-        ui.root_id = ui.load_component(&root.root, &events, screen_size, context)?;
+        ui.root_id = ui.load_component(&root.root, &events, target_size, context)?;
 
         Ok((ui, events))
+    }
+
+    pub fn target_size(&self) -> Vector2<f32> {
+        self.target_size
     }
 
     /// Gets a component from its ID.

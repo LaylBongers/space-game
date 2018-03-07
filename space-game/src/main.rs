@@ -37,7 +37,7 @@ use markedly::input::{UiInput};
 use markedly::scripting::{ScriptRuntime};
 use markedly::template::{Template, Style};
 use markedly::{Ui, ComponentEvents, UiContext};
-use markedly_ggez::{GgezRenderer};
+use markedly_ggez::{GgezRenderer, GgezComponentCache};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
 use model::{Camera, ObjectClasses, GenericObjectClass};
@@ -93,6 +93,7 @@ struct MainState {
     ui: Ui,
     ui_input: UiInput,
     ui_font: Font,
+    ui_cache: GgezComponentCache,
     root_events: ComponentEvents,
 
     // Models
@@ -164,6 +165,7 @@ impl MainState {
             ui,
             ui_input,
             ui_font,
+            ui_cache: GgezComponentCache::new(),
             root_events,
 
             camera,
@@ -221,7 +223,7 @@ impl EventHandler for MainState {
 
         // Draw the UI
         {
-            let mut renderer = GgezRenderer::new(ctx, &self.ui_font);
+            let mut renderer = GgezRenderer::new(ctx, &mut self.ui_cache, &self.ui_font);
             markedly::render::render(&mut renderer, &self.ui)
                 .map_err(|e| format!("{:#?}", e))?;
         }
