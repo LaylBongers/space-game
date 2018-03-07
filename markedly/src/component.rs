@@ -35,10 +35,12 @@ pub struct Component {
     pub(crate) class: Box<ComponentClass>,
     pub(crate) style_class: Option<String>,
     pub(crate) events: ComponentEvents,
-    template: ComponentTemplate,
+    pub(crate) needs_render_update: bool,
 
     pub(crate) children: Vec<ComponentId>,
     pub(crate) attributes: ComponentAttributes,
+
+    template: ComponentTemplate,
 }
 
 impl Component {
@@ -58,22 +60,23 @@ impl Component {
             class,
             style_class: template.style_class.clone(),
             events: events.clone(),
-            // TODO: This seems very expensive to store, find alternatives
-            template: template.clone(),
+            needs_render_update: true,
 
             children: Vec::new(),
             attributes: component_attributes,
+
+            // This seems very expensive to store, we should look at alternative solutions
+            template: template.clone(),
         })
     }
 
     pub(crate) fn update_attributes(
         &mut self, style: &Style, context: &UiContext
     ) -> Result<(), Error> {
-        // TODO: Update own attributes
-
         let runtime = &context.runtime;
         let attributes = Attributes::resolve(&self.template, style, context)?;
         self.class.update_attributes(&attributes, runtime)?;
+        self.needs_render_update = true;
 
         Ok(())
     }

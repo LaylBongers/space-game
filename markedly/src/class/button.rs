@@ -80,12 +80,14 @@ impl ComponentClass for ButtonClass {
         true
     }
 
-    fn hover_start_event(&mut self, _sender: &ComponentEvents) {
+    fn hover_start_event(&mut self, _sender: &ComponentEvents) -> bool {
         self.hovering = true;
+        true
     }
 
-    fn hover_end_event(&mut self, _sender: &ComponentEvents) {
+    fn hover_end_event(&mut self, _sender: &ComponentEvents) -> bool {
         self.hovering = false;
+        true
     }
 
     fn pressed_event(&mut self, sender: &ComponentEvents) {

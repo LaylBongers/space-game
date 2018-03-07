@@ -32,7 +32,8 @@ impl UiInput {
             // If the thing we're hovering over is a new thing, we need to notify it
             if self.hovering_over.map(|v| v != new_hovering).unwrap_or(true) {
                 let component = ui.get_mut(new_hovering).unwrap();
-                component.class.hover_start_event(&component.events);
+                component.needs_render_update |=
+                    component.class.hover_start_event(&component.events);
             }
         }
 
@@ -40,7 +41,8 @@ impl UiInput {
             // If the thing we're hovering over is a new thing, we need to notify the old one
             if new_hovering.map(|v| v != hovering_over).unwrap_or(true) {
                 let component = ui.get_mut(hovering_over).unwrap();
-                component.class.hover_end_event(&component.events);
+                component.needs_render_update |=
+                    component.class.hover_end_event(&component.events);
             }
         }
 

@@ -27,8 +27,13 @@ pub trait ComponentClass {
     /// Returns if this component class captures cursor events or not. Does not affect children.
     fn is_capturing_cursor(&self) -> bool { false }
 
-    fn hover_start_event(&mut self, _sender: &ComponentEvents) {}
-    fn hover_end_event(&mut self, _sender: &ComponentEvents) {}
+    /// Called when the cursor starts hovering over this component.
+    /// Returns if the component should be marked for render update.
+    fn hover_start_event(&mut self, _sender: &ComponentEvents) -> bool { false }
+
+    /// Called when the cursor stops hovering over this component.
+    /// Returns if the component should be marked for render update.
+    fn hover_end_event(&mut self, _sender: &ComponentEvents) -> bool { false }
 
     /// Called when the component is clicked or tapped.
     fn pressed_event(&mut self, _sender: &ComponentEvents) {}

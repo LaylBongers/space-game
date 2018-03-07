@@ -70,23 +70,29 @@ impl<'a> Renderer for GgezRenderer<'a> {
         Ok(())
     }
 
-    fn create_resize_clear_cache(
+    fn create_resize_cache(
         &mut self, id: ComponentId, size: Vector2<u32>
-    ) -> Result<(), Error> {
+    ) -> Result<bool, Error> {
         // If we have a cached canvas and it's of the right size, we only have to clear
         if let Some(canvas) = self.cache.data.get(&id) {
             if canvas.get_image().width() == size.x &&
                 canvas.get_image().height() == size.y {
-                graphics::set_canvas(self.ctx, Some(canvas));
-                graphics::set_background_color(self.ctx, (255, 255, 255, 0).into());
-                graphics::clear(self.ctx);
-                return Ok(())
+                return Ok(false)
             }
         }
 
         // We don't have what we need so create a new canvas
         let canvas = Canvas::new(self.ctx, size.x, size.y, NumSamples::One).map_err(egtm)?;
         self.cache.data.insert(id, canvas);
+
+        Ok(true)
+    }
+
+    fn clear_cache(&mut self, id: ComponentId) -> Result<(), Error> {
+        let canvas = self.cache.data.get(&id).unwrap();
+        graphics::set_canvas(self.ctx, Some(canvas));
+        graphics::set_background_color(self.ctx, (255, 255, 255, 0).into());
+        graphics::clear(self.ctx);
 
         Ok(())
     }

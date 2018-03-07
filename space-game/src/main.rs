@@ -224,7 +224,7 @@ impl EventHandler for MainState {
         // Draw the UI
         {
             let mut renderer = GgezRenderer::new(ctx, &mut self.ui_cache, &self.ui_font);
-            markedly::render::render(&mut renderer, &self.ui)
+            markedly::render::render(&mut renderer, &mut self.ui)
                 .map_err(|e| format!("{:#?}", e))?;
         }
 

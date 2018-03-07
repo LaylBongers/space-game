@@ -172,6 +172,12 @@ impl Ui {
 
         Ok(id)
     }
+
+    pub(crate) fn mark_all_rendered(&mut self) {
+        for (_key, value) in &mut self.components {
+            value.needs_render_update = false;
+        }
+    }
 }
 
 /// An id pointing to a component in a UI.
