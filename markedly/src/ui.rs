@@ -1,5 +1,3 @@
-use std::collections::{HashMap};
-
 use nalgebra::{Vector2};
 use metrohash::{MetroHashMap};
 
@@ -25,7 +23,7 @@ impl Ui {
             models: MetroHashMap::default(),
         };
 
-        let events = ComponentEvents::new(HashMap::new());
+        let events = ComponentEvents::new(Model::new());
         ui.root_id = ui.load_component(&root.root, &events, context.screen_size, context)?;
 
         Ok((ui, events))
@@ -108,7 +106,7 @@ impl Ui {
         let size = self.get(parent_id).unwrap().attributes.size;
 
         // Prepare the scripting engine with the model data
-        let model = model.unwrap_or(HashMap::new());
+        let model = model.unwrap_or(Model::new());
         context.runtime.set_model(&model)?;
 
         // Recursively add the template

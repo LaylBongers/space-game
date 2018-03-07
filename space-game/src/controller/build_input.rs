@@ -5,7 +5,6 @@ use nalgebra::{Point2};
 
 use markedly::template::{Template};
 use markedly::input::{UiInput};
-use markedly::scripting::{ScriptValue};
 use markedly::{Ui, ComponentEvents, UiContext};
 
 use model::{Camera, ObjectClassId};
@@ -266,21 +265,16 @@ impl BuildInputUiController {
 
             self.events.change_model(|model| {
                 match *build_choice {
-                    BuildChoice::Floor => {
-                        model.insert("build_floor_active".into(), ScriptValue::Bool(true));
-                    },
-                    BuildChoice::Object(ObjectClassId(0)) => {
-                        model.insert("build_wall_active".into(), ScriptValue::Bool(true));
-                    },
-                    BuildChoice::Object(ObjectClassId(1)) => {
-                        model.insert("build_door_active".into(), ScriptValue::Bool(true));
-                    },
-                    BuildChoice::Destroy => {
-                        model.insert("destroy_active".into(), ScriptValue::Bool(true));
-                    },
-                    BuildChoice::DestroyAll => {
-                        model.insert("destroy_all_active".into(), ScriptValue::Bool(true));
-                    },
+                    BuildChoice::Floor =>
+                        model.set("build_floor_active", true),
+                    BuildChoice::Object(ObjectClassId(0)) =>
+                        model.set("build_wall_active", true),
+                    BuildChoice::Object(ObjectClassId(1)) =>
+                        model.set("build_door_active", true),
+                    BuildChoice::Destroy =>
+                        model.set("destroy_active", true),
+                    BuildChoice::DestroyAll =>
+                        model.set("destroy_all_active", true),
                     _ => {},
                 }
             });
@@ -289,11 +283,11 @@ impl BuildInputUiController {
 
     fn clear_active_button(&mut self) {
         self.events.change_model(|model| {
-            model.insert("build_floor_active".into(), ScriptValue::Bool(false));
-            model.insert("build_wall_active".into(), ScriptValue::Bool(false));
-            model.insert("build_door_active".into(), ScriptValue::Bool(false));
-            model.insert("destroy_active".into(), ScriptValue::Bool(false));
-            model.insert("destroy_all_active".into(), ScriptValue::Bool(false));
+            model.set("build_floor_active", false);
+            model.set("build_wall_active", false);
+            model.set("build_door_active", false);
+            model.set("destroy_active", false);
+            model.set("destroy_all_active", false);
         });
     }
 }
