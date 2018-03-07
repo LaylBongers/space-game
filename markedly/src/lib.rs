@@ -19,11 +19,11 @@ mod component;
 mod error;
 mod events;
 mod ui;
-mod value;
+
+use component::{Component};
+use ui::{ComponentId};
 
 pub use attributes::{Attributes};
-pub use component::{Component};
 pub use error::{Error};
 pub use events::{ComponentEvents};
-pub use ui::{Ui, UiContext, ComponentId};
-pub use value::{Value, Color};
+pub use ui::{Ui, UiContext};

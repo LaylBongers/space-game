@@ -1,7 +1,8 @@
 //! Rendering functions and backend traits
 
 use nalgebra::{Point2, Vector2};
-use {ComponentId, Color, Ui, Error};
+use template::{Color};
+use {ComponentId, Ui, Error};
 
 pub trait Renderer {
     /// Renders a rectangle to the canvas.

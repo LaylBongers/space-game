@@ -6,7 +6,7 @@ use scripting::{Model, ScriptRuntime};
 use template::{Style, Template, ComponentTemplate};
 use {Component, ComponentEvents, Error};
 
-/// The context Uis should be processed and rendered in, this defines the overall Ui system's
+/// The context UIs should be processed and rendered in, this defines the overall UI system's
 /// configuration, such as what component classes are available and how the scripting runtime is
 /// configured.
 pub struct UiContext {
@@ -14,7 +14,7 @@ pub struct UiContext {
     pub runtime: ScriptRuntime,
 }
 
-/// A self-contained Ui, to be rendered to a single target, be that full screen, in-world, or used
+/// A self-contained UI, to be rendered to a single target, be that full screen, in-world, or used
 /// in some other way.
 pub struct Ui {
     style: Style,

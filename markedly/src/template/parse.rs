@@ -1,7 +1,6 @@
 use pest::iterators::{Pair};
 
-use template::{ComponentTemplate, TemplateAttribute};
-use {Value};
+use template::{ComponentTemplate, TemplateAttribute, Value};
 
 #[derive(Parser)]
 #[grammar = "template/language.pest"]

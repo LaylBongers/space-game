@@ -3,7 +3,8 @@ use nalgebra::{Point2, Vector2};
 use class::{ComponentClass, ComponentClassFactory};
 use render::{Renderer};
 use scripting::{ScriptRuntime};
-use {Color, ComponentEvents, Attributes, Error};
+use template::{Color};
+use {ComponentEvents, Attributes, Error};
 
 pub struct ButtonAttributes {
     color: Option<Color>,

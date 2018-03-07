@@ -2,7 +2,7 @@ use nalgebra::{Point2, Vector2};
 use scripting::{ScriptRuntime};
 use {Error};
 
-/// A generic attribute value, will be read in by components.
+/// A template value, to be interpreted by components when created or updated.
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     /// A string text value.

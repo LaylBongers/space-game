@@ -2,8 +2,8 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass};
 use scripting::{ScriptRuntime};
-use template::{ComponentTemplate, Style};
-use {ComponentId, ComponentEvents, Attributes, Value, Error, UiContext};
+use template::{ComponentTemplate, Style, Value};
+use {ComponentId, ComponentEvents, Attributes, Error, UiContext};
 
 /// Core attributes all components share.
 pub struct ComponentAttributes {
@@ -30,7 +30,7 @@ impl ComponentAttributes {
     }
 }
 
-/// A runtime component.
+/// A component generated from a template, active in a UI.
 pub struct Component {
     pub(crate) class: Box<ComponentClass>,
     pub(crate) style_class: Option<String>,

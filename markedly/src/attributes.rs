@@ -1,7 +1,7 @@
 use std::collections::{HashMap};
 
-use template::{ComponentTemplate, Style};
-use {Value, Error, UiContext};
+use template::{ComponentTemplate, Style, Value};
+use {Error, UiContext};
 
 pub struct Attributes {
     attributes: HashMap<String, Value>,

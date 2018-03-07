@@ -1,5 +1,6 @@
 use scripting::{ScriptRuntime};
-use {Value, Error};
+use template::{Value};
+use {Error};
 
 /// A component in a template or style.
 #[derive(Clone, Debug)]
