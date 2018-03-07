@@ -128,14 +128,16 @@ impl MainState {
         let ui_context = UiContext {
             classes,
             runtime: ScriptRuntime::new(),
-            style: Style::from_reader(ctx.filesystem.open("/markedly/style.mark")?)?,
-            screen_size: Vector2::new(screen_size.x as f32, screen_size.y as f32),
         };
 
         // Set up the UI itself
+        let style = Style::from_reader(ctx.filesystem.open("/markedly/style.mark")?)?;
         let root_template = Template::from_reader(ctx.filesystem.open("/markedly/root.mark")?)?;
-        let (mut ui, root_events) = Ui::new(&root_template, &ui_context)
-            .map_err(|e| format!("{:#?}", e))?;
+        let (mut ui, root_events) = Ui::new(
+            &root_template, style,
+            Vector2::new(screen_size.x as f32, screen_size.y as f32),
+            &ui_context
+        ).map_err(|e| format!("{:#?}", e))?;
 
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();

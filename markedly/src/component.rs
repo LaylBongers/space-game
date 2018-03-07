@@ -2,7 +2,7 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass};
 use scripting::{ScriptRuntime};
-use template::{ComponentTemplate};
+use template::{ComponentTemplate, Style};
 use {ComponentId, ComponentEvents, Attributes, Value, Error, UiContext};
 
 /// Core attributes all components share.
@@ -44,11 +44,12 @@ pub struct Component {
 impl Component {
     pub(crate) fn from_template(
         template: &ComponentTemplate, events: &ComponentEvents,
+        style: &Style,
         parent_size: Vector2<f32>,
         context: &UiContext,
     ) -> Result<Self, Error> {
         let runtime = &context.runtime;
-        let attributes = Attributes::resolve(template, context)?;
+        let attributes = Attributes::resolve(template, style, context)?;
 
         let class = context.classes.create(template, &attributes, runtime)?;
         let component_attributes = ComponentAttributes::load(parent_size, &attributes, runtime)?;
@@ -65,11 +66,13 @@ impl Component {
         })
     }
 
-    pub(crate) fn update_attributes(&mut self, context: &UiContext) -> Result<(), Error> {
+    pub(crate) fn update_attributes(
+        &mut self, style: &Style, context: &UiContext
+    ) -> Result<(), Error> {
         // TODO: Update own attributes
 
         let runtime = &context.runtime;
-        let attributes = Attributes::resolve(&self.template, context)?;
+        let attributes = Attributes::resolve(&self.template, style, context)?;
         self.class.update_attributes(&attributes, runtime)?;
 
         Ok(())

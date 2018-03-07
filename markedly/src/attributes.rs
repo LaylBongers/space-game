@@ -1,6 +1,6 @@
 use std::collections::{HashMap};
 
-use template::{ComponentTemplate};
+use template::{ComponentTemplate, Style};
 use {Value, Error, UiContext};
 
 pub struct Attributes {
@@ -12,7 +12,7 @@ pub struct Attributes {
 impl Attributes {
     /// Resolves the final attributes of the current component from its template and the style.
     pub fn resolve(
-        template: &ComponentTemplate, context: &UiContext,
+        template: &ComponentTemplate, style: &Style, context: &UiContext,
     ) -> Result<Self, Error> {
         let mut attributes = HashMap::new();
 
@@ -20,7 +20,7 @@ impl Attributes {
         // the template
 
         // Add any styles from the stylesheet
-        for component in &context.style.components {
+        for component in &style.components {
             if component.class == template.class {
                 for attribute in &component.attributes {
                     if attribute.check_conditional(&context.runtime)? {

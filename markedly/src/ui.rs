@@ -1,30 +1,48 @@
 use nalgebra::{Vector2};
 use metrohash::{MetroHashMap};
 
-use scripting::{Model};
-use template::{Template, ComponentTemplate};
-use {Component, ComponentEvents, Error, UiContext};
+use class::{ComponentClasses};
+use scripting::{Model, ScriptRuntime};
+use template::{Style, Template, ComponentTemplate};
+use {Component, ComponentEvents, Error};
 
-/// A self-contained UI.
+/// The context Uis should be processed and rendered in, this defines the overall Ui system's
+/// configuration, such as what component classes are available and how the scripting runtime is
+/// configured.
+pub struct UiContext {
+    pub classes: ComponentClasses,
+    pub runtime: ScriptRuntime,
+}
+
+/// A self-contained Ui, to be rendered to a single target, be that full screen, in-world, or used
+/// in some other way.
 pub struct Ui {
+    style: Style,
+
     components: MetroHashMap<ComponentId, Component>,
     next_id: ComponentId,
     root_id: ComponentId,
+
     models: MetroHashMap<ComponentId, ComponentEvents>,
 }
 
 impl Ui {
     /// Creates a new UI from a root template.
-    pub fn new(root: &Template, context: &UiContext) -> Result<(Self, ComponentEvents), Error> {
+    pub fn new(
+        root: &Template, style: Style, screen_size: Vector2<f32>, context: &UiContext
+    ) -> Result<(Self, ComponentEvents), Error> {
         let mut ui = Ui {
+            style,
+
             components: MetroHashMap::default(),
             next_id: ComponentId(0),
             root_id: ComponentId(0),
+
             models: MetroHashMap::default(),
         };
 
         let events = ComponentEvents::new(Model::new());
-        ui.root_id = ui.load_component(&root.root, &events, context.screen_size, context)?;
+        ui.root_id = ui.load_component(&root.root, &events, screen_size, context)?;
 
         Ok((ui, events))
     }
@@ -54,7 +72,7 @@ impl Ui {
                 context.runtime.set_model(&value.model.borrow().0)?;
 
                 Self::update_component_recursive(
-                    &mut self.components, *key, &self.models, context
+                    &mut self.components, *key, &self.models, &self.style, context
                 )?;
 
                 value.clear_changed();
@@ -66,18 +84,19 @@ impl Ui {
 
     fn update_component_recursive(
         components: &mut MetroHashMap<ComponentId, Component>, key: ComponentId,
-        models: &MetroHashMap<ComponentId, ComponentEvents>, context: &UiContext,
+        models: &MetroHashMap<ComponentId, ComponentEvents>,
+        style: &Style, context: &UiContext,
     ) -> Result<(), Error> {
         for child_i in 0..components.get(&key).unwrap().children.len() {
             let child_id = components.get(&key).unwrap().children[child_i];
 
             // Do not go deeper if we're at an inserted template's root
             if !models.contains_key(&child_id) {
-                Self::update_component_recursive(components, child_id, models, context)?;
+                Self::update_component_recursive(components, child_id, models, style, context)?;
             }
         }
 
-        components.get_mut(&key).unwrap().update_attributes(context)?;
+        components.get_mut(&key).unwrap().update_attributes(style, context)?;
 
         Ok(())
     }
@@ -130,7 +149,7 @@ impl Ui {
     ) -> Result<ComponentId, Error> {
         // Load the component itself from the template
         let mut component = Component::from_template(
-            template, events, parent_size, context,
+            template, events, &self.style, parent_size, context,
         )?;
         let size = component.attributes.size;
         let id = self.next_id;
