@@ -18,7 +18,10 @@ pub enum TemplateValue {
     /// A null value.
     Default,
     /// A script that will be evaluated by the scripting engine.
-    Script(String),
+    ScriptValue(String),
+    /// A script statement that will be executed by the scripting engine.
+    /// For example, allowing more complex responses to UI events in the template.
+    ScriptStatement(String),
 }
 
 impl TemplateValue {
@@ -26,7 +29,7 @@ impl TemplateValue {
     pub fn as_string(&self, runtime: &ScriptRuntime) -> Result<String, Error> {
         match *self {
             TemplateValue::String(ref value) => Ok(value.clone()),
-            TemplateValue::Script(ref script) => runtime.eval_string(script),
+            TemplateValue::ScriptValue(ref script) => runtime.eval_string(script),
             _ => Err("Value is not a string".into()),
         }
     }
@@ -35,7 +38,7 @@ impl TemplateValue {
     pub fn as_integer(&self, runtime: &ScriptRuntime) -> Result<i32, Error> {
         match *self {
             TemplateValue::Integer(value) => Ok(value),
-            TemplateValue::Script(ref script) => runtime.eval_integer(script),
+            TemplateValue::ScriptValue(ref script) => runtime.eval_integer(script),
             _ => Err("Value is not an integer".into()),
         }
     }
@@ -44,7 +47,7 @@ impl TemplateValue {
     pub fn as_float(&self, runtime: &ScriptRuntime) -> Result<f32, Error> {
         match *self {
             TemplateValue::Float(value) => Ok(value),
-            TemplateValue::Script(ref script) => runtime.eval_float(script),
+            TemplateValue::ScriptValue(ref script) => runtime.eval_float(script),
             _ => Err("Value is not a float".into()),
         }
     }
@@ -57,7 +60,7 @@ impl TemplateValue {
         match *self {
             TemplateValue::Float(value) => Ok(value),
             TemplateValue::Percentage(value) => Ok((value as f32 / 100.0) * percent_100),
-            TemplateValue::Script(ref script) => runtime.eval_float(script),
+            TemplateValue::ScriptValue(ref script) => runtime.eval_float(script),
             _ => Err("Value is not a float or percentage".into()),
         }
     }

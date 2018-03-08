@@ -2,7 +2,7 @@ use nalgebra::{Vector2};
 use metrohash::{MetroHashMap};
 
 use class::{ComponentClasses};
-use scripting::{Model, ScriptRuntime};
+use scripting::{ScriptTable, ScriptRuntime};
 use template::{Style, Template, ComponentTemplate};
 use {Component, ComponentEvents, Error};
 
@@ -43,7 +43,7 @@ impl Ui {
             models: MetroHashMap::default(),
         };
 
-        let events = ComponentEvents::new(Model::new());
+        let events = ComponentEvents::new(ScriptTable::new());
         ui.root_id = ui.load_component(&root.root, &events, target_size, context)?;
 
         Ok((ui, events))
@@ -75,7 +75,7 @@ impl Ui {
                 // Reloading everything isn't very efficient, it should be changed later to
                 // detect which model values components have been bound to and only update the
                 // relevant ones
-                context.runtime.set_model(&value.model.borrow().0)?;
+                context.runtime.set_model(&value.model())?;
 
                 Self::update_component_recursive(
                     &mut self.components, *key, &self.models, &self.style, context
@@ -111,7 +111,7 @@ impl Ui {
     /// style class.
     pub fn insert_template(
         &mut self,
-        template: &Template, model: Option<Model>,
+        template: &Template, model: Option<ScriptTable>,
         style_class: &str,
         context: &UiContext,
     ) -> Result<ComponentEvents, Error> {
@@ -131,7 +131,7 @@ impl Ui {
         let size = self.get(parent_id).unwrap().attributes.size;
 
         // Prepare the scripting engine with the model data
-        let model = model.unwrap_or(Model::new());
+        let model = model.unwrap_or(ScriptTable::new());
         context.runtime.set_model(&model)?;
 
         // Recursively add the template

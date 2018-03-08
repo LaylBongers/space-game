@@ -1,16 +1,16 @@
 container { docking: ("end", "start"), size: (228.0, 100%) }
     button {
         position: (3.0, 3.0),
+        text: "New Game",
+        on-pressed: "new-game",
+    }
+    button {
+        position: (78.0, 3.0),
         text: "Load Game",
         on-pressed: "load-game",
     }
     button {
-        position: (78.0, 3.0),
+        position: (153.0, 3.0),
         text: "Save Game",
         on-pressed: "save-game",
-    }
-    button {
-        position: (153.0, 3.0),
-        text: "New Game",
-        on-pressed: "new-game",
     }

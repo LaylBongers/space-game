@@ -1,6 +1,6 @@
 use rlua::{Lua};
 
-use scripting::{Model};
+use scripting::{ScriptTable};
 use {Error};
 
 /// Keeps track of the scripting engine and data in it.
@@ -18,7 +18,7 @@ impl ScriptRuntime {
         }
     }
 
-    pub(crate) fn set_model(&self, model: &Model) -> Result<(), Error> {
+    pub(crate) fn set_model(&self, model: &ScriptTable) -> Result<(), Error> {
         let globals = self.lua.globals();
 
         let model_table = model.to_lua_table(&self.lua)?;

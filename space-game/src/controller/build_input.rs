@@ -282,30 +282,28 @@ impl BuildInputUiController {
         if old_choice != *build_choice {
             self.clear_active_button();
 
-            self.events.change_model(|model| {
-                match *build_choice {
-                    BuildChoice::Floor | BuildChoice::Object(_) =>
-                        model.set("build_active", true),
-                    BuildChoice::Destroy =>
-                        model.set("destroy_active", true),
-                    BuildChoice::DestroyAll =>
-                        model.set("destroy_all_active", true),
-                    _ => {},
-                }
-            });
+            let mut model = self.events.change_model();
+
+            match *build_choice {
+                BuildChoice::Floor | BuildChoice::Object(_) =>
+                    model.set("build_active", true),
+                BuildChoice::Destroy =>
+                    model.set("destroy_active", true),
+                BuildChoice::DestroyAll =>
+                    model.set("destroy_all_active", true),
+                _ => {},
+            }
         }
 
         Ok(())
     }
 
     fn clear_active_button(&mut self) {
-        self.events.change_model(|model| {
-            /*model.set("build_floor_active", false);
-            model.set("build_wall_active", false);
-            model.set("build_door_active", false);*/
-            model.set("destroy_active", false);
-            model.set("destroy_all_active", false);
-        });
+        let mut model = self.events.change_model();
+
+        model.set("build_active", false);
+        model.set("destroy_active", false);
+        model.set("destroy_all_active", false);
     }
 
     fn toggle_popup(&mut self, ui: &mut Ui, ui_context: &UiContext) -> GameResult<()> {
