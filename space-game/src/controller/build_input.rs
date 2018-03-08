@@ -48,8 +48,8 @@ impl BuildInputController {
         &self.build_choice
     }
 
-    pub fn update(&mut self) -> GameResult<()> {
-        self.ui.update(&mut self.build_choice);
+    pub fn update(&mut self, ui: &mut Ui, ui_context: &UiContext) -> GameResult<()> {
+        self.ui.update(&mut self.build_choice, ui, ui_context)?;
 
         if self.build_sound_queued {
             self.place_sound.play()?;
@@ -228,14 +228,17 @@ pub fn build_area(start: Point2<i32>, end: Point2<i32>) -> (Point2<i32>, Point2<
 
 struct BuildInputUiController {
     events: ComponentEvents,
+    popup_template: Template,
+    popup_events: Option<ComponentEvents>,
 }
 
 impl BuildInputUiController {
     pub fn new(
         ctx: &mut Context, ui: &mut Ui, ui_context: &UiContext,
     ) -> GameResult<Self> {
-        let template_file = ctx.filesystem.open("/markedly/build-input.mark")?;
-        let template = Template::from_reader(template_file)?;
+        let template = Template::from_reader(ctx.filesystem.open("/markedly/build-menu.mark")?)?;
+        let popup_template =
+            Template::from_reader(ctx.filesystem.open("/markedly/build-menu-popup.mark")?)?;
 
         let events = ui.insert_template(
             &template, None, "top-menu", ui_context,
@@ -243,34 +246,46 @@ impl BuildInputUiController {
 
         Ok(BuildInputUiController {
             events,
+            popup_template,
+            popup_events: None,
         })
     }
 
-    fn update(&mut self, build_choice: &mut BuildChoice) {
+    fn update(
+        &mut self, build_choice: &mut BuildChoice, ui: &mut Ui, ui_context: &UiContext,
+    ) -> GameResult<()> {
         let old_choice = build_choice.clone();
 
+        // Check the menu buttons
         while let Some(event) = self.events.next() {
             match event.as_str() {
-                "build-floor" => *build_choice = BuildChoice::Floor,
-                "build-wall" => *build_choice = BuildChoice::Object(ObjectClassId(0)),
-                "build-door" => *build_choice = BuildChoice::Object(ObjectClassId(1)),
+                "build" => self.toggle_popup(ui, ui_context)?,
                 "destroy" => *build_choice = BuildChoice::Destroy,
                 "destroy-all" => *build_choice = BuildChoice::DestroyAll,
                 _ => {}
             }
         }
 
+        // Check the popup buttons
+        if let Some(ref popup_events) = self.popup_events {
+            while let Some(event) = popup_events.next() {
+                match event.as_str() {
+                    "build-floor" => *build_choice = BuildChoice::Floor,
+                    "build-wall" => *build_choice = BuildChoice::Object(ObjectClassId(0)),
+                    "build-door" => *build_choice = BuildChoice::Object(ObjectClassId(1)),
+                    _ => {}
+                }
+            }
+        }
+
+        // Update the active indicator so the user knows which option is enabled
         if old_choice != *build_choice {
             self.clear_active_button();
 
             self.events.change_model(|model| {
                 match *build_choice {
-                    BuildChoice::Floor =>
-                        model.set("build_floor_active", true),
-                    BuildChoice::Object(ObjectClassId(0)) =>
-                        model.set("build_wall_active", true),
-                    BuildChoice::Object(ObjectClassId(1)) =>
-                        model.set("build_door_active", true),
+                    BuildChoice::Floor | BuildChoice::Object(_) =>
+                        model.set("build_active", true),
                     BuildChoice::Destroy =>
                         model.set("destroy_active", true),
                     BuildChoice::DestroyAll =>
@@ -279,15 +294,42 @@ impl BuildInputUiController {
                 }
             });
         }
+
+        Ok(())
     }
 
     fn clear_active_button(&mut self) {
         self.events.change_model(|model| {
-            model.set("build_floor_active", false);
+            /*model.set("build_floor_active", false);
             model.set("build_wall_active", false);
-            model.set("build_door_active", false);
+            model.set("build_door_active", false);*/
             model.set("destroy_active", false);
             model.set("destroy_all_active", false);
         });
+    }
+
+    fn toggle_popup(&mut self, ui: &mut Ui, ui_context: &UiContext) -> GameResult<()> {
+        if self.popup_events.is_some() {
+            self.close_popup()
+        } else {
+            self.open_popup(ui, ui_context)
+        }
+    }
+
+    fn close_popup(&mut self) -> GameResult<()> {
+        if let Some(ref popup_events) = self.popup_events {
+        }
+
+        Ok(())
+    }
+
+    fn open_popup(&mut self, ui: &mut Ui, ui_context: &UiContext) -> GameResult<()> {
+        if self.popup_events.is_none() {
+            self.popup_events = Some(ui.insert_template(
+                &self.popup_template, None, "popup-container", ui_context,
+            ).map_err(|e| format!("{:#?}", e))?);
+        }
+
+        Ok(())
     }
 }

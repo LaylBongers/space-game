@@ -189,7 +189,7 @@ impl EventHandler for MainState {
         while timer::check_update_time(ctx, DESIRED_FPS) {
             while let Some(_) = self.root_events.next() {}
 
-            self.build_input.update()?;
+            self.build_input.update(&mut self.ui, &self.ui_context)?;
             self.save_input.update(&self.log, ctx, &mut self.ship)?;
             self.ship.update(&self.log, DELTA, &self.object_classes);
 

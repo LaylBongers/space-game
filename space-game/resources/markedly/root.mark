@@ -1,4 +1,4 @@
-container
+container.popup-container
     container.top-menu {
         size: (100%, 30.0),
         color: (255, 255, 255, 0.8),

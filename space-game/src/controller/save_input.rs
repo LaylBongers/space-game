@@ -16,7 +16,7 @@ impl SaveInputController {
     pub fn new(
         ctx: &mut Context, ui: &mut Ui, ui_context: &UiContext,
     ) -> GameResult<Self> {
-        let template_file = ctx.filesystem.open("/markedly/save-input.mark")?;
+        let template_file = ctx.filesystem.open("/markedly/save-menu.mark")?;
         let template = Template::from_reader(template_file)?;
         let events = ui.insert_template(&template, None, "top-menu", ui_context)
             .map_err(|e| format!("{:#?}", e))?;
