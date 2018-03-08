@@ -6,7 +6,7 @@ container {
     button {
         position: (3.0, 3.0),
         text: "Floor",
-        on-pressed: "build-floor",
+        on-pressed: @{ event("build", {"floor"}) },
     }
     button {
         position: (3.0, 30.0),

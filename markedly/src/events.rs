@@ -3,6 +3,7 @@ use std::rc::{Rc};
 use std::cell::{RefCell, Ref, RefMut};
 
 use scripting::{ScriptTable};
+use template::{EventHook};
 
 /// Data for interacting with an active UI component tree inserted through a template.
 #[derive(Clone)]
@@ -27,8 +28,13 @@ impl ComponentEvents {
     }
 
     /// Raises an event.
-    pub fn raise(&self, event: String) {
-        self.event_sink.borrow_mut().push_back(event);
+    pub fn raise(&self, event: &EventHook) {
+        match *event {
+            EventHook::Direct(ref value) =>
+                self.event_sink.borrow_mut().push_back(value.clone()),
+            EventHook::Script(ref _script) =>
+                unimplemented!(),
+        }
     }
 
     pub fn model(&self) -> Ref<ScriptTable> {

@@ -10,7 +10,8 @@ use nalgebra::{Point2, Vector2};
 use metrohash::{MetroHashMap};
 
 use markedly::render::{Renderer};
-use markedly::{Error, Color, ComponentId};
+use markedly::template::{Color};
+use markedly::{Error, ComponentId};
 
 pub struct GgezComponentCache {
     data: MetroHashMap<ComponentId, Canvas>,

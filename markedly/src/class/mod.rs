@@ -10,7 +10,8 @@ pub use self::button::{ButtonClass};
 
 use render::{Renderer};
 use scripting::{ScriptRuntime};
-use {ComponentEvents, ComponentAttributes, Error, Attributes, ComponentId};
+use template::{Attributes};
+use {ComponentEvents, ComponentAttributes, Error, ComponentId};
 
 /// The class of a component, defines specific appearance and functionality in response to user
 /// input.

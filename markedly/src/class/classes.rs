@@ -2,8 +2,8 @@ use std::collections::{HashMap};
 
 use class::{ComponentClass};
 use scripting::{ScriptRuntime};
-use template::{ComponentTemplate};
-use {Attributes, Error};
+use template::{ComponentTemplate, Attributes};
+use {Error};
 
 /// A registry of component class factories.
 pub struct ComponentClasses {

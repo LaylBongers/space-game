@@ -2,8 +2,8 @@ use nalgebra::{Point2, Vector2};
 
 use class::{ComponentClass};
 use scripting::{ScriptRuntime};
-use template::{ComponentTemplate, Style, TemplateValue};
-use {ComponentId, ComponentEvents, Attributes, Error, UiContext};
+use template::{ComponentTemplate, Style, TemplateValue, Attributes};
+use {ComponentId, ComponentEvents, Error, UiContext};
 
 /// Core attributes all components share.
 pub struct ComponentAttributes {

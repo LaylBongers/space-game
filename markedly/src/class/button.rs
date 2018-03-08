@@ -3,14 +3,15 @@ use nalgebra::{Point2};
 use class::{ComponentClass, ComponentClassFactory};
 use render::{Renderer};
 use scripting::{ScriptRuntime};
-use {ComponentEvents, Attributes, Error, Color, ComponentAttributes, ComponentId};
+use template::{Attributes, Color, EventHook};
+use {ComponentEvents, Error, ComponentAttributes, ComponentId};
 
 pub struct ButtonAttributes {
     color: Option<Color>,
     color_hovering: Option<Color>,
     text_color: Color,
     text: Option<String>,
-    on_pressed: Option<String>,
+    on_pressed: Option<EventHook>,
 }
 
 impl ButtonAttributes {
@@ -26,7 +27,7 @@ impl ButtonAttributes {
                 "text-color", |v| v.as_color(runtime), Color::new_u8(0, 0, 0, 255)
             )?,
             text: attributes.attribute_optional("text", |v| v.as_string(runtime))?,
-            on_pressed: attributes.attribute_optional("on-pressed", |v| v.as_string(runtime))?,
+            on_pressed: attributes.attribute_optional("on-pressed", |v| v.as_event_hook(runtime))?,
         })
     }
 }
@@ -91,7 +92,7 @@ impl ComponentClass for ButtonClass {
     }
 
     fn pressed_event(&mut self, sender: &ComponentEvents) {
-        if let Some(event) = self.attributes.on_pressed.clone() {
+        if let Some(ref event) = self.attributes.on_pressed {
             sender.raise(event);
         }
     }

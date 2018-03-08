@@ -190,6 +190,8 @@ fn parse_value(pair: Pair<Rule>) -> TemplateValue {
             TemplateValue::Default,
         Rule::script_value =>
             TemplateValue::ScriptValue(pair_str[2..pair_str.len()-1].into()),
+        Rule::script_statement =>
+            TemplateValue::ScriptStatement(pair_str[1..pair_str.len()-1].into()),
         _ => unreachable!(),
     }
 }

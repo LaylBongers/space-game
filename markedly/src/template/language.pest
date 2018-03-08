@@ -8,7 +8,7 @@ style_class = { "." ~ identifier }
 // Attributes
 attributes = !{ "{" ~ (key_value ~ ("," ~ key_value)* ~ ","?)? ~ "}" }
 key_value = { identifier ~ ":" ~ value ~ script_conditional? }
-value = { string | percentage | float | integer | tuple | default | script_value }
+value = { string | percentage | float | integer | tuple | default | script_value | script_statement }
 
 // Identifiers
 identifier_char = _{ 'a'..'z' | 'A'..'Z' | '0'..'9' | "_" | "-" }
@@ -28,6 +28,7 @@ number = { "0" | ('1'..'9' ~ '0'..'9'*) }
 default = @{ "default" }
 
 // Script
+script_statement = @{ "@" ~ script }
 script_value = @{ "=" ~ script }
 script_conditional = @{ "?" ~ script }
 

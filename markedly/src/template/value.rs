@@ -1,6 +1,6 @@
 use nalgebra::{Point2, Vector2};
 use scripting::{ScriptRuntime};
-use {Error, Color};
+use {Error};
 
 /// A template value, to be interpreted by components when created or updated.
 #[derive(Debug, PartialEq, Clone)]
@@ -133,6 +133,17 @@ impl TemplateValue {
             Err("Value is not a tuple".into())
         }
     }
+
+    pub fn as_event_hook(&self, runtime: &ScriptRuntime) -> Result<EventHook, Error> {
+        match *self {
+            TemplateValue::String(ref value) => Ok(EventHook::Direct(value.clone())),
+            TemplateValue::ScriptValue(ref script) =>
+                Ok(EventHook::Direct(runtime.eval_string(script)?)),
+            TemplateValue::ScriptStatement(ref script) =>
+                Ok(EventHook::Script(script.clone())),
+            _ => Err("Value is not a string or script statement".into()),
+        }
+    }
 }
 
 fn range_i(value: i32, err_id: &str, min: i32, max: i32) -> Result<(), String> {
@@ -149,4 +160,13 @@ fn range_f(value: f32, err_id: &str, min: f32, max: f32) -> Result<(), String> {
     } else {
         Err(format!("{}: Out of range, valid range is {} to {}", err_id, min, max))
     }
+}
+
+/// Re-export of palette's color for convenience so you don't have to add palette to your own
+/// crate unless you need more complex color functionality.
+pub type Color = ::palette::Srgba;
+
+pub enum EventHook {
+    Direct(String),
+    Script(String),
 }
