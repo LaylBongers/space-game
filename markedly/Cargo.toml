@@ -9,6 +9,7 @@ pest_derive = "1"
 nalgebra = "0.13"
 palette = "0.3"
 metrohash = "1"
+lyon = "0.10"
 
 # Perhaps move this to an external crate and make the core generic over
 # scripting backends

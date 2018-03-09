@@ -6,6 +6,7 @@ extern crate pest_derive;
 extern crate nalgebra;
 extern crate palette;
 extern crate metrohash;
+extern crate lyon;
 extern crate rlua;
 
 pub mod class;

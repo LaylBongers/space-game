@@ -4,7 +4,7 @@ extern crate markedly;
 extern crate metrohash;
 
 use ggez::conf::{NumSamples};
-use ggez::graphics::{self, DrawMode, Rect, Font, Text, Canvas, Matrix4};
+use ggez::graphics::{self, DrawMode, Rect, Font, Text, Canvas, Matrix4, Mesh};
 use ggez::{Context, GameError};
 use nalgebra::{Point2, Vector2};
 use metrohash::{MetroHashMap};
@@ -144,6 +144,26 @@ impl<'a> Renderer for GgezRenderer<'a> {
             position.x + x_offset,
             position.y + y_offset,
         ), 0.0).map_err(egtm)?;
+
+        Ok(())
+    }
+
+    fn vertices(
+        &mut self, id: ComponentId,
+        vertices: &[Point2<f32>], indices: &[u16], color: Color,
+    ) -> Result<(), Error> {
+        self.render_to_component(id)?;
+
+        graphics::set_color(self.ctx, color_convert(color)).map_err(egtm)?;
+
+        // Convert the vertices+indices to triangles and then a mesh
+        let mut flattened_vertices = Vec::new();
+        for index in indices {
+            flattened_vertices.push(vertices[*index as usize]);
+        }
+        let mesh = Mesh::from_triangles(self.ctx, &flattened_vertices).map_err(egtm)?;
+
+        graphics::draw(self.ctx, &mesh, Point2::new(0.0, 0.0), 0.0).map_err(egtm)?;
 
         Ok(())
     }

@@ -1,32 +1,24 @@
 use nalgebra::{Point2};
 
-use class::{ComponentClass, ComponentClassFactory};
+use class::{ComponentClass, ComponentClassFactory, BackgroundAttributes};
 use render::{Renderer};
 use scripting::{ScriptRuntime};
 use template::{Attributes, Color, EventHook};
 use {ComponentEvents, Error, ComponentAttributes, ComponentId};
 
-pub struct ButtonAttributes {
-    color: Option<Color>,
-    color_hovering: Option<Color>,
-    text_color: Color,
+struct ButtonAttributes {
     text: Option<String>,
+    text_color: Color,
     on_pressed: Option<EventHook>,
 }
 
 impl ButtonAttributes {
     pub fn load(attributes: &Attributes, runtime: &ScriptRuntime) -> Result<Self, Error> {
         Ok(ButtonAttributes {
-            color: attributes.attribute_optional(
-                "color", |v| v.as_color(runtime)
-            )?,
-            color_hovering: attributes.attribute_optional(
-                "color-hovering", |v| v.as_color(runtime)
-            )?,
+            text: attributes.attribute_optional("text", |v| v.as_string(runtime))?,
             text_color: attributes.attribute(
                 "text-color", |v| v.as_color(runtime), Color::new_u8(0, 0, 0, 255)
             )?,
-            text: attributes.attribute_optional("text", |v| v.as_string(runtime))?,
             on_pressed: attributes.attribute_optional("on-pressed", |v| v.as_event_hook(runtime))?,
         })
     }
@@ -34,6 +26,7 @@ impl ButtonAttributes {
 
 /// A button component class, raises events on click.
 pub struct ButtonClass {
+    background: BackgroundAttributes,
     attributes: ButtonAttributes,
     hovering: bool,
 }
@@ -41,6 +34,7 @@ pub struct ButtonClass {
 impl ComponentClassFactory for ButtonClass {
     fn new(attributes: &Attributes, runtime: &ScriptRuntime) -> Result<Self, Error> {
         Ok(ButtonClass {
+            background: BackgroundAttributes::load(attributes, runtime)?,
             attributes: ButtonAttributes::load(attributes, runtime)?,
             hovering: false,
         })
@@ -51,6 +45,7 @@ impl ComponentClass for ButtonClass {
     fn update_attributes(
         &mut self, attributes: &Attributes, runtime: &ScriptRuntime,
     ) -> Result<(), Error> {
+        self.background = BackgroundAttributes::load(attributes, runtime)?;
         self.attributes = ButtonAttributes::load(attributes, runtime)?;
         Ok(())
     }
@@ -58,20 +53,12 @@ impl ComponentClass for ButtonClass {
     fn render(
         &self, id: ComponentId, attributes: &ComponentAttributes, renderer: &mut Renderer,
     ) -> Result<(), Error> {
-        let attribs = &self.attributes;
+        self.background.render(id, attributes, renderer, self.hovering)?;
 
-        let current_color = if self.hovering && attribs.color_hovering.is_some() {
-            attribs.color_hovering
-        } else {
-            attribs.color
-        };
-
-        if let Some(current_color) = current_color {
-            renderer.rectangle(id, Point2::new(0.0, 0.0), attributes.size, current_color)?;
-        }
-
-        if let Some(ref text) = attribs.text {
-            renderer.text(id, &text, Point2::new(0.0, 0.0), attributes.size, attribs.text_color)?;
+        if let Some(ref text) = self.attributes.text {
+            renderer.text(
+                id, &text, Point2::new(0.0, 0.0), attributes.size, self.attributes.text_color,
+            )?;
         }
 
         Ok(())

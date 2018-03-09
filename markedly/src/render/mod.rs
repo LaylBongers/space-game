@@ -31,6 +31,12 @@ pub trait Renderer {
         &mut self, id: ComponentId,
         text: &str, position: Point2<f32>, size: Vector2<f32>, color: Color,
     ) -> Result<(), Error>;
+
+    /// Renders vertices to the component's cache.
+    fn vertices(
+        &mut self, id: ComponentId,
+        vertices: &[Point2<f32>], indices: &[u16], color: Color,
+    ) -> Result<(), Error>;
 }
 
 /// Renders a UI using a renderer backend.
