@@ -4,6 +4,7 @@ button {
     color: (255, 255, 255, 0.8),
     color-hovering: (240, 240, 240, 0.8),
     text-color: (0, 0, 0, 0.8),
+    text-size: 8,
 
     border-radius: 3.0,
 }

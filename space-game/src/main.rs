@@ -33,11 +33,11 @@ use sloggers::terminal::{TerminalLoggerBuilder};
 use sloggers::types::{Severity};
 
 use markedly::class::{ComponentClasses};
-use markedly::input::{UiInput};
+use markedly::input::{Input};
 use markedly::scripting::{ScriptRuntime};
 use markedly::template::{Template, Style};
 use markedly::{Ui, Context as UiContext, Tree};
-use markedly_ggez::{GgezRenderer, GgezComponentCache};
+use markedly_ggez::{GgezRenderer, GgezCache, emtg};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
 use model::{Camera, ObjectClasses, GenericObjectClass};
@@ -87,13 +87,13 @@ pub fn main() {
 
 struct MainState {
     log: Logger,
+    fps_font: Font,
 
     // Ui
     ui_context: UiContext,
     ui: Ui,
-    ui_input: UiInput,
-    ui_font: Font,
-    ui_cache: GgezComponentCache,
+    ui_input: Input,
+    ui_cache: GgezCache,
     ui_root: Tree,
 
     // Models
@@ -119,26 +119,29 @@ impl MainState {
         let mut camera = Camera::new(64, screen_size);
         camera.set_position(Point2::new(50.0, 50.0));
 
+        let fps_font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
+
         // Set up everything needed for the UI
         let mut classes = ComponentClasses::new();
         classes.register::<markedly::class::ContainerClass>("container");
         classes.register::<markedly::class::ButtonClass>("button");
 
-        let ui_input = UiInput::new();
-        let ui_font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
-        let ui_context = UiContext {
-            classes,
-            runtime: ScriptRuntime::new(),
-        };
+        let runtime = ScriptRuntime::new();
+
+        let ui_context = UiContext { classes, runtime, };
+        let ui_input = Input::new();
+
+        let mut ui_cache = GgezCache::new();
+        ui_cache.add_font("dejavu sans", "/DejaVuSansMono.ttf").map_err(emtg)?;
 
         // Set up the UI itself
-        let style = Style::from_reader(ctx.filesystem.open("/markedly/style.mark")?)?;
-        let root_template = Template::from_reader(ctx.filesystem.open("/markedly/root.mark")?)?;
+        let style = Style::from_reader(ctx.filesystem.open("/markedly/_style.mark")?)?;
+        let root_template = Template::from_reader(ctx.filesystem.open("/markedly/ui.mark")?)?;
         let (mut ui, ui_root) = Ui::new(
             &root_template, None, style,
             Vector2::new(screen_size.x as f32, screen_size.y as f32),
             &ui_context,
-        ).map_err(|e| format!("{:#?}", e))?;
+        ).map_err(emtg)?;
 
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();
@@ -160,12 +163,12 @@ impl MainState {
 
         Ok(MainState {
             log,
+            fps_font,
 
             ui_context,
             ui,
             ui_input,
-            ui_font,
-            ui_cache: GgezComponentCache::new(),
+            ui_cache,
             ui_root,
 
             camera,
@@ -220,14 +223,13 @@ impl EventHandler for MainState {
 
         // Draw the UI
         {
-            let mut renderer = GgezRenderer::new(ctx, &mut self.ui_cache, &self.ui_font);
-            markedly::render::render(&mut renderer, &mut self.ui)
-                .map_err(|e| format!("{:#?}", e))?;
+            let mut renderer = GgezRenderer::new(ctx, &mut self.ui_cache);
+            markedly::render::render(&mut renderer, &mut self.ui).map_err(emtg)?;
         }
 
         // Draw an FPS counter
         let fps = timer::get_fps(ctx);
-        let text = Text::new(ctx, &format!("FPS: {:.2}", fps), &self.ui_font)?;
+        let text = Text::new(ctx, &format!("FPS: {:.2}", fps), &self.fps_font)?;
         graphics::set_color(ctx, (255, 255, 255, 200).into())?;
         graphics::draw(ctx, &text, Point2::new(0.0, 710.0), 0.0)?;
 

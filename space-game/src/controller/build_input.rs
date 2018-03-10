@@ -4,9 +4,10 @@ use ggez::event::{MouseButton};
 use nalgebra::{Point2};
 
 use markedly::template::{Template};
-use markedly::input::{UiInput};
+use markedly::input::{Input};
 use markedly::scripting::{ScriptTable};
 use markedly::{Ui, Context as UiContext, Tree};
+use markedly_ggez::{emtg};
 
 use model::{Camera, ObjectClassId};
 use model::ship::{Ship, Task};
@@ -180,7 +181,7 @@ impl BuildInputController {
     pub fn handle_mouse_move(
         &mut self,
         mouse_position: Point2<i32>,
-        camera: &mut Camera, ship: &Ship, ui_input: &UiInput,
+        camera: &mut Camera, ship: &Ship, ui_input: &Input,
     ) {
         // Get the position of the cursor in-world
         let world_position = camera.screen_to_world(mouse_position);
@@ -251,7 +252,7 @@ impl BuildInputUiController {
 
         let ui = ui.insert_template(
             &template, None, "top-menu", ui_context,
-        ).map_err(|e| format!("{:#?}", e))?;
+        ).map_err(emtg)?;
 
         Ok(BuildInputUiController {
             model: ScriptTable::new(),
@@ -303,8 +304,7 @@ impl BuildInputUiController {
                 _ => {},
             }
 
-            ui.update_model(&self.ui, &self.model, ui_context)
-                .map_err(|e| format!("{:#?}", e))?;
+            ui.update_model(&self.ui, &self.model, ui_context).map_err(emtg)?;
         }
 
         Ok(())
@@ -315,8 +315,7 @@ impl BuildInputUiController {
         self.model.set("destroy_active", false);
         self.model.set("destroy_all_active", false);
 
-        ui.update_model(&self.ui, &self.model, ui_context)
-            .map_err(|e| format!("{:#?}", e))?;
+        ui.update_model(&self.ui, &self.model, ui_context).map_err(emtg)?;
 
         Ok(())
     }
@@ -340,7 +339,7 @@ impl BuildInputUiController {
         if self.popup_ui.is_none() {
             self.popup_ui = Some(ui.insert_template(
                 &self.popup_template, None, "popup-container", ui_context,
-            ).map_err(|e| format!("{:#?}", e))?);
+            ).map_err(emtg)?);
         }
 
         Ok(())

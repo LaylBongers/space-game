@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "markedly/example",
     "markedly/markedly",
     "markedly/markedly-ggez",
     "space-game",
