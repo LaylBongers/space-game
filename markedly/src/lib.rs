@@ -24,5 +24,5 @@ use component::{Component};
 
 pub use component::{ComponentAttributes};
 pub use error::{Error};
-pub use events::{ComponentEvents};
-pub use ui::{Ui, UiContext, ComponentId};
+pub use events::{EventSink};
+pub use ui::{Ui, Context, ComponentId, Tree};

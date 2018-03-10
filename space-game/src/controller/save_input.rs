@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 use rmp_serde::{Deserializer, Serializer};
 
 use markedly::template::{Template};
-use markedly::{Ui, ComponentEvents, UiContext};
+use markedly::{Ui, Context as UiContext, Tree};
 
 use model::ship::{Ship};
 
 pub struct SaveInputController {
-    events: ComponentEvents,
+    ui: Tree,
 }
 
 impl SaveInputController {
@@ -18,18 +18,18 @@ impl SaveInputController {
     ) -> GameResult<Self> {
         let template_file = ctx.filesystem.open("/markedly/save-menu.mark")?;
         let template = Template::from_reader(template_file)?;
-        let events = ui.insert_template(&template, None, "top-menu", ui_context)
+        let ui = ui.insert_template(&template, None, "top-menu", ui_context)
             .map_err(|e| format!("{:#?}", e))?;
 
         Ok(SaveInputController {
-            events,
+            ui,
         })
     }
 
     pub fn update(
         &mut self, log: &Logger, ctx: &mut Context, ship: &mut Ship
     ) -> GameResult<()> {
-        while let Some(event) = self.events.next() {
+        while let Some(event) = self.ui.event_sink().next() {
             match event.as_str() {
                 "load-game" => {
                     info!(log, "Loading game");

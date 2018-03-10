@@ -1,7 +1,7 @@
 use std::collections::{HashMap};
 
 use template::{ComponentTemplate, Style, TemplateValue};
-use {Error, UiContext};
+use {Error, Context};
 
 /// A generated attribute bundle for a component, used by the component and its class to receive
 /// data from templates and styles.
@@ -14,7 +14,7 @@ pub struct Attributes {
 impl Attributes {
     /// Resolves the final attributes of the current component from its template and the style.
     pub fn resolve(
-        template: &ComponentTemplate, style: &Style, context: &UiContext,
+        template: &ComponentTemplate, style: &Style, context: &Context,
     ) -> Result<Self, Error> {
         let mut attributes = HashMap::new();
 

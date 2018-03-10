@@ -1,52 +1,51 @@
 use nalgebra::{Vector2};
-use metrohash::{MetroHashMap};
+use metrohash::{MetroHashMap, MetroHashSet};
 
 use class::{ComponentClasses};
 use scripting::{ScriptTable, ScriptRuntime};
 use template::{Style, Template, ComponentTemplate};
-use {Component, ComponentEvents, Error};
-
-/// The context UIs should be processed and rendered in, this defines the overall UI system's
-/// configuration, such as what component classes are available and how the scripting runtime is
-/// configured.
-pub struct UiContext {
-    pub classes: ComponentClasses,
-    pub runtime: ScriptRuntime,
-}
+use {Component, EventSink, Error};
 
 /// A self-contained UI, to be rendered to a single target, be that full screen, in-world, or used
 /// in some other way.
 pub struct Ui {
     style: Style,
     target_size: Vector2<f32>,
+    root_id: ComponentId,
 
     components: MetroHashMap<ComponentId, Component>,
     next_id: ComponentId,
-    root_id: ComponentId,
 
-    models: MetroHashMap<ComponentId, ComponentEvents>,
+    tree_roots: MetroHashSet<ComponentId>,
 }
 
 impl Ui {
     /// Creates a new UI from a root template.
     pub fn new(
-        root: &Template, style: Style, target_size: Vector2<f32>, context: &UiContext
-    ) -> Result<(Self, ComponentEvents), Error> {
+        template: &Template, model: Option<ScriptTable>,
+        style: Style, target_size: Vector2<f32>, context: &Context,
+    ) -> Result<(Self, Tree), Error> {
         let mut ui = Ui {
             style,
             target_size,
+            root_id: ComponentId(0),
 
             components: MetroHashMap::default(),
             next_id: ComponentId(0),
-            root_id: ComponentId(0),
 
-            models: MetroHashMap::default(),
+            tree_roots: MetroHashSet::default(),
         };
 
-        let events = ComponentEvents::new(ScriptTable::new());
-        ui.root_id = ui.load_component(&root.root, &events, target_size, context)?;
+        // Prepare the scripting engine with the model data
+        let model = model.unwrap_or(ScriptTable::new());
+        context.runtime.set_model(&model)?;
 
-        Ok((ui, events))
+        // Create the root component from the template
+        let event_sink = EventSink::new();
+        ui.root_id = ui.load_component(&template.root, event_sink.clone(), target_size, context)?;
+
+        let root = ui.root_id;
+        Ok((ui, Tree { root, event_sink, }))
     }
 
     pub fn target_size(&self) -> Vector2<f32> {
@@ -68,53 +67,14 @@ impl Ui {
         self.root_id
     }
 
-    pub fn update_ui_from_models(&mut self, context: &UiContext) -> Result<(), Error> {
-        for (key, value) in &self.models {
-            if value.model_changed() {
-                // The model has changed, update all components' data
-                // Reloading everything isn't very efficient, it should be changed later to
-                // detect which model values components have been bound to and only update the
-                // relevant ones
-                context.runtime.set_model(&value.model())?;
-
-                Self::update_component_recursive(
-                    &mut self.components, *key, &self.models, &self.style, context
-                )?;
-
-                value.clear_changed();
-            }
-        }
-
-        Ok(())
-    }
-
-    fn update_component_recursive(
-        components: &mut MetroHashMap<ComponentId, Component>, key: ComponentId,
-        models: &MetroHashMap<ComponentId, ComponentEvents>,
-        style: &Style, context: &UiContext,
-    ) -> Result<(), Error> {
-        for child_i in 0..components.get(&key).unwrap().children.len() {
-            let child_id = components.get(&key).unwrap().children[child_i];
-
-            // Do not go deeper if we're at an inserted template's root
-            if !models.contains_key(&child_id) {
-                Self::update_component_recursive(components, child_id, models, style, context)?;
-            }
-        }
-
-        components.get_mut(&key).unwrap().update_attributes(style, context)?;
-
-        Ok(())
-    }
-
-    /// Inserts a template into the ui as a child of the first found component that has the given
+    /// Inserts a template into the UI as a child of the first found component that has the given
     /// style class.
     pub fn insert_template(
         &mut self,
         template: &Template, model: Option<ScriptTable>,
         style_class: &str,
-        context: &UiContext,
-    ) -> Result<ComponentEvents, Error> {
+        context: &Context,
+    ) -> Result<Tree, Error> {
         // Find the first component that has a style class matching what we were asked for
         let mut found_parent_id = None;
         for (key, component) in &self.components {
@@ -135,27 +95,46 @@ impl Ui {
         context.runtime.set_model(&model)?;
 
         // Recursively add the template
-        let events = ComponentEvents::new(model);
-        let id = self.load_component(&template.root, &events, size, context)?;
+        let event_sink = EventSink::new();
+        let id = self.load_component(&template.root, event_sink.clone(), size, context)?;
 
         // Add the component tree we just added to the children of the component we had found
         self.get_mut(parent_id).unwrap().children.push(id);
 
-        // Store an id-model combination so we can update the tree if the model changes
-        self.models.insert(id, events.clone());
+        Ok(Tree { root: id, event_sink, })
+    }
 
-        Ok(events)
+    pub fn update_model(
+        &mut self, tree: &Tree, model: &ScriptTable, context: &Context,
+    ) -> Result<(), Error> {
+        // Reloading everything isn't very efficient, it should be changed to
+        // detect which model values components have been bound to and only update the
+        // relevant ones
+        context.runtime.set_model(&model)?;
+
+        Self::update_component_recursive(
+            &mut self.components, tree.root, &self.tree_roots, &self.style, context
+        )?;
+
+        Ok(())
+    }
+
+    pub(crate) fn mark_all_rendered(&mut self) {
+        for (_key, value) in &mut self.components {
+            value.needs_render_update = false;
+        }
     }
 
     fn load_component(
         &mut self,
-        template: &ComponentTemplate, events: &ComponentEvents,
+        template: &ComponentTemplate,
+        event_sink: EventSink,
         parent_size: Vector2<f32>,
-        context: &UiContext,
+        context: &Context,
     ) -> Result<ComponentId, Error> {
         // Load the component itself from the template
         let mut component = Component::from_template(
-            template, events, &self.style, parent_size, context,
+            template, event_sink.clone(), &self.style, parent_size, context,
         )?;
         let size = component.attributes.size;
         let id = self.next_id;
@@ -163,7 +142,7 @@ impl Ui {
 
         // Also load all the children
         for child in &template.children {
-            let id = self.load_component(child, events, size, context)?;
+            let id = self.load_component(child, event_sink.clone(), size, context)?;
             component.children.push(id);
         }
 
@@ -173,13 +152,48 @@ impl Ui {
         Ok(id)
     }
 
-    pub(crate) fn mark_all_rendered(&mut self) {
-        for (_key, value) in &mut self.components {
-            value.needs_render_update = false;
+    fn update_component_recursive(
+        components: &mut MetroHashMap<ComponentId, Component>, key: ComponentId,
+        tree_roots: &MetroHashSet<ComponentId>,
+        style: &Style, context: &Context,
+    ) -> Result<(), Error> {
+        for child_i in 0..components.get(&key).unwrap().children.len() {
+            let child_id = components.get(&key).unwrap().children[child_i];
+
+            // Do not go deeper if we're at an inserted template's root
+            if !tree_roots.contains(&child_id) {
+                Self::update_component_recursive(
+                    components, child_id, tree_roots, style, context
+                )?;
+            }
         }
+
+        components.get_mut(&key).unwrap().update_attributes(style, context)?;
+
+        Ok(())
     }
 }
 
-/// An id pointing to a component in a UI.
+/// The context UIs should be processed and rendered in, this defines the overall UI system's
+/// configuration, such as what component classes are available and how the scripting runtime is
+/// configured.
+pub struct Context {
+    pub classes: ComponentClasses,
+    pub runtime: ScriptRuntime,
+}
+
+/// An ID pointing to a component in a UI.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ComponentId(pub i32);
+
+/// An handle a tree of components in the UI.
+pub struct Tree {
+    root: ComponentId,
+    event_sink: EventSink,
+}
+
+impl Tree {
+    pub fn event_sink(&self) -> &EventSink {
+        &self.event_sink
+    }
+}

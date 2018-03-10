@@ -23,7 +23,9 @@ impl UiInput {
     }
 
     /// Handles cursor movement.
-    pub fn handle_cursor_moved(&mut self, position: Point2<f32>, ui: &mut Ui) {
+    pub fn handle_cursor_moved(
+        &mut self, position: Point2<f32>, ui: &mut Ui,
+    ) {
         let new_hovering = find_at_position(
             position, ui, ui.root_id(), Point2::new(0.0, 0.0), Vector2::new(0.0, 0.0),
         );
@@ -33,7 +35,7 @@ impl UiInput {
             if self.hovering_over.map(|v| v != new_hovering).unwrap_or(true) {
                 let component = ui.get_mut(new_hovering).unwrap();
                 component.needs_render_update |=
-                    component.class.hover_start_event(&component.events);
+                    component.class.hover_start_event(&mut component.event_sink);
             }
         }
 
@@ -42,7 +44,7 @@ impl UiInput {
             if new_hovering.map(|v| v != hovering_over).unwrap_or(true) {
                 let component = ui.get_mut(hovering_over).unwrap();
                 component.needs_render_update |=
-                    component.class.hover_end_event(&component.events);
+                    component.class.hover_end_event(&mut component.event_sink);
             }
         }
 
@@ -51,19 +53,19 @@ impl UiInput {
 
     /// Handles the start of a cursor or touch drag.
     pub fn handle_drag_started(
-        &mut self, _position: Point2<f32>, _ui: &mut Ui
+        &mut self, _position: Point2<f32>, _ui: &mut Ui,
     ) {
     }
 
     /// Handles the end of a cursor or touch drag.
     pub fn handle_drag_ended(
-        &mut self, position: Point2<f32>, ui: &mut Ui
+        &mut self, position: Point2<f32>, ui: &mut Ui,
     ) {
         if let Some(component_id) = find_at_position(
             position, ui, ui.root_id(), Point2::new(0.0, 0.0), Vector2::new(0.0, 0.0),
         ) {
             let component = ui.get_mut(component_id).unwrap();
-            component.class.pressed_event(&component.events);
+            component.class.pressed_event(&mut component.event_sink);
         }
     }
 }

@@ -3,38 +3,13 @@ use nalgebra::{Point2, Vector2};
 use class::{ComponentClass};
 use scripting::{ScriptRuntime};
 use template::{ComponentTemplate, Style, TemplateValue, Attributes};
-use {ComponentId, ComponentEvents, Error, UiContext};
-
-/// Core attributes all components share.
-pub struct ComponentAttributes {
-    pub position: Point2<f32>,
-    pub size: Vector2<f32>,
-    pub docking: (Docking, Docking),
-}
-
-impl ComponentAttributes {
-    pub fn load(
-        parent_size: Vector2<f32>, attributes: &Attributes, runtime: &ScriptRuntime
-    ) -> Result<Self, Error> {
-        Ok(ComponentAttributes {
-            position: attributes.attribute(
-                "position", |v| v.as_point(parent_size, runtime), Point2::new(0.0, 0.0)
-            )?,
-            size: attributes.attribute(
-                "size", |v| v.as_vector(parent_size, runtime), parent_size
-            )?,
-            docking: attributes.attribute(
-                "docking", |v| Docking::from_value(v, runtime), (Docking::Start, Docking::Start)
-            )?,
-        })
-    }
-}
+use {ComponentId, Error, Context, EventSink};
 
 /// A component generated from a template, active in a UI.
 pub struct Component {
     pub(crate) class: Box<ComponentClass>,
     pub(crate) style_class: Option<String>,
-    pub(crate) events: ComponentEvents,
+    pub(crate) event_sink: EventSink,
     pub(crate) needs_render_update: bool,
 
     pub(crate) children: Vec<ComponentId>,
@@ -45,10 +20,11 @@ pub struct Component {
 
 impl Component {
     pub(crate) fn from_template(
-        template: &ComponentTemplate, events: &ComponentEvents,
+        template: &ComponentTemplate,
+        event_sink: EventSink,
         style: &Style,
         parent_size: Vector2<f32>,
-        context: &UiContext,
+        context: &Context,
     ) -> Result<Self, Error> {
         let runtime = &context.runtime;
         let attributes = Attributes::resolve(template, style, context)?;
@@ -59,7 +35,7 @@ impl Component {
         Ok(Component {
             class,
             style_class: template.style_class.clone(),
-            events: events.clone(),
+            event_sink,
             needs_render_update: true,
 
             children: Vec::new(),
@@ -71,7 +47,7 @@ impl Component {
     }
 
     pub(crate) fn update_attributes(
-        &mut self, style: &Style, context: &UiContext
+        &mut self, style: &Style, context: &Context
     ) -> Result<(), Error> {
         let runtime = &context.runtime;
         let attributes = Attributes::resolve(&self.template, style, context)?;
@@ -100,6 +76,31 @@ impl Component {
         };
 
         Point2::new(x, y)
+    }
+}
+
+/// Core attributes all components share.
+pub struct ComponentAttributes {
+    pub position: Point2<f32>,
+    pub size: Vector2<f32>,
+    pub docking: (Docking, Docking),
+}
+
+impl ComponentAttributes {
+    pub fn load(
+        parent_size: Vector2<f32>, attributes: &Attributes, runtime: &ScriptRuntime
+    ) -> Result<Self, Error> {
+        Ok(ComponentAttributes {
+            position: attributes.attribute(
+                "position", |v| v.as_point(parent_size, runtime), Point2::new(0.0, 0.0)
+            )?,
+            size: attributes.attribute(
+                "size", |v| v.as_vector(parent_size, runtime), parent_size
+            )?,
+            docking: attributes.attribute(
+                "docking", |v| Docking::from_value(v, runtime), (Docking::Start, Docking::Start)
+            )?,
+        })
     }
 }
 

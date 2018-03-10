@@ -3,7 +3,7 @@ use std::collections::{HashMap};
 use render::{Renderer};
 use scripting::{ScriptRuntime};
 use template::{ComponentTemplate, Attributes};
-use {ComponentEvents, ComponentAttributes, Error, ComponentId};
+use {EventSink, ComponentAttributes, Error, ComponentId};
 
 /// The class of a component, defines specific appearance and functionality in response to user
 /// input.
@@ -22,14 +22,14 @@ pub trait ComponentClass {
 
     /// Called when the cursor starts hovering over this component.
     /// Returns if the component should be marked for render update.
-    fn hover_start_event(&mut self, _sender: &ComponentEvents) -> bool { false }
+    fn hover_start_event(&mut self, _event_sink: &mut EventSink) -> bool { false }
 
     /// Called when the cursor stops hovering over this component.
     /// Returns if the component should be marked for render update.
-    fn hover_end_event(&mut self, _sender: &ComponentEvents) -> bool { false }
+    fn hover_end_event(&mut self, _event_sink: &mut EventSink) -> bool { false }
 
     /// Called when the component is clicked or tapped.
-    fn pressed_event(&mut self, _sender: &ComponentEvents) {}
+    fn pressed_event(&mut self, _event_sink: &mut EventSink) {}
 }
 
 

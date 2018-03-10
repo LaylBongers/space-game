@@ -36,7 +36,7 @@ use markedly::class::{ComponentClasses};
 use markedly::input::{UiInput};
 use markedly::scripting::{ScriptRuntime};
 use markedly::template::{Template, Style};
-use markedly::{Ui, ComponentEvents, UiContext};
+use markedly::{Ui, Context as UiContext, Tree};
 use markedly_ggez::{GgezRenderer, GgezComponentCache};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
@@ -94,7 +94,7 @@ struct MainState {
     ui_input: UiInput,
     ui_font: Font,
     ui_cache: GgezComponentCache,
-    root_events: ComponentEvents,
+    ui_root: Tree,
 
     // Models
     camera: Camera,
@@ -134,10 +134,10 @@ impl MainState {
         // Set up the UI itself
         let style = Style::from_reader(ctx.filesystem.open("/markedly/style.mark")?)?;
         let root_template = Template::from_reader(ctx.filesystem.open("/markedly/root.mark")?)?;
-        let (mut ui, root_events) = Ui::new(
-            &root_template, style,
+        let (mut ui, ui_root) = Ui::new(
+            &root_template, None, style,
             Vector2::new(screen_size.x as f32, screen_size.y as f32),
-            &ui_context
+            &ui_context,
         ).map_err(|e| format!("{:#?}", e))?;
 
         // Set up all the objects we can place in ships
@@ -166,7 +166,7 @@ impl MainState {
             ui_input,
             ui_font,
             ui_cache: GgezComponentCache::new(),
-            root_events,
+            ui_root,
 
             camera,
             object_classes,
@@ -187,14 +187,11 @@ impl EventHandler for MainState {
         const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            while let Some(_) = self.root_events.next() {}
+            while let Some(_) = self.ui_root.event_sink().next() {}
 
             self.build_input.update(&mut self.ui, &self.ui_context)?;
             self.save_input.update(&self.log, ctx, &mut self.ship)?;
             self.ship.update(&self.log, DELTA, &self.object_classes);
-
-            self.ui.update_ui_from_models(&self.ui_context)
-                .map_err(|e| format!("{:#?}", e))?;
         }
 
         Ok(())
@@ -254,7 +251,8 @@ impl EventHandler for MainState {
     ) {
         self.ui_input.handle_drag_ended(Point2::new(x as f32, y as f32), &mut self.ui);
 
-        self.build_input.handle_mouse_up(button, &mut self.ship);
+        self.build_input.handle_mouse_up(button, &mut self.ship, &mut self.ui, &self.ui_context)
+            .unwrap();
         self.camera_input.handle_mouse_up(button);
     }
 
