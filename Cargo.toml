@@ -1,7 +1,7 @@
 [workspace]
 members = [
-    "markedly",
-    "markedly-ggez",
+    "markedly/markedly",
+    "markedly/markedly-ggez",
     "space-game",
 ]
 
