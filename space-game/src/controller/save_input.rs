@@ -3,7 +3,7 @@ use slog::{Logger};
 //use serde::{Deserialize, Serialize};
 //use rmp_serde::{Deserializer, Serializer};
 
-use model::ship::{Ship};
+use game::state::ship::{Ship};
 
 pub struct SaveInputController {
 }

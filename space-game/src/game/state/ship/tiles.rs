@@ -1,5 +1,5 @@
 use nalgebra::{Vector2, Point2};
-use model::{ObjectClassId};
+use game::{ObjectClassId};
 
 #[derive(Deserialize, Serialize)]
 pub struct Tiles {

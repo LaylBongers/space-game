@@ -3,8 +3,10 @@ use ggez::graphics::spritebatch::{SpriteBatch};
 use ggez::graphics::{self, MeshBuilder, DrawParam, Rect};
 use nalgebra::{Point2};
 
-use model::{Camera, ObjectClasses};
-use model::ship::{Ship};
+use game::{
+    ObjectClasses,
+    state::{Camera, ship::{Ship}},
+};
 
 pub struct Bounds {
     pub start: Point2<i32>,

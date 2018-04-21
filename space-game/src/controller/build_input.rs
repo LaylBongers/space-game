@@ -3,8 +3,10 @@ use ggez::audio::{Source};
 use ggez::event::{MouseButton};
 use nalgebra::{Point2};
 
-use model::{Camera, ObjectClassId};
-use model::ship::{Ship, Task};
+use game::{
+    ObjectClassId,
+    state::{Camera, ship::{Ship, Task}}
+};
 
 pub struct BuildInputController {
     last_tile_position: Option<Point2<i32>>,

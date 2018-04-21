@@ -1,7 +1,7 @@
 use ggez::event::{MouseButton};
 use nalgebra::{Vector2};
 
-use model::{Camera};
+use game::state::{Camera};
 
 pub struct CameraInputController {
     move_down: bool,

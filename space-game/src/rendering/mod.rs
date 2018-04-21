@@ -13,8 +13,10 @@ use ggez::{
 use nalgebra::{Point2, Vector2};
 
 use controller::{self, BuildInputController, BuildState, BuildChoice};
-use model::ship::{Ship};
-use model::{Camera, ObjectClasses};
+use game::{
+    ObjectClasses,
+    state::{Camera, ship::{Ship}},
+};
 use rendering::ship::{Bounds};
 
 pub struct Renderer {

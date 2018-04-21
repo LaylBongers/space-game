@@ -3,8 +3,10 @@ use nalgebra::{Point2};
 use slog::{Logger};
 use pathfinding;
 
-use model::{ObjectClasses};
-use model::ship::{TaskId, TaskQueue, Object, Tiles, Tile, TilesError};
+use game::{
+    ObjectClasses,
+    state::ship::{TaskId, TaskQueue, Object, Tiles, Tile, TilesError},
+};
 
 #[derive(Deserialize, Serialize)]
 pub struct Unit {

@@ -12,7 +12,7 @@ extern crate serde_derive;
 extern crate rmp_serde;
 
 mod controller;
-pub mod model;
+mod game;
 mod rendering;
 
 use std::env;
@@ -30,7 +30,10 @@ use slog::{Logger};
 use sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
-use model::{Camera, ObjectClasses, GenericObjectClass, ship::{Ship}};
+use game::{
+    ObjectClasses, GenericObjectClass,
+    state::{Camera, ship::{Ship}},
+};
 use rendering::{Renderer};
 
 pub fn main() {
