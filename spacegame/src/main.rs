@@ -24,11 +24,11 @@ use nalgebra::{Vector2, Point2};
 use slog::{Logger};
 use sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}};
 
-use input::{BuildInputController, CameraInputController};
 use spacegame_game::{
     ObjectClasses, GenericObjectClass,
-    state::{Camera, ship::{Ship}},
+    state::{BuildInputState, Camera, ship::{Ship}},
 };
+use input::{InputHandler};
 use rendering::{Renderer};
 
 pub fn main() {
@@ -76,25 +76,24 @@ pub fn main() {
 struct MainState {
     log: Logger,
     renderer: Renderer,
+    input_handler: InputHandler,
 
-    // Models
-    camera: Camera,
+    // Game Data
     object_classes: ObjectClasses,
-    ship: Ship,
 
-    // Controllers
-    build_input: BuildInputController,
-    camera_input: CameraInputController,
+    // Game State
+    build_input_state: BuildInputState,
+    camera: Camera,
+    ship: Ship,
 }
 
 impl MainState {
     fn new(ctx: &mut Context, log: Logger) -> GameResult<MainState> {
         info!(log, "Loading game");
 
-        // Set up the game world camera
-        let screen_size = Vector2::new(1280, 720);
-        let mut camera = Camera::new(64, screen_size);
-        camera.set_position(Point2::new(50.0, 50.0));
+        // Initialize game subsystems
+        let renderer = Renderer::new(ctx)?;
+        let input_handler = InputHandler::new(ctx)?;
 
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();
@@ -105,24 +104,23 @@ impl MainState {
             uvs: Rect::new(0.5, 0.0, 0.5, 0.5), walkable: true,
         });
 
+        // Set up the game world camera
+        let screen_size = Vector2::new(1280, 720);
+        let mut camera = Camera::new(64, screen_size);
+        camera.set_position(Point2::new(50.0, 50.0));
+
         // Create the starter ship
         let ship = Ship::starter(&log);
-
-        let build_input = BuildInputController::new(ctx)?;
-        let camera_input = CameraInputController::new();
-
-        let renderer = Renderer::new(ctx)?;
 
         Ok(MainState {
             log,
             renderer,
+            input_handler,
 
+            build_input_state: BuildInputState::new(),
             camera,
             object_classes,
             ship,
-
-            build_input,
-            camera_input,
         })
     }
 }
@@ -133,7 +131,7 @@ impl EventHandler for MainState {
         const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            self.build_input.update()?;
+            self.input_handler.update()?;
             self.ship.update(&self.log, DELTA, &self.object_classes);
         }
 
@@ -142,39 +140,43 @@ impl EventHandler for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         self.renderer.render_frame(
-            ctx, &self.build_input, &self.object_classes, &mut self.camera, &self.ship
+            ctx, &self.build_input_state, &self.object_classes, &mut self.camera, &self.ship
         )
     }
 
     fn mouse_button_down_event(
         &mut self, _ctx: &mut Context,
-        button: MouseButton, x: i32, y: i32
+        button: MouseButton, _x: i32, _y: i32
     ) {
-        self.build_input.handle_mouse_down(button);
-        self.camera_input.handle_mouse_down(button);
+        self.input_handler.handle_button_down(button, &mut self.build_input_state);
     }
 
     fn mouse_button_up_event(
         &mut self, _ctx: &mut Context,
-        button: MouseButton, x: i32, y: i32
+        button: MouseButton, _x: i32, _y: i32
     ) {
-        self.build_input.handle_mouse_up(button, &mut self.ship).unwrap();
-        self.camera_input.handle_mouse_up(button);
+        self.input_handler.handle_button_up(button, &mut self.build_input_state, &mut self.ship);
     }
 
     fn mouse_motion_event(
         &mut self, _ctx: &mut Context,
         _state: MouseState, x: i32, y: i32, xrel: i32, yrel: i32
     ) {
-        let position = Point2::new(x, y);
-        let rel_position = Vector2::new(xrel, yrel);
-
-        self.build_input.handle_mouse_move(position, &mut self.camera, &self.ship);
-        self.camera_input.handle_mouse_move(rel_position, &mut self.camera);
+        self.input_handler.handle_motion(
+            x, y, xrel, yrel, &mut self.build_input_state, &mut self.camera, &mut self.ship
+        );
     }
 
     fn quit_event(&mut self, _ctx: &mut Context) -> bool {
         info!(self.log, "quit_event() callback called, quitting");
         false
     }
+}
+
+pub fn normalize_area(start: Point2<i32>, end: Point2<i32>) -> (Point2<i32>, Point2<i32>) {
+    let min_x = start.x.min(end.x);
+    let min_y = start.y.min(end.y);
+    let max_x = start.x.max(end.x);
+    let max_y = start.y.max(end.y);
+    (Point2::new(min_x, min_y), Point2::new(max_x + 1, max_y + 1))
 }

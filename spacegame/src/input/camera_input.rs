@@ -3,13 +3,13 @@ use nalgebra::{Vector2};
 
 use spacegame_game::state::{Camera};
 
-pub struct CameraInputController {
+pub struct CameraInputHandler {
     move_down: bool,
 }
 
-impl CameraInputController {
+impl CameraInputHandler {
     pub fn new() -> Self {
-        CameraInputController {
+        CameraInputHandler {
             move_down: false,
         }
     }

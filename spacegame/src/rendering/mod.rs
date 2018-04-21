@@ -12,10 +12,10 @@ use ggez::{
 };
 use nalgebra::{Point2, Vector2};
 
-use input::{self, BuildInputController, BuildState, BuildChoice};
+use {normalize_area};
 use spacegame_game::{
     ObjectClasses,
-    state::{Camera, ship::{Ship}},
+    state::{BuildInputState, BuildState, BuildChoice, Camera, ship::{Ship}},
 };
 use rendering::ship::{Bounds};
 
@@ -37,7 +37,7 @@ impl Renderer {
 
     pub fn render_frame(
         &mut self, ctx: &mut Context,
-        build_input: &BuildInputController,
+        build_input_state: &BuildInputState,
         object_classes: &ObjectClasses,
         camera: &mut Camera, ship: &Ship,
     ) -> GameResult<()> {
@@ -56,7 +56,7 @@ impl Renderer {
             ctx, ship, camera, object_classes, &mut self.tiles_batch
         )?;
         draw_build_graphics(
-            ctx, build_input, ship, camera, object_classes, &mut self.tiles_batch
+            ctx, build_input_state, ship, camera, object_classes, &mut self.tiles_batch
         )?;
 
         // Swith the projection back to pixels rendering for UI
@@ -75,16 +75,16 @@ impl Renderer {
 }
 
 pub fn draw_build_graphics(
-    ctx: &mut Context, build_input: &BuildInputController,
+    ctx: &mut Context, build_input_state: &BuildInputState,
     ship: &Ship, camera: &Camera, object_classes: &ObjectClasses, tiles: &mut SpriteBatch,
 ) -> GameResult<()> {
     // If clicking won't do anything, we don't want to draw an indicator
-    if *build_input.build_choice() == BuildChoice::None {
+    if build_input_state.choice == BuildChoice::None {
         return Ok(())
     }
 
     draw_grid(ctx, ship, camera)?;
-    draw_build_placeholder(ctx, build_input, object_classes, tiles)?;
+    draw_build_placeholder(ctx, build_input_state, object_classes, tiles)?;
 
     Ok(())
 }
@@ -123,11 +123,11 @@ fn draw_grid(
 }
 
 fn draw_build_placeholder(
-    ctx: &mut Context, build_input: &BuildInputController, object_classes: &ObjectClasses,
+    ctx: &mut Context, build_input_state: &BuildInputState, object_classes: &ObjectClasses,
     tiles: &mut SpriteBatch,
 ) -> GameResult<()> {
     // Check what we need to draw
-    let uvs = match *build_input.build_choice() {
+    let uvs = match build_input_state.choice {
         BuildChoice::Floor =>
             Some(Rect::new(0.0, 0.5, 0.5, 0.5)),
         BuildChoice::Object(id) =>
@@ -136,12 +136,12 @@ fn draw_build_placeholder(
     };
 
     // Check where we need to draw it
-    let (start, end) = match *build_input.build_state() {
+    let (start, end) = match build_input_state.state {
         BuildState::Hovering { position: Some(hovered_tile) } => {
             (hovered_tile, hovered_tile + Vector2::new(1, 1))
         },
         BuildState::Dragging { start, end } => {
-            input::build_area(start, end)
+            normalize_area(start, end)
         },
         _ => (Point2::new(0, 0), Point2::new(0, 0)),
     };

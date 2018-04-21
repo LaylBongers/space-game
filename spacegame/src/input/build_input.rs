@@ -4,42 +4,30 @@ use ggez::event::{MouseButton};
 use nalgebra::{Point2};
 
 use spacegame_game::{
-    ObjectClassId,
-    state::{Camera, ship::{Ship, Task}}
+    state::{BuildInputState, BuildState, BuildChoice, Camera, ship::{Ship, Task}}
 };
+use {normalize_area};
 
-pub struct BuildInputController {
+pub struct BuildInputHandler {
     last_tile_position: Option<Point2<i32>>,
-    build_state: BuildState,
-    build_choice: BuildChoice,
 
     build_sound_queued: bool,
     place_sound: Source,
 }
 
-impl BuildInputController {
+impl BuildInputHandler {
     pub fn new(
         ctx: &mut Context,
     ) -> GameResult<Self> {
         let mut place_sound = Source::new(ctx, "/object_placed.ogg")?;
         place_sound.set_volume(0.2);
 
-        Ok(BuildInputController {
+        Ok(BuildInputHandler {
             last_tile_position: None,
-            build_state: BuildState::Hovering { position: None },
-            build_choice: BuildChoice::None,
 
             build_sound_queued: false,
             place_sound,
         })
-    }
-
-    pub fn build_state(&self) -> &BuildState {
-        &self.build_state
-    }
-
-    pub fn build_choice(&self) -> &BuildChoice {
-        &self.build_choice
     }
 
     pub fn update(
@@ -53,14 +41,14 @@ impl BuildInputController {
         Ok(())
     }
 
-    pub fn handle_mouse_down(&mut self, button: MouseButton) {
-        if button != MouseButton::Left || self.build_choice == BuildChoice::None {
+    pub fn handle_mouse_down(&mut self, button: MouseButton, state: &mut BuildInputState) {
+        if button != MouseButton::Left || state.choice == BuildChoice::None {
             return
         }
 
         // If we were currently hovering, switch over to dragging
-        if let BuildState::Hovering { position: Some(hovered_tile) } = self.build_state {
-            self.build_state = BuildState::Dragging {
+        if let BuildState::Hovering { position: Some(hovered_tile) } = state.state {
+            state.state = BuildState::Dragging {
                 start: hovered_tile,
                 end: hovered_tile,
             }
@@ -68,32 +56,32 @@ impl BuildInputController {
     }
 
     pub fn handle_mouse_up(
-        &mut self, button: MouseButton, ship: &mut Ship
+        &mut self, button: MouseButton, state: &mut BuildInputState, ship: &mut Ship
     ) -> GameResult<()> {
-        if self.build_choice == BuildChoice::None {
+        if state.choice == BuildChoice::None {
             return Ok(())
         }
 
         match button {
-            MouseButton::Left => self.handle_build_up(ship),
-            MouseButton::Right => self.handle_cancel_up()?,
+            MouseButton::Left => self.handle_build_up(state, ship),
+            MouseButton::Right => self.handle_cancel_up(state)?,
             _ => {},
         }
 
         Ok(())
     }
 
-    fn handle_build_up(&mut self, ship: &mut Ship) {
+    fn handle_build_up(&mut self, state: &mut BuildInputState, ship: &mut Ship) {
         // If we were currently dragging, switch back to hovering
-        if let BuildState::Dragging { start, end } = self.build_state {
+        if let BuildState::Dragging { start, end } = state.state {
             let mut world_changed = false;
 
             // This also means we finished a build, so let's apply it
-            let (start, end) = build_area(start, end);
+            let (start, end) = normalize_area(start, end);
             for y in start.y..end.y {
                 for x in start.x..end.x {
                     let tile_pos = Point2::new(x, y);
-                    match self.build_choice {
+                    match state.choice {
                         BuildChoice::None => unreachable!(),
                         BuildChoice::Floor => {
                             let tile = ship.tiles.get_mut(tile_pos).unwrap();
@@ -152,7 +140,7 @@ impl BuildInputController {
             }
 
             // Actually switch back to hovering now
-            self.build_state = BuildState::Hovering { position: self.last_tile_position };
+            state.state = BuildState::Hovering { position: self.last_tile_position };
 
             if world_changed {
                 ship.tiles.mark_changed();
@@ -160,16 +148,16 @@ impl BuildInputController {
         }
     }
 
-    fn handle_cancel_up(&mut self) -> GameResult<()> {
-        self.build_state = BuildState::Hovering { position: self.last_tile_position };
-        self.build_choice = BuildChoice::None;
+    fn handle_cancel_up(&mut self, state: &mut BuildInputState) -> GameResult<()> {
+        state.state = BuildState::Hovering { position: self.last_tile_position };
+        state.choice = BuildChoice::None;
 
         Ok(())
     }
 
     pub fn handle_mouse_move(
         &mut self,
-        mouse_position: Point2<i32>,
+        mouse_position: Point2<i32>, state: &mut BuildInputState,
         camera: &mut Camera, ship: &Ship,
     ) {
         // Get the position of the cursor in-world
@@ -185,7 +173,7 @@ impl BuildInputController {
         {
             self.last_tile_position = Some(tile_position);
 
-            match self.build_state {
+            match state.state {
                 BuildState::Hovering { ref mut position } => *position = Some(tile_position),
                 BuildState::Dragging { start: _, ref mut end } => *end = tile_position,
             }
@@ -194,31 +182,9 @@ impl BuildInputController {
 
             // If this is an invalid tile, the dragging won't be interested but the hover should be
             // set to None so it won't show up previewed
-            if let &mut BuildState::Hovering { ref mut position } = &mut self.build_state {
+            if let &mut BuildState::Hovering { ref mut position } = &mut state.state {
                 *position = None;
             }
         }
     }
-}
-
-pub enum BuildState {
-    Hovering { position: Option<Point2<i32>> },
-    Dragging { start: Point2<i32>, end: Point2<i32> },
-}
-
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub enum BuildChoice {
-    None,
-    Floor,
-    Object(ObjectClassId),
-    Destroy,
-    DestroyAll,
-}
-
-pub fn build_area(start: Point2<i32>, end: Point2<i32>) -> (Point2<i32>, Point2<i32>) {
-    let min_x = start.x.min(end.x);
-    let min_y = start.y.min(end.y);
-    let max_x = start.x.max(end.x);
-    let max_y = start.y.max(end.y);
-    (Point2::new(min_x, min_y), Point2::new(max_x + 1, max_y + 1))
 }
