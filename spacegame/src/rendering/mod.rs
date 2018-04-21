@@ -12,8 +12,8 @@ use ggez::{
 };
 use nalgebra::{Point2, Vector2};
 
-use controller::{self, BuildInputController, BuildState, BuildChoice};
-use game::{
+use input::{self, BuildInputController, BuildState, BuildChoice};
+use spacegame_game::{
     ObjectClasses,
     state::{Camera, ship::{Ship}},
 };
@@ -141,7 +141,7 @@ fn draw_build_placeholder(
             (hovered_tile, hovered_tile + Vector2::new(1, 1))
         },
         BuildState::Dragging { start, end } => {
-            controller::build_area(start, end)
+            input::build_area(start, end)
         },
         _ => (Point2::new(0, 0), Point2::new(0, 0)),
     };

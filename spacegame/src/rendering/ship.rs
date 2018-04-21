@@ -3,7 +3,7 @@ use ggez::graphics::spritebatch::{SpriteBatch};
 use ggez::graphics::{self, MeshBuilder, DrawParam, Rect};
 use nalgebra::{Point2};
 
-use game::{
+use spacegame_game::{
     ObjectClasses,
     state::{Camera, ship::{Ship}},
 };

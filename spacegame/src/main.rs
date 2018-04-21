@@ -1,18 +1,13 @@
 extern crate ggez;
-extern crate alga;
 extern crate nalgebra;
-#[macro_use]
-extern crate slog;
+#[macro_use] extern crate slog;
 extern crate sloggers;
-extern crate metrohash;
-extern crate pathfinding;
 extern crate serde;
-#[macro_use]
-extern crate serde_derive;
 extern crate rmp_serde;
+extern crate spacegame_game;
+extern crate spacegame_ui;
 
-mod controller;
-mod game;
+mod input;
 mod rendering;
 
 use std::env;
@@ -29,8 +24,8 @@ use nalgebra::{Vector2, Point2};
 use slog::{Logger};
 use sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}};
 
-use controller::{BuildInputController, CameraInputController, SaveInputController};
-use game::{
+use input::{BuildInputController, CameraInputController};
+use spacegame_game::{
     ObjectClasses, GenericObjectClass,
     state::{Camera, ship::{Ship}},
 };
@@ -53,7 +48,7 @@ pub fn main() {
         title: "Space Game".into(),
         .. Default::default()
     };
-    let ctx = &mut Context::load_from_conf("space-game", "carbidegames", c).unwrap();
+    let ctx = &mut Context::load_from_conf("spacegame", "carbidegames", c).unwrap();
 
     // We add the CARGO_MANIFEST_DIR/resources do the filesystems paths so we we look in the cargo
     // project for files.
@@ -90,7 +85,6 @@ struct MainState {
     // Controllers
     build_input: BuildInputController,
     camera_input: CameraInputController,
-    save_input: SaveInputController,
 }
 
 impl MainState {
@@ -116,7 +110,6 @@ impl MainState {
 
         let build_input = BuildInputController::new(ctx)?;
         let camera_input = CameraInputController::new();
-        let save_input = SaveInputController::new(ctx)?;
 
         let renderer = Renderer::new(ctx)?;
 
@@ -130,7 +123,6 @@ impl MainState {
 
             build_input,
             camera_input,
-            save_input,
         })
     }
 }
@@ -142,7 +134,6 @@ impl EventHandler for MainState {
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
             self.build_input.update()?;
-            self.save_input.update(&self.log, ctx, &mut self.ship)?;
             self.ship.update(&self.log, DELTA, &self.object_classes);
         }
 

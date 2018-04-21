@@ -3,7 +3,7 @@ use ggez::audio::{Source};
 use ggez::event::{MouseButton};
 use nalgebra::{Point2};
 
-use game::{
+use spacegame_game::{
     ObjectClassId,
     state::{Camera, ship::{Ship, Task}}
 };

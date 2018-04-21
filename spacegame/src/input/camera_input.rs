@@ -1,7 +1,7 @@
 use ggez::event::{MouseButton};
 use nalgebra::{Vector2};
 
-use game::state::{Camera};
+use spacegame_game::state::{Camera};
 
 pub struct CameraInputController {
     move_down: bool,

@@ -3,7 +3,7 @@ use nalgebra::{Point2};
 use metrohash::{MetroHashMap};
 use slog::{Logger};
 
-use game::{ObjectClassId};
+use {ObjectClassId};
 
 #[derive(Deserialize, Serialize)]
 pub struct TaskQueue {

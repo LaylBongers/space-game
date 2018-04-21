@@ -1,10 +1,8 @@
 use nalgebra::{Point2, Vector2};
 use slog::{Logger};
 
-use game::{
-    ObjectClasses,
-    state::ship::{Tiles, Unit, TaskQueue},
-};
+use {ObjectClasses};
+use state::ship::{Tiles, Unit, TaskQueue};
 
 #[derive(Deserialize, Serialize)]
 pub struct Ship {
