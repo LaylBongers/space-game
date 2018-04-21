@@ -2,21 +2,23 @@ mod ship;
 
 pub use self::ship::{draw_ship};
 
-use ggez::{
-    Context, GameResult,
-    graphics::{
-        self, Font, Text, Image, MeshBuilder, Rect, DrawParam,
-        spritebatch::{SpriteBatch},
+use {
+    ggez::{
+        Context, GameResult,
+        graphics::{
+            self, Font, Text, Image, MeshBuilder, Rect, DrawParam,
+            spritebatch::{SpriteBatch},
+        },
+        timer,
     },
-    timer,
-};
-use nalgebra::{Point2, Vector2};
+    nalgebra::{Point2, Vector2},
 
-use spacegame_game::{
-    ObjectClasses,
-    state::{normalize_area, BuildInputState, BuildState, BuildChoice, Camera, ship::{Ship}},
+    spacegame_game::{
+        ObjectClasses,
+        state::{normalize_area, GameState, BuildInputState, BuildState, BuildChoice, Camera, ship::{Ship}},
+    },
+    rendering::ship::{Bounds},
 };
-use rendering::ship::{Bounds};
 
 pub struct Renderer {
     fps_font: Font,
@@ -36,26 +38,25 @@ impl Renderer {
 
     pub fn render_frame(
         &mut self, ctx: &mut Context,
-        build_input_state: &BuildInputState,
         object_classes: &ObjectClasses,
-        camera: &mut Camera, ship: &Ship,
+        game_state: &mut GameState,
     ) -> GameResult<()> {
         graphics::set_background_color(ctx, (10, 10, 15).into());
         graphics::clear(ctx);
 
         // Switch the projection to world rendering
         let size = graphics::get_size(ctx);
-        camera.set_screen_size(Vector2::new(size.0 as i32, size.1 as i32));
+        game_state.camera.set_screen_size(Vector2::new(size.0 as i32, size.1 as i32));
         let pixels_projection = graphics::get_projection(ctx);
-        graphics::set_projection(ctx, camera.projection());
+        graphics::set_projection(ctx, game_state.camera.projection());
         graphics::apply_transformations(ctx)?;
 
         // Draw everything in the world
         draw_ship(
-            ctx, ship, camera, object_classes, &mut self.tiles_batch
+            ctx, object_classes, game_state, &mut self.tiles_batch
         )?;
         draw_build_graphics(
-            ctx, build_input_state, ship, camera, object_classes, &mut self.tiles_batch
+            ctx, object_classes, game_state, &mut self.tiles_batch
         )?;
 
         // Swith the projection back to pixels rendering for UI
@@ -74,16 +75,16 @@ impl Renderer {
 }
 
 pub fn draw_build_graphics(
-    ctx: &mut Context, build_input_state: &BuildInputState,
-    ship: &Ship, camera: &Camera, object_classes: &ObjectClasses, tiles: &mut SpriteBatch,
+    ctx: &mut Context,
+    object_classes: &ObjectClasses, game_state: &GameState, tiles: &mut SpriteBatch,
 ) -> GameResult<()> {
     // If clicking won't do anything, we don't want to draw an indicator
-    if build_input_state.choice == BuildChoice::None {
+    if game_state.build_input_state.choice == BuildChoice::None {
         return Ok(())
     }
 
-    draw_grid(ctx, ship, camera)?;
-    draw_build_placeholder(ctx, build_input_state, object_classes, tiles)?;
+    draw_grid(ctx, &game_state.ship, &game_state.camera)?;
+    draw_build_placeholder(ctx, &game_state.build_input_state, object_classes, tiles)?;
 
     Ok(())
 }

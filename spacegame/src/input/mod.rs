@@ -1,18 +1,20 @@
 mod build_input;
 mod camera_input;
 
-use ggez::{
-    Context, GameResult,
-    event::{MouseButton},
-};
-use nalgebra::{Point2, Vector2};
+use {
+    ggez::{
+        Context, GameResult,
+        event::{MouseButton},
+    },
+    nalgebra::{Point2, Vector2},
 
-use spacegame_game::{
-    state::{BuildInputState, Camera, ship::{Ship}},
-};
-use self::{
-    build_input::{BuildInputHandler},
-    camera_input::{CameraInputHandler},
+    spacegame_game::{
+        state::{GameState},
+    },
+    input::{
+        build_input::{BuildInputHandler},
+        camera_input::{CameraInputHandler},
+    }
 };
 
 pub struct InputHandler {
@@ -38,29 +40,33 @@ impl InputHandler {
     }
 
     pub fn handle_button_down(
-        &mut self, button: MouseButton, state: &mut BuildInputState
+        &mut self, button: MouseButton, game_state: &mut GameState
     ) {
-        self.build_input.handle_mouse_down(button, state);
+        self.build_input.handle_mouse_down(button, &mut game_state.build_input_state);
         self.camera_input.handle_mouse_down(button);
     }
 
     pub fn handle_button_up(
-        &mut self, button: MouseButton, state: &mut BuildInputState, ship: &mut Ship
+        &mut self, button: MouseButton, game_state: &mut GameState
     ) {
-        self.build_input.handle_mouse_up(button, state, ship).unwrap();
+        self.build_input.handle_mouse_up(
+            button, &mut game_state.build_input_state, &mut game_state.ship
+        ).unwrap();
         self.camera_input.handle_mouse_up(button);
     }
 
     pub fn handle_motion(
         &mut self,
         x: i32, y: i32, xrel: i32, yrel: i32,
-        state: &mut BuildInputState,
-        camera: &mut Camera, ship: &mut Ship
+        game_state: &mut GameState
     ) {
         let position = Point2::new(x, y);
         let rel_position = Vector2::new(xrel, yrel);
 
-        self.build_input.handle_mouse_move(position, state, camera, ship);
-        self.camera_input.handle_mouse_move(rel_position, camera);
+        self.build_input.handle_mouse_move(
+            position,
+            &mut game_state.build_input_state, &mut game_state.camera, &mut game_state.ship
+        );
+        self.camera_input.handle_mouse_move(rel_position, &mut game_state.camera);
     }
 }

@@ -1,6 +1,7 @@
 use nalgebra::{Point2};
 use {ObjectClassId};
 
+#[derive(Deserialize, Serialize)]
 pub struct BuildInputState {
     pub state: BuildState,
     pub choice: BuildChoice,
@@ -15,12 +16,13 @@ impl BuildInputState {
     }
 }
 
+#[derive(Deserialize, Serialize)]
 pub enum BuildState {
     Hovering { position: Option<Point2<i32>> },
     Dragging { start: Point2<i32>, end: Point2<i32> },
 }
 
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub enum BuildChoice {
     None,
     Floor,

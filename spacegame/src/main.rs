@@ -10,26 +10,26 @@ extern crate spacegame_game;
 mod input;
 mod rendering;
 
-use std::env;
-use std::path;
+use {
+    std::{env, path},
 
-use ggez::{
-    Context, GameResult, GameError,
-    conf::{Conf, WindowMode, WindowSetup},
-    event::{self, EventHandler, MouseButton, MouseState},
-    graphics::{Rect},
-    timer,
-};
-use nalgebra::{Vector2, Point2};
-use slog::{Logger};
-use sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}};
+    ggez::{
+        Context, GameResult, GameError,
+        conf::{Conf, WindowMode, WindowSetup},
+        event::{self, EventHandler, MouseButton, MouseState},
+        graphics::{Rect},
+        timer,
+    },
+    slog::{Logger},
+    sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}},
 
-use spacegame_game::{
-    ObjectClasses, GenericObjectClass,
-    state::{BuildInputState, Camera, ship::{Ship}},
+    spacegame_game::{
+        ObjectClasses, GenericObjectClass,
+        state::{GameState},
+    },
+    input::{InputHandler},
+    rendering::{Renderer},
 };
-use input::{InputHandler};
-use rendering::{Renderer};
 
 pub fn main() {
     // Set up logging
@@ -78,13 +78,9 @@ struct MainState {
     renderer: Renderer,
     input_handler: InputHandler,
 
-    // Game Data
     object_classes: ObjectClasses,
 
-    // Game State
-    build_input_state: BuildInputState,
-    camera: Camera,
-    ship: Ship,
+    game_state: GameState,
 }
 
 impl MainState {
@@ -104,23 +100,16 @@ impl MainState {
             uvs: Rect::new(0.5, 0.0, 0.5, 0.5), walkable: true,
         });
 
-        // Set up the game world camera
-        let screen_size = Vector2::new(1280, 720);
-        let mut camera = Camera::new(64, screen_size);
-        camera.set_position(Point2::new(50.0, 50.0));
-
-        // Create the starter ship
-        let ship = Ship::starter(&log);
+        let game_state = GameState::new(&log);
 
         Ok(MainState {
             log,
             renderer,
             input_handler,
 
-            build_input_state: BuildInputState::new(),
-            camera,
             object_classes,
-            ship,
+
+            game_state,
         })
     }
 }
@@ -132,7 +121,7 @@ impl EventHandler for MainState {
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
             self.input_handler.update()?;
-            self.ship.update(&self.log, DELTA, &self.object_classes);
+            self.game_state.update(&self.log, DELTA, &self.object_classes);
         }
 
         Ok(())
@@ -140,7 +129,7 @@ impl EventHandler for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         self.renderer.render_frame(
-            ctx, &self.build_input_state, &self.object_classes, &mut self.camera, &self.ship
+            ctx, &self.object_classes, &mut self.game_state
         )
     }
 
@@ -148,14 +137,14 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         button: MouseButton, _x: i32, _y: i32
     ) {
-        self.input_handler.handle_button_down(button, &mut self.build_input_state);
+        self.input_handler.handle_button_down(button, &mut self.game_state);
     }
 
     fn mouse_button_up_event(
         &mut self, _ctx: &mut Context,
         button: MouseButton, _x: i32, _y: i32
     ) {
-        self.input_handler.handle_button_up(button, &mut self.build_input_state, &mut self.ship);
+        self.input_handler.handle_button_up(button, &mut self.game_state);
     }
 
     fn mouse_motion_event(
@@ -163,7 +152,7 @@ impl EventHandler for MainState {
         _state: MouseState, x: i32, y: i32, xrel: i32, yrel: i32
     ) {
         self.input_handler.handle_motion(
-            x, y, xrel, yrel, &mut self.build_input_state, &mut self.camera, &mut self.ship
+            x, y, xrel, yrel, &mut self.game_state
         );
     }
 

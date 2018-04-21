@@ -1,11 +1,14 @@
-use ggez::{Context, GameResult};
-use ggez::graphics::spritebatch::{SpriteBatch};
-use ggez::graphics::{self, MeshBuilder, DrawParam, Rect};
-use nalgebra::{Point2};
+use {
+    ggez::{
+        Context, GameResult,
+        graphics::{self, MeshBuilder, DrawParam, Rect, spritebatch::{SpriteBatch}},
+    },
+    nalgebra::{Point2},
 
-use spacegame_game::{
-    ObjectClasses,
-    state::{Camera, ship::{Ship}},
+    spacegame_game::{
+        ObjectClasses,
+        state::{GameState, Camera, ship::{Ship}},
+    },
 };
 
 pub struct Bounds {
@@ -30,13 +33,15 @@ impl Bounds {
 }
 
 pub fn draw_ship(
-    ctx: &mut Context, ship: &Ship, camera: &Camera, object_classes: &ObjectClasses,
+    ctx: &mut Context,
+    object_classes: &ObjectClasses,
+    game_state: &GameState,
     tiles_batch: &mut SpriteBatch,
 ) -> GameResult<()> {
 
-    draw_tiles(ctx, ship, camera, object_classes, tiles_batch)?;
-    draw_tasks(ctx, ship)?;
-    draw_units(ctx, ship)?;
+    draw_tiles(ctx, &game_state.ship, &game_state.camera, object_classes, tiles_batch)?;
+    draw_tasks(ctx, &game_state.ship)?;
+    draw_units(ctx, &game_state.ship)?;
 
     Ok(())
 }

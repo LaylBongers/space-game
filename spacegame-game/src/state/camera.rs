@@ -1,6 +1,7 @@
 use alga::linear::{Transformation};
 use nalgebra::{Vector2, Point2, Point3, Matrix4};
 
+#[derive(Deserialize, Serialize)]
 pub struct Camera {
     position: Point2<f32>,
     pixels_per_tile: i32,
