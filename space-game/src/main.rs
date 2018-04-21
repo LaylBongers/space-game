@@ -13,26 +13,25 @@ extern crate rmp_serde;
 
 mod controller;
 pub mod model;
-mod view;
+mod rendering;
 
 use std::env;
 use std::path;
 
-use ggez::{Context, GameResult, GameError};
-use ggez::timer;
-use ggez::conf::{Conf, WindowMode, WindowSetup};
-use ggez::event::{self, EventHandler, MouseButton, MouseState};
-use ggez::graphics::spritebatch::{SpriteBatch};
-use ggez::graphics::{self, Font, Text, Image, Rect};
+use ggez::{
+    Context, GameResult, GameError,
+    conf::{Conf, WindowMode, WindowSetup},
+    event::{self, EventHandler, MouseButton, MouseState},
+    graphics::{Rect},
+    timer,
+};
 use nalgebra::{Vector2, Point2};
 use slog::{Logger};
-use sloggers::{Build};
-use sloggers::terminal::{TerminalLoggerBuilder};
-use sloggers::types::{Severity};
+use sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}};
 
 use controller::{BuildInputController, CameraInputController, SaveInputController};
-use model::{Camera, ObjectClasses, GenericObjectClass};
-use model::ship::{Ship};
+use model::{Camera, ObjectClasses, GenericObjectClass, ship::{Ship}};
+use rendering::{Renderer};
 
 pub fn main() {
     // Set up logging
@@ -78,9 +77,7 @@ pub fn main() {
 
 struct MainState {
     log: Logger,
-    fps_font: Font,
-
-    // Ui
+    renderer: Renderer,
 
     // Models
     camera: Camera,
@@ -91,9 +88,6 @@ struct MainState {
     build_input: BuildInputController,
     camera_input: CameraInputController,
     save_input: SaveInputController,
-
-    // View Data
-    tiles: SpriteBatch,
 }
 
 impl MainState {
@@ -104,8 +98,6 @@ impl MainState {
         let screen_size = Vector2::new(1280, 720);
         let mut camera = Camera::new(64, screen_size);
         camera.set_position(Point2::new(50.0, 50.0));
-
-        let fps_font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
 
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();
@@ -123,11 +115,11 @@ impl MainState {
         let camera_input = CameraInputController::new();
         let save_input = SaveInputController::new(ctx)?;
 
-        let tiles = SpriteBatch::new(Image::new(ctx, "/tiles.png")?);
+        let renderer = Renderer::new(ctx)?;
 
         Ok(MainState {
             log,
-            fps_font,
+            renderer,
 
             camera,
             object_classes,
@@ -136,8 +128,6 @@ impl MainState {
             build_input,
             camera_input,
             save_input,
-
-            tiles,
         })
     }
 }
@@ -157,34 +147,9 @@ impl EventHandler for MainState {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        graphics::set_background_color(ctx, (10, 10, 15).into());
-        graphics::clear(ctx);
-
-        // Switch the projection to world rendering
-        let size = graphics::get_size(ctx);
-        self.camera.set_screen_size(Vector2::new(size.0 as i32, size.1 as i32));
-        let pixels_projection = graphics::get_projection(ctx);
-        graphics::set_projection(ctx, self.camera.projection());
-        graphics::apply_transformations(ctx)?;
-
-        // Draw everything in the world
-        view::draw_ship(ctx, &self.ship, &self.camera, &self.object_classes, &mut self.tiles)?;
-        view::draw_build_graphics(
-            ctx, &self.build_input, &self.ship, &self.camera, &self.object_classes, &mut self.tiles
-        )?;
-
-        // Swith the projection back to pixels rendering for UI
-        graphics::set_projection(ctx, pixels_projection);
-        graphics::apply_transformations(ctx)?;
-
-        // Draw an FPS counter
-        let fps = timer::get_fps(ctx);
-        let text = Text::new(ctx, &format!("FPS: {:.2}", fps), &self.fps_font)?;
-        graphics::set_color(ctx, (255, 255, 255, 200).into())?;
-        graphics::draw(ctx, &text, Point2::new(0.0, 710.0), 0.0)?;
-
-        graphics::present(ctx);
-        Ok(())
+        self.renderer.render_frame(
+            ctx, &self.build_input, &self.object_classes, &mut self.camera, &self.ship
+        )
     }
 
     fn mouse_button_down_event(
@@ -199,8 +164,7 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         button: MouseButton, x: i32, y: i32
     ) {
-        self.build_input.handle_mouse_up(button, &mut self.ship)
-            .unwrap();
+        self.build_input.handle_mouse_up(button, &mut self.ship).unwrap();
         self.camera_input.handle_mouse_up(button);
     }
 

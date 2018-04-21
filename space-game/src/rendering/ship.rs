@@ -29,10 +29,10 @@ impl Bounds {
 
 pub fn draw_ship(
     ctx: &mut Context, ship: &Ship, camera: &Camera, object_classes: &ObjectClasses,
-    tiles: &mut SpriteBatch,
+    tiles_batch: &mut SpriteBatch,
 ) -> GameResult<()> {
 
-    draw_tiles(ctx, ship, camera, object_classes, tiles)?;
+    draw_tiles(ctx, ship, camera, object_classes, tiles_batch)?;
     draw_tasks(ctx, ship)?;
     draw_units(ctx, ship)?;
 
@@ -41,7 +41,7 @@ pub fn draw_ship(
 
 fn draw_tiles(
     ctx: &mut Context, ship: &Ship, camera: &Camera, object_classes: &ObjectClasses,
-    tiles: &mut SpriteBatch,
+    tiles_batch: &mut SpriteBatch,
 ) -> GameResult<()> {
     let bounds = Bounds::calculate(ship, camera);
 
@@ -53,7 +53,7 @@ fn draw_tiles(
 
             // Add graphic for the floor
             if tile.floor {
-                tiles.add(DrawParam {
+                tiles_batch.add(DrawParam {
                     src: Rect::new(0.0, 0.5, 0.5, 0.5),
                     dest: Point2::new(fx, fy + 1.0),
                     scale: Point2::new(1.0 / 64.0, -1.0 / 64.0),
@@ -65,7 +65,7 @@ fn draw_tiles(
             if let Some(ref object) = tile.object {
                 let uvs = object_classes.get(object.class).unwrap().uvs();
 
-                tiles.add(DrawParam {
+                tiles_batch.add(DrawParam {
                     src: uvs,
                     dest: Point2::new(fx, fy + 1.0),
                     scale: Point2::new(1.0 / 64.0, -1.0 / 64.0),
@@ -76,8 +76,8 @@ fn draw_tiles(
     }
 
     graphics::set_color(ctx, (255, 255, 255).into())?;
-    graphics::draw(ctx, tiles, Point2::new(0.0, 0.0), 0.0)?;
-    tiles.clear();
+    graphics::draw(ctx, tiles_batch, Point2::new(0.0, 0.0), 0.0)?;
+    tiles_batch.clear();
 
     Ok(())
 }
