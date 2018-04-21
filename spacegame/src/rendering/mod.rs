@@ -12,10 +12,9 @@ use ggez::{
 };
 use nalgebra::{Point2, Vector2};
 
-use {normalize_area};
 use spacegame_game::{
     ObjectClasses,
-    state::{BuildInputState, BuildState, BuildChoice, Camera, ship::{Ship}},
+    state::{normalize_area, BuildInputState, BuildState, BuildChoice, Camera, ship::{Ship}},
 };
 use rendering::ship::{Bounds};
 

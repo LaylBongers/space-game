@@ -4,9 +4,8 @@ use ggez::event::{MouseButton};
 use nalgebra::{Point2};
 
 use spacegame_game::{
-    state::{BuildInputState, BuildState, BuildChoice, Camera, ship::{Ship, Task}}
+    state::{normalize_area, BuildInputState, BuildState, BuildChoice, Camera, ship::{Ship, Task}}
 };
-use {normalize_area};
 
 pub struct BuildInputHandler {
     last_tile_position: Option<Point2<i32>>,

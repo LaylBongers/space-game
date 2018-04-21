@@ -1,8 +1,8 @@
 [workspace]
 members = [
+    "rivr",
     "spacegame",
     "spacegame-game",
-    "spacegame-ui",
 ]
 
 # Debug mode performance without any optimizations is way too slow for games

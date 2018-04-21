@@ -4,8 +4,8 @@ extern crate nalgebra;
 extern crate sloggers;
 extern crate serde;
 extern crate rmp_serde;
+extern crate rivr;
 extern crate spacegame_game;
-extern crate spacegame_ui;
 
 mod input;
 mod rendering;
@@ -171,12 +171,4 @@ impl EventHandler for MainState {
         info!(self.log, "quit_event() callback called, quitting");
         false
     }
-}
-
-pub fn normalize_area(start: Point2<i32>, end: Point2<i32>) -> (Point2<i32>, Point2<i32>) {
-    let min_x = start.x.min(end.x);
-    let min_y = start.y.min(end.y);
-    let max_x = start.x.max(end.x);
-    let max_y = start.y.max(end.y);
-    (Point2::new(min_x, min_y), Point2::new(max_x + 1, max_y + 1))
 }
