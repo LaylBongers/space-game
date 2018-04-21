@@ -1,35 +1,23 @@
 use ggez::{Context, GameResult};
 use slog::{Logger};
-use serde::{Deserialize, Serialize};
-use rmp_serde::{Deserializer, Serializer};
-
-use markedly::template::{Template};
-use markedly::{Ui, Context as UiContext, Tree};
+//use serde::{Deserialize, Serialize};
+//use rmp_serde::{Deserializer, Serializer};
 
 use model::ship::{Ship};
 
 pub struct SaveInputController {
-    ui: Tree,
 }
 
 impl SaveInputController {
-    pub fn new(
-        ctx: &mut Context, ui: &mut Ui, ui_context: &UiContext,
-    ) -> GameResult<Self> {
-        let template_file = ctx.filesystem.open("/markedly/save-menu.mark")?;
-        let template = Template::from_reader(template_file)?;
-        let ui = ui.insert_template(&template, None, "top-menu", ui_context)
-            .map_err(|e| format!("{:#?}", e))?;
-
+    pub fn new(ctx: &mut Context) -> GameResult<Self> {
         Ok(SaveInputController {
-            ui,
         })
     }
 
     pub fn update(
-        &mut self, log: &Logger, ctx: &mut Context, ship: &mut Ship
+        &mut self, _log: &Logger, _ctx: &mut Context, _ship: &mut Ship
     ) -> GameResult<()> {
-        while let Some(event) = self.ui.event_sink().next() {
+        /*while let Some(event) = self.ui.event_sink().next() {
             match event.as_str() {
                 "load-game" => {
                     info!(log, "Loading game");
@@ -51,7 +39,7 @@ impl SaveInputController {
                 },
                 _ => {},
             }
-        }
+        }*/
 
         Ok(())
     }

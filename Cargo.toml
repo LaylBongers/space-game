@@ -1,9 +1,7 @@
 [workspace]
 members = [
-    "markedly/example",
-    "markedly/markedly",
-    "markedly/markedly-ggez",
     "space-game",
+    "space-game-ui",
 ]
 
 # Debug mode performance without any optimizations is way too slow for games

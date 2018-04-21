@@ -14,5 +14,3 @@ pathfinding = "0.6"
 serde = "1"
 serde_derive = "1"
 rmp-serde = "0.13"
-markedly = { path = "../markedly/markedly" }
-markedly-ggez = { path = "../markedly/markedly-ggez" }

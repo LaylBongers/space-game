@@ -3,12 +3,6 @@ use ggez::audio::{Source};
 use ggez::event::{MouseButton};
 use nalgebra::{Point2};
 
-use markedly::template::{Template};
-use markedly::input::{Input};
-use markedly::scripting::{ScriptTable};
-use markedly::{Ui, Context as UiContext, Tree};
-use markedly_ggez::{emtg};
-
 use model::{Camera, ObjectClassId};
 use model::ship::{Ship, Task};
 
@@ -17,17 +11,14 @@ pub struct BuildInputController {
     build_state: BuildState,
     build_choice: BuildChoice,
 
-    ui: BuildInputUiController,
     build_sound_queued: bool,
     place_sound: Source,
 }
 
 impl BuildInputController {
     pub fn new(
-        ctx: &mut Context, ui: &mut Ui, ui_context: &UiContext,
+        ctx: &mut Context,
     ) -> GameResult<Self> {
-        let ui = BuildInputUiController::new(ctx, ui, ui_context)?;
-
         let mut place_sound = Source::new(ctx, "/object_placed.ogg")?;
         place_sound.set_volume(0.2);
 
@@ -36,7 +27,6 @@ impl BuildInputController {
             build_state: BuildState::Hovering { position: None },
             build_choice: BuildChoice::None,
 
-            ui,
             build_sound_queued: false,
             place_sound,
         })
@@ -51,10 +41,8 @@ impl BuildInputController {
     }
 
     pub fn update(
-        &mut self, ui: &mut Ui, ui_context: &UiContext,
+        &mut self
     ) -> GameResult<()> {
-        self.ui.update(&mut self.build_choice, ui, ui_context)?;
-
         if self.build_sound_queued {
             self.place_sound.play()?;
             self.build_sound_queued = false;
@@ -78,7 +66,7 @@ impl BuildInputController {
     }
 
     pub fn handle_mouse_up(
-        &mut self, button: MouseButton, ship: &mut Ship, ui: &mut Ui, ui_context: &UiContext
+        &mut self, button: MouseButton, ship: &mut Ship
     ) -> GameResult<()> {
         if self.build_choice == BuildChoice::None {
             return Ok(())
@@ -86,7 +74,7 @@ impl BuildInputController {
 
         match button {
             MouseButton::Left => self.handle_build_up(ship),
-            MouseButton::Right => self.handle_cancel_up(ui, ui_context)?,
+            MouseButton::Right => self.handle_cancel_up()?,
             _ => {},
         }
 
@@ -170,10 +158,9 @@ impl BuildInputController {
         }
     }
 
-    fn handle_cancel_up(&mut self, ui: &mut Ui, ui_context: &UiContext) -> GameResult<()> {
+    fn handle_cancel_up(&mut self) -> GameResult<()> {
         self.build_state = BuildState::Hovering { position: self.last_tile_position };
         self.build_choice = BuildChoice::None;
-        self.ui.clear_active_button(ui, ui_context)?;
 
         Ok(())
     }
@@ -181,7 +168,7 @@ impl BuildInputController {
     pub fn handle_mouse_move(
         &mut self,
         mouse_position: Point2<i32>,
-        camera: &mut Camera, ship: &Ship, ui_input: &Input,
+        camera: &mut Camera, ship: &Ship,
     ) {
         // Get the position of the cursor in-world
         let world_position = camera.screen_to_world(mouse_position);
@@ -191,7 +178,7 @@ impl BuildInputController {
         );
 
         // Make sure we're not over UI, and the tile we're hovering over is valid
-        if !ui_input.is_cursor_over_ui() &&
+        if /* !ui_input.is_cursor_over_ui() &&*/
             ship.tiles.is_in_bounds(tile_position)
         {
             self.last_tile_position = Some(tile_position);
@@ -232,116 +219,4 @@ pub fn build_area(start: Point2<i32>, end: Point2<i32>) -> (Point2<i32>, Point2<
     let max_x = start.x.max(end.x);
     let max_y = start.y.max(end.y);
     (Point2::new(min_x, min_y), Point2::new(max_x + 1, max_y + 1))
-}
-
-struct BuildInputUiController {
-    model: ScriptTable,
-    ui: Tree,
-
-    popup_template: Template,
-    popup_ui: Option<Tree>,
-}
-
-impl BuildInputUiController {
-    pub fn new(
-        ctx: &mut Context, ui: &mut Ui, ui_context: &UiContext,
-    ) -> GameResult<Self> {
-        let template = Template::from_reader(ctx.filesystem.open("/markedly/build-menu.mark")?)?;
-        let popup_template =
-            Template::from_reader(ctx.filesystem.open("/markedly/build-menu-popup.mark")?)?;
-
-        let ui = ui.insert_template(
-            &template, None, "top-menu", ui_context,
-        ).map_err(emtg)?;
-
-        Ok(BuildInputUiController {
-            model: ScriptTable::new(),
-            ui,
-
-            popup_template,
-            popup_ui: None,
-        })
-    }
-
-    fn update(
-        &mut self, build_choice: &mut BuildChoice, ui: &mut Ui, ui_context: &UiContext,
-    ) -> GameResult<()> {
-        let old_choice = build_choice.clone();
-
-        // Check the menu buttons
-        while let Some(event) = self.ui.event_sink().next() {
-            match event.as_str() {
-                "build" => self.toggle_popup(ui, ui_context)?,
-                "destroy" => *build_choice = BuildChoice::Destroy,
-                "destroy-all" => *build_choice = BuildChoice::DestroyAll,
-                _ => {}
-            }
-        }
-
-        // Check the popup buttons
-        if let Some(ref popup_ui) = self.popup_ui {
-            while let Some(event) = popup_ui.event_sink().next() {
-                match event.as_str() {
-                    "build-floor" => *build_choice = BuildChoice::Floor,
-                    "build-wall" => *build_choice = BuildChoice::Object(ObjectClassId(0)),
-                    "build-door" => *build_choice = BuildChoice::Object(ObjectClassId(1)),
-                    _ => {}
-                }
-            }
-        }
-
-        // Update the active indicator so the user knows which option is enabled
-        if old_choice != *build_choice {
-            self.clear_active_button(ui, ui_context)?;
-
-            match *build_choice {
-                BuildChoice::Floor | BuildChoice::Object(_) =>
-                    self.model.set("build_active", true),
-                BuildChoice::Destroy =>
-                    self.model.set("destroy_active", true),
-                BuildChoice::DestroyAll =>
-                    self.model.set("destroy_all_active", true),
-                _ => {},
-            }
-
-            ui.update_model(&self.ui, &self.model, ui_context).map_err(emtg)?;
-        }
-
-        Ok(())
-    }
-
-    fn clear_active_button(&mut self, ui: &mut Ui, ui_context: &UiContext) -> GameResult<()> {
-        self.model.set("build_active", false);
-        self.model.set("destroy_active", false);
-        self.model.set("destroy_all_active", false);
-
-        ui.update_model(&self.ui, &self.model, ui_context).map_err(emtg)?;
-
-        Ok(())
-    }
-
-    fn toggle_popup(&mut self, ui: &mut Ui, ui_context: &UiContext) -> GameResult<()> {
-        if self.popup_ui.is_some() {
-            self.close_popup()
-        } else {
-            self.open_popup(ui, ui_context)
-        }
-    }
-
-    fn close_popup(&mut self) -> GameResult<()> {
-        if let Some(ref popup_events) = self.popup_ui {
-        }
-
-        Ok(())
-    }
-
-    fn open_popup(&mut self, ui: &mut Ui, ui_context: &UiContext) -> GameResult<()> {
-        if self.popup_ui.is_none() {
-            self.popup_ui = Some(ui.insert_template(
-                &self.popup_template, None, "popup-container", ui_context,
-            ).map_err(emtg)?);
-        }
-
-        Ok(())
-    }
 }
