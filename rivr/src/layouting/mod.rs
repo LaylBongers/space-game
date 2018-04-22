@@ -17,12 +17,12 @@ pub fn layout(ui: &mut Ui, root_id: PanelId, target_size: Vector2<f32>) {
     };
 
     // Recursively add the constraints for all our panels
-    add_panel_constraints(ui, root_id, &target_variables, &mut solver);
+    add_panel_constraints(&mut solver, ui, root_id, &target_variables, 1.0);
 
     // Constrain the total UI to the window
-    solver.add_edit_variable(target_variables.width, STRONG).unwrap();
+    solver.add_edit_variable(target_variables.width, STRONG * 2.0).unwrap();
     solver.suggest_value(target_variables.width, target_size.x as f64).unwrap();
-    solver.add_edit_variable(target_variables.height, STRONG).unwrap();
+    solver.add_edit_variable(target_variables.height, STRONG * 2.0).unwrap();
     solver.suggest_value(target_variables.height, target_size.y as f64).unwrap();
 
     // Finally, retrieve the solved data
@@ -37,7 +37,9 @@ pub fn layout(ui: &mut Ui, root_id: PanelId, target_size: Vector2<f32>) {
 }
 
 pub fn add_panel_constraints(
-    ui: &Ui, panel_id: PanelId, parent_variables: &LayoutVariables, solver: &mut Solver
+    solver: &mut Solver, ui: &Ui,
+    panel_id: PanelId, parent_variables: &LayoutVariables,
+    depth: f64,
 ) {
     let panel_entry = ui.get(panel_id).unwrap();
     let panel_variables = &panel_entry.layout.variables;
@@ -45,11 +47,12 @@ pub fn add_panel_constraints(
     panel_entry.panel.add_constraints(
         solver, ui,
         panel_variables, parent_variables,
+        depth,
     );
 
     if let Some(children) = panel_entry.panel.children() {
         for child_id in children {
-            add_panel_constraints(ui, *child_id, panel_variables, solver);
+            add_panel_constraints(solver, ui, *child_id, panel_variables, depth + 1.0);
         }
     }
 }
