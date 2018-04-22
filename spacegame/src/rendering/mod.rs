@@ -45,7 +45,7 @@ impl Renderer {
 
     pub fn render_frame(
         &mut self,
-        ctx: &mut Context, ui_system: &UiSystem,
+        ctx: &mut Context, ui_system: &mut UiSystem,
         object_classes: &ObjectClasses,
         game_state: &mut GameState,
     ) -> GameResult<()> {
@@ -69,7 +69,7 @@ impl Renderer {
         // Render the UI
         {
             let mut renderer = GgezRivrRenderer::new(ctx, &mut self.rivr_cache);
-            rivr::rendering::render(&ui_system.ui, ui_system.root_id, &mut renderer).unwrap();
+            rivr::rendering::render(&mut ui_system.ui, ui_system.root_id, &mut renderer).unwrap();
         }
 
         // Draw an FPS counter over everything else for debugging

@@ -133,7 +133,7 @@ impl EventHandler for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         self.renderer.render_frame(
-            ctx, &self.ui_system, &self.object_classes, &mut self.game_state
+            ctx, &mut self.ui_system, &self.object_classes, &mut self.game_state
         )
     }
 

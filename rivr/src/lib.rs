@@ -1,7 +1,9 @@
 extern crate metrohash;
 extern crate nalgebra;
 extern crate palette;
+extern crate cassowary;
 
+pub mod layouting;
 pub mod panels;
 pub mod rendering;
 mod error;

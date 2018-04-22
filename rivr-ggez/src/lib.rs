@@ -72,10 +72,11 @@ impl<'a> Renderer for GgezRivrRenderer<'a> {
         )).map_err(egtr)?;
         graphics::apply_transformations(self.ctx).map_err(egtr)?;
 
-        // Render the root panel's cache to the screen
-        let canvas = self.cache.panels.get(&root_id).unwrap();
-        graphics::set_color(self.ctx, (255, 255, 255, 255).into()).map_err(egtr)?;
-        graphics::draw(self.ctx, canvas, Point2::new(0.0, 0.0), 0.0).map_err(egtr)?;
+        // Render the root panel's cache to the screen if there is anything to draw
+        if let Some(canvas) = self.cache.panels.get(&root_id) {
+            graphics::set_color(self.ctx, (255, 255, 255, 255).into()).map_err(egtr)?;
+            graphics::draw(self.ctx, canvas, Point2::new(0.0, 0.0), 0.0).map_err(egtr)?;
+        }
 
         Ok(())
     }

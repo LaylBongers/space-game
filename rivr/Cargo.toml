@@ -7,3 +7,4 @@ authors = ["Layl <LaylConway@users.noreply.github.com>"]
 metrohash = "1"
 nalgebra = "0.14"
 palette = "0.3"
+cassowary = "0.3"
