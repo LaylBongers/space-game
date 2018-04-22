@@ -24,6 +24,6 @@ pub enum Orientation {
 
 // Convenience re-exports so for basic usage you don't need the dependencies
 pub use {
-    nalgebra::{Point2},
+    nalgebra::{Point2, Vector2},
     palette::{Srgba},
 };

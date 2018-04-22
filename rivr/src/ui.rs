@@ -5,7 +5,7 @@ use {
 };
 
 pub struct Ui {
-    panels: MetroHashMap<u32, Box<Panel>>,
+    panels: MetroHashMap<PanelId, Box<Panel>>,
     next_id: u32,
 }
 
@@ -21,13 +21,13 @@ impl Ui {
         let id = self.next_id;
         self.next_id += 1;
 
-        self.panels.insert(id, Box::new(panel));
+        self.panels.insert(PanelId { id }, Box::new(panel));
 
         PanelId { id }
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub struct PanelId {
     id: u32,
 }

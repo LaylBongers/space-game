@@ -826,6 +826,7 @@ name = "rivr-ggez"
 version = "0.1.0"
 dependencies = [
  "ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "metrohash 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "rivr 0.1.0",
 ]
 

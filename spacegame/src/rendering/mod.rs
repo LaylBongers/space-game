@@ -12,7 +12,7 @@ use {
     nalgebra::{Point2, Vector2},
 
     rivr::{self},
-    rivr_ggez::{GgezRivrRenderer},
+    rivr_ggez::{GgezRivrCache, GgezRivrRenderer},
     spacegame_game::{
         ObjectClasses,
         state::{
@@ -27,16 +27,19 @@ use {
 pub struct Renderer {
     fps_font: Font,
     tiles_batch: SpriteBatch,
+    rivr_cache: GgezRivrCache,
 }
 
 impl Renderer {
     pub fn new(ctx: &mut Context) -> GameResult<Self> {
         let fps_font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
         let tiles_batch = SpriteBatch::new(Image::new(ctx, "/tiles.png")?);
+        let rivr_cache = GgezRivrCache::new();
 
         Ok(Renderer {
             fps_font,
             tiles_batch,
+            rivr_cache,
         })
     }
 
@@ -65,7 +68,7 @@ impl Renderer {
 
         // Render the UI
         {
-            let mut renderer = GgezRivrRenderer::new(ctx);
+            let mut renderer = GgezRivrRenderer::new(ctx, &mut self.rivr_cache);
             rivr::rendering::render(&ui_system.ui, ui_system.root_id, &mut renderer).unwrap();
         }
 
