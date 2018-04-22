@@ -99,7 +99,25 @@ impl<'a> Renderer for GgezRivrRenderer<'a> {
         Ok(true)
     }
 
-    fn vertices(
+    fn render_cache(
+        &mut self,
+        target_id: PanelId,
+        source_id: PanelId,
+        position: Point2<f32>,
+    ) -> Result<(), Error> {
+        self.prepare_cache(target_id)?;
+
+        let source_canvas = self.cache.panels.get(&source_id).unwrap();
+        graphics::set_color(self.ctx, (255, 255, 255, 255).into()).map_err(egtr)?;
+        graphics::draw(self.ctx, source_canvas, Point2::new(
+            position.x.round(),
+            position.y.round(),
+        ), 0.0).map_err(egtr)?;
+
+        Ok(())
+    }
+
+    fn render_vertices(
         &mut self,
         panel_id: PanelId,
         vertices: &[Point2<f32>], indices: &[u16], color: Srgba,

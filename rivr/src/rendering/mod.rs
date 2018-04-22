@@ -18,7 +18,14 @@ pub trait Renderer {
         &mut self, panel_id: PanelId, size: Vector2<u32>
     ) -> Result<bool, Error>;
 
-    fn vertices(
+    fn render_cache(
+        &mut self,
+        target_id: PanelId,
+        source_id: PanelId,
+        position: Point2<f32>,
+    ) -> Result<(), Error>;
+
+    fn render_vertices(
         &mut self,
         panel_id: PanelId,
         vertices: &[Point2<f32>], indices: &[u16], color: Srgba,
@@ -63,12 +70,7 @@ fn render_panel<R: Renderer>(ui: &Ui, panel_id: PanelId, renderer: &mut R) -> Re
 
     // Render the component itself if we need to
     if cache_empty || child_rendered {
-        renderer.vertices(panel_id, &[
-            Point2::new(0.0, 0.0),
-            Point2::new(0.0, panel_entry.layout.size.y),
-            Point2::new(panel_entry.layout.size.x, panel_entry.layout.size.y),
-            Point2::new(panel_entry.layout.size.x, 0.0),
-        ], &[0, 1, 3, 2, 3, 1], Srgba::new(1.0, 0.5, 0.5, 1.0))?;
+        panel_entry.panel.render(renderer, ui, panel_id, &panel_entry.layout)?;
 
         Ok(true)
     } else {
