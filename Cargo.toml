@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "rivr",
+    "rivr-ggez",
     "spacegame",
     "spacegame-game",
 ]

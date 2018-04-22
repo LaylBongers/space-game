@@ -1,7 +1,5 @@
 mod ship;
 
-pub use self::ship::{draw_ship};
-
 use {
     ggez::{
         Context, GameResult,
@@ -13,11 +11,17 @@ use {
     },
     nalgebra::{Point2, Vector2},
 
+    rivr::{self},
+    rivr_ggez::{GgezRivrRenderer},
     spacegame_game::{
         ObjectClasses,
-        state::{normalize_area, GameState, BuildInputState, BuildState, BuildChoice, Camera, ship::{Ship}},
+        state::{
+            normalize_area, GameState, BuildInputState, BuildState, BuildChoice, Camera,
+            ship::{Ship},
+        },
     },
     rendering::ship::{Bounds},
+    ui::{UiSystem},
 };
 
 pub struct Renderer {
@@ -37,7 +41,8 @@ impl Renderer {
     }
 
     pub fn render_frame(
-        &mut self, ctx: &mut Context,
+        &mut self,
+        ctx: &mut Context, ui_system: &UiSystem,
         object_classes: &ObjectClasses,
         game_state: &mut GameState,
     ) -> GameResult<()> {
@@ -47,23 +52,24 @@ impl Renderer {
         // Switch the projection to world rendering
         let size = graphics::get_size(ctx);
         game_state.camera.set_screen_size(Vector2::new(size.0 as i32, size.1 as i32));
-        let pixels_projection = graphics::get_projection(ctx);
         graphics::set_projection(ctx, game_state.camera.projection());
         graphics::apply_transformations(ctx)?;
 
         // Draw everything in the world
-        draw_ship(
+        ship::draw_ship(
             ctx, object_classes, game_state, &mut self.tiles_batch
         )?;
         draw_build_graphics(
             ctx, object_classes, game_state, &mut self.tiles_batch
         )?;
 
-        // Swith the projection back to pixels rendering for UI
-        graphics::set_projection(ctx, pixels_projection);
-        graphics::apply_transformations(ctx)?;
+        // Render the UI
+        {
+            let mut renderer = GgezRivrRenderer::new(ctx);
+            rivr::rendering::render(&ui_system.ui, ui_system.root_id, &mut renderer).unwrap();
+        }
 
-        // Draw an FPS counter
+        // Draw an FPS counter over everything else for debugging
         let fps = timer::get_fps(ctx);
         let text = Text::new(ctx, &format!("FPS: {:.2}", fps), &self.fps_font)?;
         graphics::set_color(ctx, (255, 255, 255, 200).into())?;

@@ -5,10 +5,12 @@ extern crate sloggers;
 extern crate serde;
 extern crate rmp_serde;
 extern crate rivr;
+extern crate rivr_ggez;
 extern crate spacegame_game;
 
 mod input;
 mod rendering;
+mod ui;
 
 use {
     std::{env, path},
@@ -29,6 +31,7 @@ use {
     },
     input::{InputHandler},
     rendering::{Renderer},
+    ui::{UiSystem},
 };
 
 pub fn main() {
@@ -77,9 +80,9 @@ struct MainState {
     log: Logger,
     renderer: Renderer,
     input_handler: InputHandler,
+    ui_system: UiSystem,
 
     object_classes: ObjectClasses,
-
     game_state: GameState,
 }
 
@@ -90,6 +93,7 @@ impl MainState {
         // Initialize game subsystems
         let renderer = Renderer::new(ctx)?;
         let input_handler = InputHandler::new(ctx)?;
+        let ui_system = UiSystem::new();
 
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();
@@ -106,9 +110,9 @@ impl MainState {
             log,
             renderer,
             input_handler,
+            ui_system,
 
             object_classes,
-
             game_state,
         })
     }
@@ -129,7 +133,7 @@ impl EventHandler for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         self.renderer.render_frame(
-            ctx, &self.object_classes, &mut self.game_state
+            ctx, &self.ui_system, &self.object_classes, &mut self.game_state
         )
     }
 
@@ -151,9 +155,7 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         _state: MouseState, x: i32, y: i32, xrel: i32, yrel: i32
     ) {
-        self.input_handler.handle_motion(
-            x, y, xrel, yrel, &mut self.game_state
-        );
+        self.input_handler.handle_motion(x, y, xrel, yrel, &mut self.game_state);
     }
 
     fn quit_event(&mut self, _ctx: &mut Context) -> bool {

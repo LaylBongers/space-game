@@ -11,4 +11,5 @@ sloggers = "0.2"
 serde = "1"
 rmp-serde = "0.13"
 rivr = { path = "../rivr" }
+rivr-ggez = { path = "../rivr-ggez" }
 spacegame-game = { path = "../spacegame-game" }
