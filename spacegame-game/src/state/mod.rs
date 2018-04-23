@@ -3,7 +3,7 @@ mod build;
 mod camera;
 
 pub use self::{
-    build::{BuildInputState, BuildState, BuildChoice, normalize_area},
+    build::{BuildState, BuildDrag, BuildChoice, normalize_area},
     camera::{Camera},
 };
 
@@ -17,7 +17,7 @@ use {
 
 #[derive(Deserialize, Serialize)]
 pub struct GameState {
-    pub build_input_state: BuildInputState,
+    pub build_input_state: BuildState,
     pub camera: Camera,
     pub ship: Ship,
 }
@@ -32,7 +32,10 @@ impl GameState {
         let ship = Ship::starter(&log);
 
         GameState {
-            build_input_state: BuildInputState::new(),
+            build_input_state: BuildState {
+                drag: BuildDrag::Hovering { position: None, },
+                choice: BuildChoice::None,
+            },
             camera,
             ship,
         }

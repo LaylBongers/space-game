@@ -1,13 +1,15 @@
 use {
     metrohash::{MetroHashMap},
 
-    layouting::{PanelLayout},
+    layouting::{PanelLayout, LayoutVariables},
     panels::{Panel},
 };
 
 pub struct Ui {
     entries: MetroHashMap<PanelId, PanelEntry>,
     next_id: u32,
+
+    pub(crate) target_variables: LayoutVariables,
 }
 
 impl Ui {
@@ -15,6 +17,7 @@ impl Ui {
         Ui {
             entries: Default::default(),
             next_id: 0,
+            target_variables: LayoutVariables::new(),
         }
     }
 

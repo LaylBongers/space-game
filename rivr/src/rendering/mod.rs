@@ -1,7 +1,7 @@
 use {
     nalgebra::{Point2, Vector2},
     palette::{Srgba},
-    Error, Ui, PanelId,
+    Error, RenderingError, Ui, PanelId,
     layouting,
 };
 
@@ -53,6 +53,12 @@ fn render_panel<R: Renderer>(ui: &Ui, panel_id: PanelId, renderer: &mut R) -> Re
     // TODO: Clear the cache entry if this is the case
     if panel_size.x.ceil() < 1.0 || panel_size.y.ceil() < 1.0 {
         return Ok(false)
+    }
+
+    // If we got 1_000_000 or more, that means a panel has been told to maximize size without
+    // anything to constrain it
+    if panel_size.x >= 1_000_000.0 || panel_size.y >= 1_000_000.0 {
+        return Err(Error::Rendering(RenderingError::PanelTooLarge))
     }
 
     // Make sure this panel's cache is created and of the correct size

@@ -11,7 +11,8 @@ use {
     metrohash::{MetroHashMap},
 
     rivr::{
-        Error, PanelId, Point2, Vector2, Srgba,
+        Error, RenderingError, PanelId,
+        attributes::{Point2, Vector2, Srgba},
         rendering::{Renderer},
     }
 };
@@ -146,7 +147,7 @@ fn color_convert(color: Srgba) -> ::ggez::graphics::Color {
 
 /// Converts a ggez error to a rivr error.
 pub fn egtr(e: GameError) -> Error {
-    Error::Rendering { error: Box::new(e) }
+    Error::Rendering(RenderingError::Other(Box::new(e)))
 }
 
 /// Converts a rivr error to a ggez error.

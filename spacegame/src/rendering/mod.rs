@@ -16,7 +16,7 @@ use {
     spacegame_game::{
         ObjectClasses,
         state::{
-            normalize_area, GameState, BuildInputState, BuildState, BuildChoice, Camera,
+            normalize_area, GameState, BuildState, BuildDrag, BuildChoice, Camera,
             ship::{Ship},
         },
     },
@@ -132,11 +132,11 @@ fn draw_grid(
 }
 
 fn draw_build_placeholder(
-    ctx: &mut Context, build_input_state: &BuildInputState, object_classes: &ObjectClasses,
+    ctx: &mut Context, build_state: &BuildState, object_classes: &ObjectClasses,
     tiles: &mut SpriteBatch,
 ) -> GameResult<()> {
     // Check what we need to draw
-    let uvs = match build_input_state.choice {
+    let uvs = match build_state.choice {
         BuildChoice::Floor =>
             Some(Rect::new(0.0, 0.5, 0.5, 0.5)),
         BuildChoice::Object(id) =>
@@ -145,11 +145,11 @@ fn draw_build_placeholder(
     };
 
     // Check where we need to draw it
-    let (start, end) = match build_input_state.state {
-        BuildState::Hovering { position: Some(hovered_tile) } => {
+    let (start, end) = match build_state.drag {
+        BuildDrag::Hovering { position: Some(hovered_tile) } => {
             (hovered_tile, hovered_tile + Vector2::new(1, 1))
         },
-        BuildState::Dragging { start, end } => {
+        BuildDrag::Dragging { start, end } => {
             normalize_area(start, end)
         },
         _ => (Point2::new(0, 0), Point2::new(0, 0)),

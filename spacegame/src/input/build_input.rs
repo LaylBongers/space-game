@@ -4,7 +4,7 @@ use ggez::event::{MouseButton};
 use nalgebra::{Point2};
 
 use spacegame_game::{
-    state::{normalize_area, BuildInputState, BuildState, BuildChoice, Camera, ship::{Ship, Task}}
+    state::{normalize_area, BuildState, BuildDrag, BuildChoice, Camera, ship::{Ship, Task}}
 };
 
 pub struct BuildInputHandler {
@@ -40,14 +40,14 @@ impl BuildInputHandler {
         Ok(())
     }
 
-    pub fn handle_mouse_down(&mut self, button: MouseButton, state: &mut BuildInputState) {
+    pub fn handle_mouse_down(&mut self, button: MouseButton, state: &mut BuildState) {
         if button != MouseButton::Left || state.choice == BuildChoice::None {
             return
         }
 
         // If we were currently hovering, switch over to dragging
-        if let BuildState::Hovering { position: Some(hovered_tile) } = state.state {
-            state.state = BuildState::Dragging {
+        if let BuildDrag::Hovering { position: Some(hovered_tile) } = state.drag {
+            state.drag = BuildDrag::Dragging {
                 start: hovered_tile,
                 end: hovered_tile,
             }
@@ -55,7 +55,7 @@ impl BuildInputHandler {
     }
 
     pub fn handle_mouse_up(
-        &mut self, button: MouseButton, state: &mut BuildInputState, ship: &mut Ship
+        &mut self, button: MouseButton, state: &mut BuildState, ship: &mut Ship
     ) -> GameResult<()> {
         if state.choice == BuildChoice::None {
             return Ok(())
@@ -70,9 +70,9 @@ impl BuildInputHandler {
         Ok(())
     }
 
-    fn handle_build_up(&mut self, state: &mut BuildInputState, ship: &mut Ship) {
+    fn handle_build_up(&mut self, state: &mut BuildState, ship: &mut Ship) {
         // If we were currently dragging, switch back to hovering
-        if let BuildState::Dragging { start, end } = state.state {
+        if let BuildDrag::Dragging { start, end } = state.drag {
             let mut world_changed = false;
 
             // This also means we finished a build, so let's apply it
@@ -139,7 +139,7 @@ impl BuildInputHandler {
             }
 
             // Actually switch back to hovering now
-            state.state = BuildState::Hovering { position: self.last_tile_position };
+            state.drag = BuildDrag::Hovering { position: self.last_tile_position };
 
             if world_changed {
                 ship.tiles.mark_changed();
@@ -147,8 +147,8 @@ impl BuildInputHandler {
         }
     }
 
-    fn handle_cancel_up(&mut self, state: &mut BuildInputState) -> GameResult<()> {
-        state.state = BuildState::Hovering { position: self.last_tile_position };
+    fn handle_cancel_up(&mut self, state: &mut BuildState) -> GameResult<()> {
+        state.drag = BuildDrag::Hovering { position: self.last_tile_position };
         state.choice = BuildChoice::None;
 
         Ok(())
@@ -156,7 +156,7 @@ impl BuildInputHandler {
 
     pub fn handle_mouse_move(
         &mut self,
-        mouse_position: Point2<i32>, state: &mut BuildInputState,
+        mouse_position: Point2<i32>, state: &mut BuildState,
         camera: &mut Camera, ship: &Ship,
     ) {
         // Get the position of the cursor in-world
@@ -172,16 +172,16 @@ impl BuildInputHandler {
         {
             self.last_tile_position = Some(tile_position);
 
-            match state.state {
-                BuildState::Hovering { ref mut position } => *position = Some(tile_position),
-                BuildState::Dragging { start: _, ref mut end } => *end = tile_position,
+            match state.drag {
+                BuildDrag::Hovering { ref mut position } => *position = Some(tile_position),
+                BuildDrag::Dragging { start: _, ref mut end } => *end = tile_position,
             }
         } else {
             self.last_tile_position = None;
 
             // If this is an invalid tile, the dragging won't be interested but the hover should be
             // set to None so it won't show up previewed
-            if let &mut BuildState::Hovering { ref mut position } = &mut state.state {
+            if let &mut BuildDrag::Hovering { ref mut position } = &mut state.drag {
                 *position = None;
             }
         }
