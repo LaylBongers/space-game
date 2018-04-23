@@ -8,6 +8,7 @@ use {
 };
 
 /// The collision data for a single (rendered) UI frame.
+#[derive(Debug)]
 pub struct FrameCollision {
     panels: MetroHashMap<PanelId, PanelCollision>,
 }
@@ -17,10 +18,6 @@ impl FrameCollision {
         FrameCollision {
             panels: MetroHashMap::default(),
         }
-    }
-
-    pub fn clear(&mut self) {
-        self.panels.clear();
     }
 
     pub fn set(&mut self, panel_id: PanelId, position: Point2<f32>, size: Vector2<f32>) {
@@ -35,6 +32,7 @@ impl FrameCollision {
     }
 }
 
+#[derive(Debug)]
 pub struct PanelCollision {
     position: Point2<f32>,
     size: Vector2<f32>,
@@ -68,16 +66,16 @@ impl PcInputHandler {
         if let Some(new_hovering) = new_hovering {
             // If the thing we're hovering over is a new thing, we need to notify it
             if self.hovering_over.map(|v| v != new_hovering).unwrap_or(true) {
-                ui.get_mut(new_hovering).unwrap()
-                    .panel.handle_hover_start();
+                let panel_entry = ui.get_mut(new_hovering).unwrap();
+                panel_entry.needs_rendering |= panel_entry.panel.handle_hover_start();
             }
         }
 
         if let Some(hovering_over) = self.hovering_over {
             // If the thing we're hovering over is a new thing, we need to notify the old one
             if new_hovering.map(|v| v != hovering_over).unwrap_or(true) {
-                ui.get_mut(hovering_over).unwrap()
-                    .panel.handle_hover_end();
+                let panel_entry = ui.get_mut(hovering_over).unwrap();
+                panel_entry.needs_rendering |= panel_entry.panel.handle_hover_end();
             }
         }
 

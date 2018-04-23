@@ -27,7 +27,12 @@ pub trait Panel: Any {
     ) -> Result<(), Error>;
 
     fn is_capturing_cursor(&self) -> bool { false }
-    fn handle_hover_start(&mut self) {}
-    fn handle_hover_end(&mut self) {}
+
+    /// If returns true, component will be re-rendered.
+    fn handle_hover_start(&mut self) -> bool { false }
+
+    /// If returns true, component will be re-rendered.
+    fn handle_hover_end(&mut self) -> bool { false }
+
     fn handle_pressed(&mut self) {}
 }

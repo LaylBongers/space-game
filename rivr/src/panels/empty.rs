@@ -38,7 +38,7 @@ impl Panel for EmptyPanel {
         renderer: &mut Renderer, _ui: &Ui, this_id: PanelId, this_layout: &PanelLayout,
         _frame: &mut FrameCollision,
     ) -> Result<(), Error> {
-        self.panel_box.render(renderer, this_id, this_layout)?;
+        self.panel_box.render(renderer, this_id, this_layout, false)?;
 
         Ok(())
     }

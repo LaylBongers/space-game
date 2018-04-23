@@ -28,9 +28,16 @@ impl Default for PanelBox {
 
 impl PanelBox {
     pub fn render(
-        &self, renderer: &mut Renderer, this_id: PanelId, this_layout: &PanelLayout
+        &self,
+        renderer: &mut Renderer, this_id: PanelId, this_layout: &PanelLayout, hovering: bool,
     ) -> Result<(), Error> {
-        if let Some(background) = self.background {
+        let background = if !hovering {
+            self.background
+        } else {
+            Some(Srgba::new(1.0, 0.0, 0.0, 1.0))
+        };
+
+        if let Some(background) = background {
             if self.border_radius == 0.0 {
                 // Simple rectangle fast path
                 renderer.render_vertices(this_id, &[

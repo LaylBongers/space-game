@@ -110,7 +110,7 @@ impl Panel for StackPanel {
         renderer: &mut Renderer, ui: &Ui, this_id: PanelId, this_layout: &PanelLayout,
         frame: &mut FrameCollision,
     ) -> Result<(), Error> {
-        self.panel_box.render(renderer, this_id, this_layout)?;
+        self.panel_box.render(renderer, this_id, this_layout, false)?;
 
         let mut stack_position = self.margin;
         for child_id in &self.children {

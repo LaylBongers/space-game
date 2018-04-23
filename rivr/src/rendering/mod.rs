@@ -20,6 +20,8 @@ pub trait Renderer {
         &mut self, panel_id: PanelId, size: Vector2<u32>
     ) -> Result<bool, Error>;
 
+    fn clear_cache(&mut self, panel_id: PanelId) -> Result<(), Error>;
+
     fn render_cache(
         &mut self,
         target_id: PanelId,
@@ -44,7 +46,6 @@ pub trait Renderer {
 pub fn render<R: Renderer>(
     ui: &mut Ui, renderer: &mut R, frame: &mut FrameCollision
 ) -> Result<(), Error> {
-    frame.clear();
     let root_id = ui.root_id()?;
 
     // First re-layout the UI, we only need to do this during rendering, input should make use of
@@ -59,6 +60,11 @@ pub fn render<R: Renderer>(
     // Make sure the root panel is rendered, then display it to the target
     render_panel(ui, root_id, renderer, frame)?;
     renderer.finish_to_target(root_id)?;
+
+    // Mark everything as rendered, at this point everything should be there
+    for (_, panel_entry) in &mut ui.entries {
+        panel_entry.needs_rendering = false;
+    }
 
     Ok(())
 }
@@ -95,7 +101,9 @@ fn render_panel<R: Renderer>(
     }
 
     // Render the component itself if we need to
-    if cache_empty || child_rendered {
+    if cache_empty || child_rendered || panel_entry.needs_rendering {
+        renderer.clear_cache(panel_id)?;
+
         panel_entry.panel.render(renderer, ui, panel_id, &panel_entry.layout, frame)?;
 
         Ok(true)

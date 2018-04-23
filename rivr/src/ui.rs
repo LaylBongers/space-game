@@ -48,6 +48,7 @@ impl Ui {
         self.entries.insert(PanelId { id }, PanelEntry {
             panel: Box::new(panel),
             layout: PanelLayout::new(),
+            needs_rendering: true,
         });
 
         PanelId { id }
@@ -68,9 +69,10 @@ impl Ui {
 pub struct PanelEntry {
     pub panel: Box<Panel>,
     pub layout: PanelLayout,
+    pub needs_rendering: bool,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub struct PanelId {
     id: u32,
 }

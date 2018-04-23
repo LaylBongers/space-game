@@ -4,7 +4,7 @@ use {
     ggez::{
         Context,
         conf::{NumSamples},
-        graphics::{Canvas, Font},
+        graphics::{self, Canvas, Font},
     },
     metrohash::{MetroHashMap},
 
@@ -85,6 +85,15 @@ impl GgezRivrCache {
         self.panels.insert(panel_id, canvas);
 
         Ok(true)
+    }
+
+    pub fn clear_cache(&mut self, ctx: &mut Context, panel_id: PanelId) -> Result<(), Error> {
+        let canvas = self.panels.get(&panel_id).unwrap();
+        graphics::set_canvas(ctx, Some(canvas));
+        graphics::set_background_color(ctx, (255, 255, 255, 0).into());
+        graphics::clear(ctx);
+
+        Ok(())
     }
 
     pub fn retrive_create_font(

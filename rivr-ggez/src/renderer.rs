@@ -72,6 +72,10 @@ impl<'a> Renderer for GgezRivrRenderer<'a> {
         self.cache.create_resize_cache(self.ctx, panel_id, size)
     }
 
+    fn clear_cache(&mut self, panel_id: PanelId) -> Result<(), Error> {
+        self.cache.clear_cache(self.ctx, panel_id)
+    }
+
     fn render_cache(
         &mut self,
         target_id: PanelId,
