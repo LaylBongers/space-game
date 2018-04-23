@@ -54,18 +54,16 @@ impl StackPanel {
         if self.children.len() != 0 {
             for child_id in &self.children {
                 let child = &ui.get(*child_id).unwrap().layout.variables;
+
                 major_total_width = major_total_width + major_axis_map(child);
                 major_total_margin += self.margin;
 
-                // If we have margin we can't just rely on children to constrain our minimum size,
-                // we need to add a bigger constraint including margin
-                if self.margin != 0.0 {
-                    solver.add_constraint(
-                        minor_axis_map(this)
-                        |GE(MEDIUM)|
-                        minor_axis_map(child) + (self.margin * 2.0)
-                    ).unwrap();
-                }
+                // We need to size our minor axis to be bigger than the size of children + margin
+                solver.add_constraint(
+                    minor_axis_map(this)
+                    |GE(MEDIUM)|
+                    minor_axis_map(child) + (self.margin * 2.0)
+                ).unwrap();
             }
         } else {
             // If we don't have any children at all, we need to do some corrections to still get

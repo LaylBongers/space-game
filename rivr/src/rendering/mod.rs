@@ -30,6 +30,13 @@ pub trait Renderer {
         panel_id: PanelId,
         vertices: &[Point2<f32>], indices: &[u16], color: Srgba,
     ) -> Result<(), Error>;
+
+    fn render_text(
+        &mut self,
+        panel_id: PanelId,
+        text: &String, /* text_font: Option<&String>, */ text_size: u32,
+        position: Point2<f32>, size: Vector2<f32>, color: Srgba,
+    ) -> Result<(), Error>;
 }
 
 pub fn render<R: Renderer>(ui: &mut Ui, root_id: PanelId, renderer: &mut R) -> Result<(), Error> {

@@ -2,7 +2,7 @@ use {
     cassowary::{
         Solver, Variable,
         WeightedRelation::*,
-        strength::{WEAK, MEDIUM, STRONG, REQUIRED},
+        strength::{WEAK, STRONG, REQUIRED},
     },
 
     layouting::{LayoutVariables},
@@ -90,9 +90,6 @@ impl AxisSize {
         solver.add_constraints(&[
             // Must be non-negative size
             axis |GE(REQUIRED)| 0.0,
-            // Prefer parent to be at least our size unless specified otherwise, this allows Min on
-            // parents to wrap around children
-            parent_axis |GE(MEDIUM)| axis,
             // The size constraint
             constraint,
         ]).unwrap();

@@ -1,5 +1,6 @@
 #[derive(Debug)]
 pub enum Error {
+    Resource { resource: Option<String>, error: String },
     Rendering(RenderingError),
 }
 

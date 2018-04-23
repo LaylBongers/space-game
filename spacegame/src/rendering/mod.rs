@@ -34,7 +34,9 @@ impl Renderer {
     pub fn new(ctx: &mut Context) -> GameResult<Self> {
         let fps_font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
         let tiles_batch = SpriteBatch::new(Image::new(ctx, "/tiles.png")?);
-        let rivr_cache = GgezRivrCache::new();
+
+        let mut rivr_cache = GgezRivrCache::new();
+        rivr_cache.add_font("dejavu", "/DejaVuSansMono.ttf").unwrap();
 
         Ok(Renderer {
             fps_font,

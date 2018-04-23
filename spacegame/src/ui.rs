@@ -1,8 +1,8 @@
 use {
     rivr::{
         Ui, PanelId,
-        attributes::{PanelSize, AxisSize, PanelBox, Orientation, Srgba},
-        panels::{EmptyPanel, StackPanel},
+        attributes::{PanelText, PanelSize, AxisSize, PanelBox, Orientation, Srgba},
+        panels::{ButtonPanel, EmptyPanel, StackPanel},
     },
 };
 
@@ -27,11 +27,26 @@ impl UiSystem {
         };
 
         let top_bar_id = {
-            let button1 = EmptyPanel::new(
+            let build_button = ButtonPanel::new(
                 PanelSize::absolute(72.0, 24.0),
                 button_box.clone(),
+                Some(PanelText::new("Build", 9)),
             );
-            let button1_id = ui.add_panel(button1);
+            let build_button_id = ui.add_panel(build_button);
+
+            let destroy_button = ButtonPanel::new(
+                PanelSize::absolute(72.0, 24.0),
+                button_box.clone(),
+                Some(PanelText::new("Destroy", 9)),
+            );
+            let destroy_button_id = ui.add_panel(destroy_button);
+
+            let destroy_all_button = ButtonPanel::new(
+                PanelSize::absolute(72.0, 24.0),
+                button_box.clone(),
+                Some(PanelText::new("Destroy All", 8)),
+            );
+            let destroy_all_button_id = ui.add_panel(destroy_all_button);
 
             let button2 = EmptyPanel::new(
                 PanelSize::absolute(72.0, 24.0),
@@ -44,7 +59,9 @@ impl UiSystem {
                 panel_box.clone(),
                 Orientation::Horizontal, 3.0,
             );
-            top_bar.add_child(button1_id);
+            top_bar.add_child(build_button_id);
+            top_bar.add_child(destroy_button_id);
+            top_bar.add_child(destroy_all_button_id);
             top_bar.add_child(button2_id);
             ui.add_panel(top_bar)
         };
