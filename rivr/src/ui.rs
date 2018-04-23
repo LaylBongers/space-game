@@ -3,12 +3,14 @@ use {
 
     layouting::{PanelLayout, LayoutVariables},
     panels::{Panel},
+    Error,
 };
 
 pub struct Ui {
-    entries: MetroHashMap<PanelId, PanelEntry>,
+    pub(crate) entries: MetroHashMap<PanelId, PanelEntry>,
     next_id: u32,
 
+    root_id: Option<PanelId>,
     pub(crate) target_variables: LayoutVariables,
 }
 
@@ -17,12 +19,10 @@ impl Ui {
         Ui {
             entries: Default::default(),
             next_id: 0,
+
+            root_id: None,
             target_variables: LayoutVariables::new(),
         }
-    }
-
-    pub fn entries_mut(&mut self) -> ::std::collections::hash_map::ValuesMut<PanelId, PanelEntry> {
-        self.entries.values_mut()
     }
 
     pub fn get(&self, panel_id: PanelId) -> Option<&PanelEntry> {
@@ -31,6 +31,14 @@ impl Ui {
 
     pub fn get_mut(&mut self, panel_id: PanelId) -> Option<&mut PanelEntry> {
         self.entries.get_mut(&panel_id)
+    }
+
+    pub fn root_id(&self) -> Result<PanelId, Error> {
+        if let Some(root_id) = self.root_id {
+            Ok(root_id)
+        } else {
+            Err(Error::NoRoot)
+        }
     }
 
     pub fn add_panel<P: Panel>(&mut self, panel: P) -> PanelId {
@@ -43,6 +51,17 @@ impl Ui {
         });
 
         PanelId { id }
+    }
+
+    pub fn add_root<P: Panel>(&mut self, panel: P) -> Result<PanelId, Error> {
+        if self.root_id.is_some() {
+            return Err(Error::RootAlreadyExists)
+        }
+
+        let panel_id = self.add_panel(panel);
+        self.root_id = Some(panel_id);
+
+        Ok(panel_id)
     }
 }
 

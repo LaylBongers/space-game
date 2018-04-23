@@ -1,8 +1,10 @@
 use {
     nalgebra::{Point2, Vector2},
     palette::{Srgba},
-    Error, RenderingError, Ui, PanelId,
+
+    input::{FrameCollision},
     layouting,
+    Error, RenderingError, Ui, PanelId,
 };
 
 pub trait Renderer {
@@ -39,20 +41,31 @@ pub trait Renderer {
     ) -> Result<(), Error>;
 }
 
-pub fn render<R: Renderer>(ui: &mut Ui, root_id: PanelId, renderer: &mut R) -> Result<(), Error> {
+pub fn render<R: Renderer>(
+    ui: &mut Ui, renderer: &mut R, frame: &mut FrameCollision
+) -> Result<(), Error> {
+    frame.clear();
+    let root_id = ui.root_id()?;
+
     // First re-layout the UI, we only need to do this during rendering, input should make use of
     // the cached information gathered here to be consistent with what's visible on screen
     let size = renderer.target_size();
     layouting::layout(ui, root_id, size);
 
+    // Insert the parent into the frame, this is needed because parents are responsible for adding
+    // children to the frame, but the root has no parent
+    frame.set(root_id, Point2::new(0.0, 0.0), size);
+
     // Make sure the root panel is rendered, then display it to the target
-    render_panel(ui, root_id, renderer)?;
+    render_panel(ui, root_id, renderer, frame)?;
     renderer.finish_to_target(root_id)?;
 
     Ok(())
 }
 
-fn render_panel<R: Renderer>(ui: &Ui, panel_id: PanelId, renderer: &mut R) -> Result<bool, Error> {
+fn render_panel<R: Renderer>(
+    ui: &Ui, panel_id: PanelId, renderer: &mut R, frame: &mut FrameCollision,
+) -> Result<bool, Error> {
     let panel_entry = ui.get(panel_id).unwrap();
     let panel_size = panel_entry.layout.size;
 
@@ -75,15 +88,15 @@ fn render_panel<R: Renderer>(ui: &Ui, panel_id: PanelId, renderer: &mut R) -> Re
 
     // The parent's children need to be rendered first
     let mut child_rendered = false;
-    if let Some(children) = panel_entry.panel.children() {
+    if let Some(children) = panel_entry.panel.visible_children() {
         for child_id in children {
-            child_rendered |= render_panel(ui, *child_id, renderer)?
+            child_rendered |= render_panel(ui, *child_id, renderer, frame)?
         }
     }
 
     // Render the component itself if we need to
     if cache_empty || child_rendered {
-        panel_entry.panel.render(renderer, ui, panel_id, &panel_entry.layout)?;
+        panel_entry.panel.render(renderer, ui, panel_id, &panel_entry.layout, frame)?;
 
         Ok(true)
     } else {

@@ -1,14 +1,15 @@
 use {
     rivr::{
-        Ui, PanelId,
         attributes::{PanelText, PanelSize, AxisSize, PanelBox, Orientation, Srgba},
+        input::{FrameCollision},
         panels::{ButtonPanel, EmptyPanel, StackPanel},
+        Ui,
     },
 };
 
 pub struct UiSystem {
     pub ui: Ui,
-    pub root_id: PanelId,
+    pub frame: FrameCollision,
 }
 
 impl UiSystem {
@@ -72,11 +73,11 @@ impl UiSystem {
             Orientation::Vertical, 0.0,
         );
         root.add_child(top_bar_id);
-        let root_id = ui.add_panel(root);
+        ui.add_root(root).unwrap();
 
         UiSystem {
             ui,
-            root_id,
+            frame: FrameCollision::new(),
         }
     }
 }

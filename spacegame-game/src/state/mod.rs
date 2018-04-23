@@ -17,7 +17,7 @@ use {
 
 #[derive(Deserialize, Serialize)]
 pub struct GameState {
-    pub build_input_state: BuildState,
+    pub build_state: BuildState,
     pub camera: Camera,
     pub ship: Ship,
 }
@@ -32,7 +32,7 @@ impl GameState {
         let ship = Ship::starter(&log);
 
         GameState {
-            build_input_state: BuildState {
+            build_state: BuildState {
                 drag: BuildDrag::Hovering { position: None, },
                 choice: BuildChoice::None,
             },

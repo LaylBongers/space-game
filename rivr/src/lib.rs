@@ -5,6 +5,7 @@ extern crate cassowary;
 extern crate lyon;
 
 pub mod attributes;
+pub mod input;
 pub mod layouting;
 pub mod panels;
 pub mod rendering;

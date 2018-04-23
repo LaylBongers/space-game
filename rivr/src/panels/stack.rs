@@ -8,6 +8,7 @@ use {
 
     Ui, PanelId, Error,
     attributes::{PanelSize, PanelBox, Orientation},
+    input::{FrameCollision},
     layouting::{LayoutVariables, PanelLayout},
     panels::{Panel},
     rendering::{Renderer},
@@ -83,7 +84,7 @@ impl StackPanel {
 }
 
 impl Panel for StackPanel {
-    fn children(&self) -> Option<&Vec<PanelId>> {
+    fn visible_children(&self) -> Option<&Vec<PanelId>> {
         Some(&self.children)
     }
 
@@ -105,7 +106,9 @@ impl Panel for StackPanel {
     }
 
     fn render(
-        &self, renderer: &mut Renderer, ui: &Ui, this_id: PanelId, this_layout: &PanelLayout,
+        &self,
+        renderer: &mut Renderer, ui: &Ui, this_id: PanelId, this_layout: &PanelLayout,
+        frame: &mut FrameCollision,
     ) -> Result<(), Error> {
         self.panel_box.render(renderer, this_id, this_layout)?;
 
@@ -127,6 +130,7 @@ impl Panel for StackPanel {
             };
 
             renderer.render_cache(this_id, *child_id, position)?;
+            frame.set(*child_id, position, child.layout.size);
         }
 
         Ok(())

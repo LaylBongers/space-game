@@ -21,7 +21,7 @@ pub fn layout(ui: &mut Ui, root_id: PanelId, target_size: Vector2<f32>) {
     solver.suggest_value(ui.target_variables.height, target_size.y as f64).unwrap();
 
     // Finally, retrieve the solved data
-    for entry in ui.entries_mut() {
+    for (_panel_id, entry) in &mut ui.entries {
         // TODO: The preferred way to get values is fetch_changes, check if there's a special
         // reason for this or if get_value is fine
         entry.layout.size = Vector2::new(
@@ -45,7 +45,7 @@ pub fn add_panel_constraints(
         c_depth,
     );
 
-    if let Some(children) = panel_entry.panel.children() {
+    if let Some(children) = panel_entry.panel.visible_children() {
         for child_id in children {
             add_panel_constraints(solver, ui, *child_id, panel_variables, c_depth + 0.01);
         }

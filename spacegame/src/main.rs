@@ -139,23 +139,29 @@ impl EventHandler for MainState {
 
     fn mouse_button_down_event(
         &mut self, _ctx: &mut Context,
-        button: MouseButton, _x: i32, _y: i32
+        button: MouseButton, x: i32, y: i32
     ) {
-        self.input_handler.handle_button_down(button, &mut self.game_state);
+        self.input_handler.handle_button_down(
+            button, x, y, &mut self.ui_system, &mut self.game_state
+        );
     }
 
     fn mouse_button_up_event(
         &mut self, _ctx: &mut Context,
-        button: MouseButton, _x: i32, _y: i32
+        button: MouseButton, x: i32, y: i32
     ) {
-        self.input_handler.handle_button_up(button, &mut self.game_state);
+        self.input_handler.handle_button_up(
+            button, x, y, &mut self.ui_system, &mut self.game_state
+        );
     }
 
     fn mouse_motion_event(
         &mut self, _ctx: &mut Context,
         _state: MouseState, x: i32, y: i32, xrel: i32, yrel: i32
     ) {
-        self.input_handler.handle_motion(x, y, xrel, yrel, &mut self.game_state);
+        self.input_handler.handle_motion(
+            x, y, xrel, yrel, &mut self.ui_system, &mut self.game_state
+        );
     }
 
     fn quit_event(&mut self, _ctx: &mut Context) -> bool {

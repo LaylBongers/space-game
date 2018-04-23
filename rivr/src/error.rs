@@ -1,5 +1,9 @@
 #[derive(Debug)]
 pub enum Error {
+    /// The UI already has a root.
+    RootAlreadyExists,
+    /// The UI doesn't have a root when it's required for the operation.
+    NoRoot,
     Resource { resource: Option<String>, error: String },
     Rendering(RenderingError),
 }

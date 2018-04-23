@@ -71,7 +71,9 @@ impl Renderer {
         // Render the UI
         {
             let mut renderer = GgezRivrRenderer::new(ctx, &mut self.rivr_cache);
-            rivr::rendering::render(&mut ui_system.ui, ui_system.root_id, &mut renderer).unwrap();
+            rivr::rendering::render(
+                &mut ui_system.ui, &mut renderer, &mut ui_system.frame,
+            ).unwrap();
         }
 
         // Draw an FPS counter over everything else for debugging
@@ -90,12 +92,12 @@ pub fn draw_build_graphics(
     object_classes: &ObjectClasses, game_state: &GameState, tiles: &mut SpriteBatch,
 ) -> GameResult<()> {
     // If clicking won't do anything, we don't want to draw an indicator
-    if game_state.build_input_state.choice == BuildChoice::None {
+    if game_state.build_state.choice == BuildChoice::None {
         return Ok(())
     }
 
     draw_grid(ctx, &game_state.ship, &game_state.camera)?;
-    draw_build_placeholder(ctx, &game_state.build_input_state, object_classes, tiles)?;
+    draw_build_placeholder(ctx, &game_state.build_state, object_classes, tiles)?;
 
     Ok(())
 }

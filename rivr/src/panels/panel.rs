@@ -4,14 +4,14 @@ use {
     cassowary::{Solver},
 
     Ui, PanelId, Error,
+    input::{FrameCollision},
     layouting::{LayoutVariables, PanelLayout},
     rendering::{Renderer},
 };
 
 pub trait Panel: Any {
-    /// Return a vector of the children of this panel, if applicable.
-    /// These children will be rendered before this one.
-    fn children(&self) -> Option<&Vec<PanelId>>;
+    /// Returns a vector of the children that need to be layouted, and rendered.
+    fn visible_children(&self) -> Option<&Vec<PanelId>> { None }
 
     fn add_constraints(
         &self,
@@ -21,6 +21,13 @@ pub trait Panel: Any {
     );
 
     fn render(
-        &self, renderer: &mut Renderer, ui: &Ui, this_id: PanelId, this_layout: &PanelLayout
+        &self,
+        renderer: &mut Renderer, ui: &Ui, this_id: PanelId, this_layout: &PanelLayout,
+        frame: &mut FrameCollision,
     ) -> Result<(), Error>;
+
+    fn is_capturing_cursor(&self) -> bool { false }
+    fn handle_hover_start(&mut self) {}
+    fn handle_hover_end(&mut self) {}
+    fn handle_pressed(&mut self) {}
 }
