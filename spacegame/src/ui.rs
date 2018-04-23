@@ -42,7 +42,7 @@ impl UiSystem {
             let mut top_bar = StackPanel::new(
                 PanelSize::new(AxisSize::Fill, AxisSize::Min),
                 panel_box.clone(),
-                Orientation::Horizontal
+                Orientation::Horizontal, 3.0,
             );
             top_bar.add_child(button1_id);
             top_bar.add_child(button2_id);
@@ -52,7 +52,7 @@ impl UiSystem {
         let mut root = StackPanel::new(
             PanelSize::fill(),
             PanelBox::default(),
-            Orientation::Vertical
+            Orientation::Vertical, 0.0,
         );
         root.add_child(top_bar_id);
         let root_id = ui.add_panel(root);

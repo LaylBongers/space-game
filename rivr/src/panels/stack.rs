@@ -18,16 +18,21 @@ pub struct StackPanel {
     size: PanelSize,
     panel_box: PanelBox,
     orientation: Orientation,
+    margin: f32,
 
     children: Vec<PanelId>,
 }
 
 impl StackPanel {
-    pub fn new(size: PanelSize, panel_box: PanelBox, orientation: Orientation) -> Self {
+    pub fn new(
+        size: PanelSize, panel_box: PanelBox, orientation: Orientation, margin: f32
+    ) -> Self {
         StackPanel {
             size,
             panel_box,
             orientation,
+            margin,
+
             children: Vec::new(),
         }
     }
@@ -36,15 +41,46 @@ impl StackPanel {
         self.children.push(panel);
     }
 
-    fn constrain_axis_to_children<F: Fn(&LayoutVariables) -> Variable>(
-        &self, solver: &mut Solver,  ui: &Ui, axis: Variable, map: F,
-    ) {
-        let mut expression = Expression::from_constant(0.0);
-        for child_id in &self.children {
-            let child = &ui.get(*child_id).unwrap().layout.variables;
-            expression = expression + map(child);
+    fn constrain_axis_to_children<F1, F2>(
+        &self, solver: &mut Solver, ui: &Ui,
+        this: &LayoutVariables, major_axis_map: F1, minor_axis_map: F2,
+    ) where
+        F1: Fn(&LayoutVariables) -> Variable,
+        F2: Fn(&LayoutVariables) -> Variable,
+    {
+        let mut major_total_width = Expression::from_constant(self.margin as f64);
+        let mut major_total_margin = 0.0;
+
+        if self.children.len() != 0 {
+            for child_id in &self.children {
+                let child = &ui.get(*child_id).unwrap().layout.variables;
+                major_total_width = major_total_width + major_axis_map(child);
+                major_total_margin += self.margin;
+
+                // If we have margin we can't just rely on children to constrain our minimum size,
+                // we need to add a bigger constraint including margin
+                if self.margin != 0.0 {
+                    solver.add_constraint(
+                        minor_axis_map(this)
+                        |GE(MEDIUM)|
+                        minor_axis_map(child) + (self.margin * 2.0)
+                    ).unwrap();
+                }
+            }
+        } else {
+            // If we don't have any children at all, we need to do some corrections to still get
+            // a valid size based on the margins
+            if self.margin != 0.0 {
+                major_total_margin += self.margin;
+                solver.add_constraint(
+                    minor_axis_map(this) |GE(MEDIUM)| self.margin * 2.0
+                ).unwrap();
+            }
         }
-        solver.add_constraint(axis |GE(MEDIUM)| expression).unwrap();
+
+        solver.add_constraint(
+            major_axis_map(this) |GE(MEDIUM)| major_total_width + major_total_margin
+        ).unwrap();
     }
 }
 
@@ -64,9 +100,9 @@ impl Panel for StackPanel {
         // Prefer a size that at least contains all children
         match self.orientation {
             Orientation::Horizontal =>
-                self.constrain_axis_to_children(solver, ui, this.width, |c| c.width),
+                self.constrain_axis_to_children(solver, ui, this, |c| c.width, |c| c.height),
             Orientation::Vertical =>
-                self.constrain_axis_to_children(solver, ui, this.height, |c| c.height),
+                self.constrain_axis_to_children(solver, ui, this, |c| c.height, |c| c.width),
         }
     }
 
@@ -75,19 +111,19 @@ impl Panel for StackPanel {
     ) -> Result<(), Error> {
         self.panel_box.render(renderer, this_id, this_layout)?;
 
-        let mut stack_position = 0.0;
+        let mut stack_position = self.margin;
         for child_id in &self.children {
             let child = ui.get(*child_id).unwrap();
 
             let position = match self.orientation {
                 Orientation::Horizontal => {
-                    let position = Point2::new(stack_position, 0.0);
-                    stack_position += child.layout.size.x;
+                    let position = Point2::new(stack_position, self.margin);
+                    stack_position += child.layout.size.x + self.margin;
                     position
                 },
                 Orientation::Vertical => {
-                    let position = Point2::new(0.0, stack_position);
-                    stack_position += child.layout.size.y;
+                    let position = Point2::new(self.margin, stack_position);
+                    stack_position += child.layout.size.y + self.margin;
                     position
                 },
             };
