@@ -16,41 +16,38 @@ impl UiSystem {
         let mut ui = Ui::new();
 
         let panel_bg = Srgba::new(1.0, 1.0, 1.0, 0.8);
+        let panel_box = PanelBox {
+            background: Some(panel_bg),
+            .. PanelBox::default()
+        };
+        let button_box = PanelBox {
+            background: Some(panel_bg),
+            border_radius: 3.0,
+            .. PanelBox::default()
+        };
 
         let top_bar_id = {
-            let button = EmptyPanel::new(
-                PanelSize::absolute(30.0, 30.0),
-                PanelBox {
-                    background: Some(panel_bg),
-                    border_radius: 3.0,
-                    .. PanelBox::default()
-                },
+            let button1 = EmptyPanel::new(
+                PanelSize::absolute(72.0, 24.0),
+                button_box.clone(),
             );
-            let button_id = ui.add_panel(button);
+            let button1_id = ui.add_panel(button1);
+
+            let button2 = EmptyPanel::new(
+                PanelSize::absolute(72.0, 24.0),
+                button_box.clone(),
+            );
+            let button2_id = ui.add_panel(button2);
 
             let mut top_bar = StackPanel::new(
                 PanelSize::new(AxisSize::Fill, AxisSize::Min),
-                PanelBox {
-                    background: Some(panel_bg),
-                    .. PanelBox::default()
-                },
+                panel_box.clone(),
                 Orientation::Horizontal
             );
-            top_bar.add_child(button_id);
+            top_bar.add_child(button1_id);
+            top_bar.add_child(button2_id);
             ui.add_panel(top_bar)
         };
-
-        let spacer = EmptyPanel::new(PanelSize::max(), PanelBox::default());
-        let spacer_id = ui.add_panel(spacer);
-
-        let bottom_bar = EmptyPanel::new(
-            PanelSize::y_absolute(30.0),
-            PanelBox {
-                background: Some(Srgba::new(0.5, 0.5, 0.5, 1.0)),
-                .. PanelBox::default()
-            },
-        );
-        let bottom_bar_id = ui.add_panel(bottom_bar);
 
         let mut root = StackPanel::new(
             PanelSize::fill(),
@@ -58,8 +55,6 @@ impl UiSystem {
             Orientation::Vertical
         );
         root.add_child(top_bar_id);
-        root.add_child(spacer_id);
-        root.add_child(bottom_bar_id);
         let root_id = ui.add_panel(root);
 
         UiSystem {

@@ -1,7 +1,7 @@
 use {
     nalgebra::{Point2},
     cassowary::{
-        Solver, Expression,
+        Solver, Expression, Variable,
         WeightedRelation::*,
         strength::{MEDIUM},
     },
@@ -35,6 +35,17 @@ impl StackPanel {
     pub fn add_child(&mut self, panel: PanelId) {
         self.children.push(panel);
     }
+
+    fn constrain_axis_to_children<F: Fn(&LayoutVariables) -> Variable>(
+        &self, solver: &mut Solver,  ui: &Ui, axis: Variable, map: F,
+    ) {
+        let mut expression = Expression::from_constant(0.0);
+        for child_id in &self.children {
+            let child = &ui.get(*child_id).unwrap().layout.variables;
+            expression = expression + map(child);
+        }
+        solver.add_constraint(axis |GE(MEDIUM)| expression).unwrap();
+    }
 }
 
 impl Panel for StackPanel {
@@ -50,25 +61,12 @@ impl Panel for StackPanel {
     ) {
         self.size.add_constraints(solver, this, parent, c_depth);
 
+        // Prefer a size that at least contains all children
         match self.orientation {
-            Orientation::Horizontal => {
-                // Prefer a size that contains all children
-                let mut expression = Expression::from_constant(0.0);
-                for child_id in &self.children {
-                    let child = &ui.get(*child_id).unwrap().layout.variables;
-                    expression = expression + child.width;
-                }
-                solver.add_constraint(this.width |EQ(MEDIUM)| expression).unwrap();
-            }
-            Orientation::Vertical => {
-                // Prefer a size that contains all children
-                let mut expression = Expression::from_constant(0.0);
-                for child_id in &self.children {
-                    let child = &ui.get(*child_id).unwrap().layout.variables;
-                    expression = expression + child.height;
-                }
-                solver.add_constraint(this.height |EQ(MEDIUM)| expression).unwrap();
-            }
+            Orientation::Horizontal =>
+                self.constrain_axis_to_children(solver, ui, this.width, |c| c.width),
+            Orientation::Vertical =>
+                self.constrain_axis_to_children(solver, ui, this.height, |c| c.height),
         }
     }
 

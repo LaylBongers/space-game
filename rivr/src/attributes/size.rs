@@ -49,20 +49,6 @@ impl PanelSize {
         }
     }
 
-    pub fn x_absolute(value: f32) -> Self {
-        PanelSize {
-            x: AxisSize::Absolute(value),
-            y: AxisSize::Max,
-        }
-    }
-
-    pub fn y_absolute(value: f32) -> Self {
-        PanelSize {
-            x: AxisSize::Max,
-            y: AxisSize::Absolute(value),
-        }
-    }
-
     pub fn add_constraints(
         &self, solver: &mut Solver,
         this: &LayoutVariables,
