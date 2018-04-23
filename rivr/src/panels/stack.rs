@@ -3,11 +3,11 @@ use {
     cassowary::{
         Solver, Expression,
         WeightedRelation::*,
-        strength::{STRONG},
+        strength::{MEDIUM},
     },
 
     Ui, PanelId, Error,
-    attributes::{PanelSize, Orientation},
+    attributes::{PanelSize, PanelBox, Orientation},
     layouting::{LayoutVariables, PanelLayout},
     panels::{Panel},
     rendering::{Renderer},
@@ -16,14 +16,17 @@ use {
 
 pub struct StackPanel {
     size: PanelSize,
+    panel_box: PanelBox,
     orientation: Orientation,
+
     children: Vec<PanelId>,
 }
 
 impl StackPanel {
-    pub fn new(size: PanelSize, orientation: Orientation) -> Self {
+    pub fn new(size: PanelSize, panel_box: PanelBox, orientation: Orientation) -> Self {
         StackPanel {
             size,
+            panel_box,
             orientation,
             children: Vec::new(),
         }
@@ -55,7 +58,7 @@ impl Panel for StackPanel {
                     let child = &ui.get(*child_id).unwrap().layout.variables;
                     expression = expression + child.width;
                 }
-                solver.add_constraint(this.width |EQ(STRONG)| expression).unwrap();
+                solver.add_constraint(this.width |EQ(MEDIUM)| expression).unwrap();
             }
             Orientation::Vertical => {
                 // Prefer a size that contains all children
@@ -64,14 +67,16 @@ impl Panel for StackPanel {
                     let child = &ui.get(*child_id).unwrap().layout.variables;
                     expression = expression + child.height;
                 }
-                solver.add_constraint(this.height |EQ(STRONG)| expression).unwrap();
+                solver.add_constraint(this.height |EQ(MEDIUM)| expression).unwrap();
             }
         }
     }
 
     fn render(
-        &self, renderer: &mut Renderer, ui: &Ui, this_id: PanelId, _this_layout: &PanelLayout
+        &self, renderer: &mut Renderer, ui: &Ui, this_id: PanelId, this_layout: &PanelLayout,
     ) -> Result<(), Error> {
+        self.panel_box.render(renderer, this_id, this_layout)?;
+
         let mut stack_position = 0.0;
         for child_id in &self.children {
             let child = ui.get(*child_id).unwrap();

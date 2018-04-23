@@ -2,6 +2,7 @@ extern crate metrohash;
 extern crate nalgebra;
 extern crate palette;
 extern crate cassowary;
+extern crate lyon;
 
 pub mod attributes;
 pub mod layouting;

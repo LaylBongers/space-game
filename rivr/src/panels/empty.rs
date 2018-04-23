@@ -1,10 +1,8 @@
 use {
-    nalgebra::{Point2},
-    palette::{Srgba},
     cassowary::{Solver},
 
     Ui, PanelId, Error,
-    attributes::{PanelSize},
+    attributes::{PanelSize, PanelBox},
     layouting::{LayoutVariables, PanelLayout},
     panels::{Panel},
     rendering::{Renderer},
@@ -12,14 +10,14 @@ use {
 
 pub struct EmptyPanel {
     size: PanelSize,
-    background: Option<Srgba>,
+    panel_box: PanelBox,
 }
 
 impl EmptyPanel {
-    pub fn new(size: PanelSize, background: Option<Srgba>) -> Self {
+    pub fn new(size: PanelSize, panel_box: PanelBox) -> Self {
         EmptyPanel {
             size,
-            background,
+            panel_box,
         }
     }
 }
@@ -41,14 +39,7 @@ impl Panel for EmptyPanel {
     fn render(
         &self, renderer: &mut Renderer, _ui: &Ui, this_id: PanelId, this_layout: &PanelLayout
     ) -> Result<(), Error> {
-        if let Some(background) = self.background {
-            renderer.render_vertices(this_id, &[
-                Point2::new(0.0, 0.0),
-                Point2::new(0.0, this_layout.size.y),
-                Point2::new(this_layout.size.x, this_layout.size.y),
-                Point2::new(this_layout.size.x, 0.0),
-            ], &[0, 1, 3, 2, 3, 1], background)?;
-        }
+        self.panel_box.render(renderer, this_id, this_layout)?;
 
         Ok(())
     }
