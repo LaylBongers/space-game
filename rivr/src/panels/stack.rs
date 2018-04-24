@@ -91,10 +91,10 @@ impl Panel for StackPanel {
     fn add_constraints(
         &self,
         solver: &mut Solver, ui: &Ui,
-        this: &LayoutVariables, parent: &LayoutVariables,
+        this: &LayoutVariables,
         c_depth: f64,
     ) {
-        self.size.add_constraints(solver, this, parent, c_depth);
+        self.size.add_constraints(solver, this, c_depth);
 
         // Prefer a size that at least contains all children
         match self.orientation {

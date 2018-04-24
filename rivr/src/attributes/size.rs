@@ -28,13 +28,6 @@ impl PanelSize {
         }
     }
 
-    pub fn fill() -> Self {
-        PanelSize {
-            x: AxisSize::Fill,
-            y: AxisSize::Fill,
-        }
-    }
-
     pub fn max() -> Self {
         PanelSize {
             x: AxisSize::Max,
@@ -52,11 +45,10 @@ impl PanelSize {
     pub fn add_constraints(
         &self, solver: &mut Solver,
         this: &LayoutVariables,
-        parent: &LayoutVariables,
         c_depth: f64
     ) {
-        self.x.add_constraints(solver, this.width, parent.width, c_depth);
-        self.y.add_constraints(solver, this.height, parent.height, c_depth);
+        self.x.add_constraints(solver, this.width, c_depth);
+        self.y.add_constraints(solver, this.height, c_depth);
     }
 }
 
@@ -64,8 +56,6 @@ impl PanelSize {
 pub enum AxisSize {
     /// Tries to set an absolute panel size.
     Absolute(f32),
-    /// Tries to fill the panel's parent.
-    Fill,
     /// Tries to make the panel as big as possible.
     Max,
     /// Tries to make the panel as small as possible.
@@ -74,13 +64,11 @@ pub enum AxisSize {
 
 impl AxisSize {
     pub fn add_constraints(
-        self, solver: &mut Solver, axis: Variable, parent_axis: Variable, c_depth: f64
+        self, solver: &mut Solver, axis: Variable, c_depth: f64
     ) {
         let constraint = match self {
             AxisSize::Absolute(value) =>
                 axis |EQ(STRONG)| value as f64,
-            AxisSize::Fill =>
-                axis |EQ(STRONG)| parent_axis,
             AxisSize::Max =>
                 axis |EQ(WEAK * c_depth)| 1_000_000.0,
             AxisSize::Min =>

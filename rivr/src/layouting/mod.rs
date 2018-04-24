@@ -2,7 +2,8 @@ use {
     nalgebra::{Vector2},
     cassowary::{
         Solver, Variable,
-        strength::{STRONG},
+        WeightedRelation::*,
+        strength::{STRONG, REQUIRED},
     },
 
     Ui, PanelId
@@ -12,13 +13,22 @@ pub fn layout(ui: &mut Ui, root_id: PanelId, target_size: Vector2<f32>) {
     let mut solver = Solver::new();
 
     // Recursively add the constraints for all our panels
-    add_panel_constraints(&mut solver, ui, root_id, &ui.target_variables, 1.0);
+    add_panel_constraints(&mut solver, ui, root_id, 1.0);
 
-    // Constrain the total UI to the window
-    solver.add_edit_variable(ui.target_variables.width, STRONG).unwrap();
-    solver.suggest_value(ui.target_variables.width, target_size.x as f64).unwrap();
-    solver.add_edit_variable(ui.target_variables.height, STRONG).unwrap();
-    solver.suggest_value(ui.target_variables.height, target_size.y as f64).unwrap();
+    // Constrain the root panel to the window
+    let target_width = ui.target_variables.width;
+    let target_height = ui.target_variables.height;
+    {
+        let root = &ui.get_mut(root_id).unwrap().layout.variables;
+        solver.add_constraints(&[
+            root.width |LE(REQUIRED)| target_width,
+            root.height |LE(REQUIRED)| target_height,
+        ]).unwrap();
+    }
+    solver.add_edit_variable(target_width, STRONG).unwrap();
+    solver.suggest_value(target_width, target_size.x as f64).unwrap();
+    solver.add_edit_variable(target_height, STRONG).unwrap();
+    solver.suggest_value(target_height, target_size.y as f64).unwrap();
 
     // Finally, retrieve the solved data
     for (_panel_id, entry) in &mut ui.entries {
@@ -33,7 +43,7 @@ pub fn layout(ui: &mut Ui, root_id: PanelId, target_size: Vector2<f32>) {
 
 pub fn add_panel_constraints(
     solver: &mut Solver, ui: &Ui,
-    panel_id: PanelId, parent_variables: &LayoutVariables,
+    panel_id: PanelId,
     c_depth: f64,
 ) {
     let panel_entry = ui.get(panel_id).unwrap();
@@ -41,13 +51,13 @@ pub fn add_panel_constraints(
 
     panel_entry.panel.add_constraints(
         solver, ui,
-        panel_variables, parent_variables,
+        panel_variables,
         c_depth,
     );
 
     if let Some(children) = panel_entry.panel.visible_children() {
         for child_id in children {
-            add_panel_constraints(solver, ui, *child_id, panel_variables, c_depth + 0.01);
+            add_panel_constraints(solver, ui, *child_id, c_depth + 0.01);
         }
     }
 }

@@ -27,10 +27,10 @@ impl Panel for EmptyPanel {
     fn add_constraints(
         &self,
         solver: &mut Solver, _ui: &Ui,
-        this: &LayoutVariables, parent: &LayoutVariables,
+        this: &LayoutVariables,
         c_depth: f64,
     ) {
-        self.size.add_constraints(solver, this, parent, c_depth);
+        self.size.add_constraints(solver, this, c_depth);
     }
 
     fn render(

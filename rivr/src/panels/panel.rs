@@ -16,13 +16,14 @@ pub trait Panel: Any {
     fn add_constraints(
         &self,
         solver: &mut Solver, ui: &Ui,
-        this: &LayoutVariables, parent: &LayoutVariables,
+        this: &LayoutVariables,
         c_depth: f64,
     );
 
     fn render(
         &self,
-        renderer: &mut Renderer, ui: &Ui, this_id: PanelId, this_layout: &PanelLayout,
+        renderer: &mut Renderer, ui: &Ui,
+        this_id: PanelId, this_layout: &PanelLayout,
         frame: &mut FrameCollision,
     ) -> Result<(), Error>;
 
