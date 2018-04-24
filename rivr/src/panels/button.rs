@@ -1,9 +1,12 @@
 use {
     nalgebra::{Point2},
-    palette::{Srgba},
-    cassowary::{Solver},
+    cassowary::{
+        Solver,
+        WeightedRelation::*,
+        strength::{MEDIUM},
+    },
 
-    attributes::{PanelSize, PanelBox, PanelText},
+    attributes::{PanelSize, PanelBox},
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
@@ -13,18 +16,18 @@ use {
 pub struct ButtonPanel {
     size: PanelSize,
     panel_box: PanelBox,
-    label: Option<PanelText>,
+    children: Vec<PanelId>,
 
     hovering: bool,
     pressed: Event,
 }
 
 impl ButtonPanel {
-    pub fn new(size: PanelSize, panel_box: PanelBox, label: Option<PanelText>) -> Self {
+    pub fn new(size: PanelSize, panel_box: PanelBox, content: Option<PanelId>) -> Self {
         ButtonPanel {
             size,
             panel_box,
-            label,
+            children: content.map(|c| vec!(c)).unwrap_or_default(),
 
             hovering: false,
             pressed: Event::new(),
@@ -39,29 +42,44 @@ impl ButtonPanel {
 }
 
 impl Panel for ButtonPanel {
+    fn visible_children(&self) -> Option<&Vec<PanelId>> { Some(&self.children) }
+
     fn add_constraints(
         &self,
-        solver: &mut Solver, _ui: &Ui,
+        solver: &mut Solver, ui: &Ui,
         this: &LayoutVariables,
         c_depth: f64,
     ) {
         self.size.add_constraints(solver, this, c_depth);
+
+        // We need to be at least the size of the content unless size specifies otherwise
+        if let Some(content_id) = self.children.get(0) {
+            let content = &ui.get(*content_id).unwrap().layout.variables;
+            solver.add_constraints(&[
+                this.width |GE(MEDIUM)| content.width,
+                this.height |GE(MEDIUM)| content.height,
+            ]).unwrap();
+        }
     }
 
     fn render(
         &self,
-        _ui: &Ui, _resources: &Resources, renderer: &mut Renderer,
+        ui: &Ui, _resources: &Resources, renderer: &mut Renderer,
         this_id: PanelId, this_layout: &PanelLayout,
-        _frame: &mut FrameCollision,
+        frame: &mut FrameCollision,
     ) -> Result<(), Error> {
         self.panel_box.render(renderer, this_id, this_layout, self.hovering)?;
 
-        if let Some(ref label) = self.label {
-            renderer.render_text(
-                this_id,
-                &label.text, label.size,
-                Point2::new(0.0, 0.0), this_layout.size, Srgba::new(0.0, 0.0, 0.0, 1.0),
-            )?;
+        if let Some(content_id) = self.children.get(0) {
+            let content = &ui.get(*content_id).unwrap().layout;
+
+            // Center the content
+            let offset_x = (this_layout.size.x - content.size.x) * 0.5;
+            let offset_y = (this_layout.size.y - content.size.y) * 0.5;
+            let position = Point2::new(offset_x, offset_y);
+
+            renderer.render_panel(this_id, *content_id, position)?;
+            frame.set(*content_id, position, content.size);
         }
 
         Ok(())

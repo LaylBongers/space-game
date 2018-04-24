@@ -35,8 +35,7 @@ impl Renderer {
         let fps_font = Font::new(ctx, "/DejaVuSansMono.ttf", 8)?;
         let tiles_batch = SpriteBatch::new(Image::new(ctx, "/tiles.png")?);
 
-        let mut rivr_cache = GgezRivrCache::new();
-        rivr_cache.add_font("dejavu", "/DejaVuSansMono.ttf").unwrap();
+        let rivr_cache = GgezRivrCache::new();
 
         Ok(Renderer {
             fps_font,

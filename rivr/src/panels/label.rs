@@ -8,7 +8,7 @@ use {
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
-    Ui, PanelId, Error, Event, LayoutVariables, PanelLayout, FontId, Resources,
+    Ui, PanelId, Error, LayoutVariables, PanelLayout, FontId, Resources,
 };
 
 pub struct LabelPanel {
@@ -17,9 +17,6 @@ pub struct LabelPanel {
     font_id: FontId,
 
     text_bounds: Vector2<f32>,
-
-    hovering: bool,
-    pressed: Event,
 }
 
 impl LabelPanel {
@@ -28,7 +25,6 @@ impl LabelPanel {
     ) -> Result<Self, Error> {
         let text: String = text.into();
         let text_scale = display_independent_scale(points, 96.0, 96.0);
-        println!("{:?}", text_scale);
 
         // Calculate sizing data for this label from the text we got
         let font = resources.font(font_id)?;
@@ -42,16 +38,7 @@ impl LabelPanel {
             font_id,
 
             text_bounds,
-
-            hovering: false,
-            pressed: Event::new(),
         })
-    }
-}
-
-impl LabelPanel {
-    pub fn event_pressed(&self) -> Event {
-        self.pressed.clone()
     }
 }
 
@@ -116,14 +103,6 @@ impl Panel for LabelPanel {
 
         Ok(())
     }
-
-    fn is_capturing_cursor(&self) -> bool { true }
-
-    fn handle_hover_start(&mut self) -> bool { self.hovering = true; true }
-
-    fn handle_hover_end(&mut self) -> bool { self.hovering = false; true }
-
-    fn handle_pressed(&mut self) { self.pressed.raise() }
 }
 
 fn layout_text_line<'a>(

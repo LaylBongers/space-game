@@ -1,68 +1,29 @@
 use {
-    std::path::{PathBuf},
-
     ggez::{
         Context,
         conf::{NumSamples},
-        graphics::{self, Canvas, Font},
+        graphics::{self, Canvas},
     },
     metrohash::{MetroHashMap},
 
     rivr::{
-        Error, PanelId, ResourceError,
+        Error, PanelId,
         attributes::{Vector2},
     },
 
     egtr,
 };
 
-struct FontCache {
-    path: PathBuf,
-    sizes: MetroHashMap<u32, Font>,
-}
-
 /// A persistent resource cache for the ggez markedly renderer.
 pub struct GgezRivrCache {
     panels: MetroHashMap<PanelId, Canvas>,
-    fonts: MetroHashMap<String, FontCache>,
-
-    default_font: Option<String>,
 }
 
 impl GgezRivrCache {
     pub fn new() -> Self {
         GgezRivrCache {
             panels: MetroHashMap::default(),
-            fonts: MetroHashMap::default(),
-
-            default_font: None,
         }
-    }
-
-    /// Adds a font to the cache by its ggez resource path.
-    /// This will not actually load the font until it's used with a specific size.
-    pub fn add_font<S: Into<String>, P: Into<PathBuf>>(
-        &mut self, name: S, location: P
-    ) -> Result<(), Error> {
-        let name = name.into();
-
-        if self.default_font.is_none() {
-            self.default_font = Some(name.clone());
-        }
-
-        if self.fonts.contains_key(&name) {
-            return Err(Error::Resource(ResourceError::Other {
-                resource: Some(name),
-                error: "Font already added to cache".into(),
-            }))
-        }
-
-        self.fonts.insert(name, FontCache {
-            path: location.into(),
-            sizes: MetroHashMap::default(),
-        });
-
-        Ok(())
     }
 
     pub fn canvas_for_panel(&self, panel_id: PanelId) -> Option<&Canvas> {
@@ -94,33 +55,5 @@ impl GgezRivrCache {
         graphics::clear(ctx);
 
         Ok(())
-    }
-
-    pub fn retrive_create_font(
-        &mut self, ctx: &mut Context, text_size: u32
-    ) -> Result<&Font, Error> {
-        // Placeholder
-        let text_font: Option<&String> = None;
-
-        // Try to find the font cache, use the default, or error if we can't find it
-        let requested_font_name = text_font.or(self.default_font.as_ref())
-            .ok_or_else(|| Error::Resource(ResourceError::Other {
-                resource: None,
-                error: "Could not fall back to default font, no fonts are loaded".into()
-            }))?;
-        let font_cache = self.fonts.get_mut(requested_font_name)
-            .ok_or_else(|| Error::Resource(ResourceError::Other {
-                resource: Some(requested_font_name.clone()),
-                error: "Font is not in cache".into()
-            }))?;
-
-        // Find the cached size for this font, or generate a cache for that
-        if !font_cache.sizes.contains_key(&text_size) {
-            let font = Font::new(ctx, &font_cache.path, text_size).map_err(egtr)?;
-            font_cache.sizes.insert(text_size, font);
-        }
-        let font = font_cache.sizes.get(&text_size).unwrap();
-
-        Ok(font)
     }
 }

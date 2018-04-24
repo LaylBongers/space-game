@@ -1,6 +1,6 @@
 use {
     rivr::{
-        attributes::{PanelText, PanelSize, AxisSize, PanelBox, Orientation, Srgba},
+        attributes::{PanelSize, AxisSize, PanelBox, Orientation, Srgba},
         panels::{ButtonPanel, StackPanel, LabelPanel},
         Ui, Event, PanelId, Resources, FontId,
     },
@@ -20,39 +20,13 @@ impl TopBar {
             background: Some(Srgba::new(1.0, 1.0, 1.0, 0.8)),
             .. PanelBox::default()
         };
-        let button_box = PanelBox {
-            background: Some(Srgba::new(1.0, 1.0, 1.0, 1.0)),
-            background_hovering: Some(Srgba::new(0.95, 0.95, 0.95, 1.0)),
-            border_radius: 3.0,
-            .. PanelBox::default()
-        };
 
-        let build_button = ButtonPanel::new(
-            PanelSize::absolute(72.0, 24.0),
-            button_box.clone(),
-            Some(PanelText::new("Build", 9)),
-        );
-        let build_pressed = build_button.event_pressed();
-        let build_button_id = ui.add_panel(build_button);
-
-        let destroy_button = ButtonPanel::new(
-            PanelSize::absolute(72.0, 24.0),
-            button_box.clone(),
-            Some(PanelText::new("Destroy", 9)),
-        );
-        let destroy_pressed = destroy_button.event_pressed();
-        let destroy_button_id = ui.add_panel(destroy_button);
-
-        let destroy_all_button = ButtonPanel::new(
-            PanelSize::absolute(72.0, 24.0),
-            button_box.clone(),
-            Some(PanelText::new("Destroy All", 8)),
-        );
-        let destroy_all_pressed = destroy_all_button.event_pressed();
-        let destroy_all_button_id = ui.add_panel(destroy_all_button);
-
-        let test_label = LabelPanel::new(resources, "Test", font, 9.0).unwrap();
-        let test_label_id = ui.add_panel(test_label);
+        let (build_button_id, build_pressed) =
+            labeled_button(ui, resources, "Build", font);
+        let (destroy_button_id, destroy_pressed) =
+            labeled_button(ui, resources, "Destroy", font);
+        let (destroy_all_button_id, destroy_all_pressed) =
+            labeled_button(ui, resources, "Destroy All", font);
 
         let mut top_bar = StackPanel::new(
             PanelSize::new(AxisSize::Max, AxisSize::Min),
@@ -61,7 +35,6 @@ impl TopBar {
         );
         top_bar.add_child(build_button_id);
         top_bar.add_child(destroy_button_id);
-        top_bar.add_child(test_label_id);
         top_bar.add_child(destroy_all_button_id);
         let top_bar_id = ui.add_panel(top_bar);
 
@@ -83,4 +56,26 @@ impl TopBar {
             build_state.choice = BuildChoice::DestroyAll;
         }
     }
+}
+
+fn labeled_button(
+    ui: &mut Ui, resources: &Resources, text: &str, font: FontId
+) -> (PanelId, Event) {
+    let label = LabelPanel::new(resources, text, font, 9.0).unwrap();
+    let label_id = ui.add_panel(label);
+
+    let button = ButtonPanel::new(
+        PanelSize::absolute(72.0, 24.0),
+        PanelBox {
+            background: Some(Srgba::new(1.0, 1.0, 1.0, 1.0)),
+            background_hovering: Some(Srgba::new(0.95, 0.95, 0.95, 1.0)),
+            border_radius: 3.0,
+            .. PanelBox::default()
+        },
+        Some(label_id),
+    );
+    let pressed = button.event_pressed();
+    let button_id = ui.add_panel(button);
+
+    (button_id, pressed)
 }

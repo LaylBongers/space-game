@@ -12,20 +12,6 @@ pub use self::{
     panelbox::{PanelBox},
 };
 
-pub struct PanelText {
-    pub text: String,
-    pub size: u32,
-}
-
-impl PanelText {
-    pub fn new<S: Into<String>>(text: S, size: u32) -> PanelText {
-        PanelText {
-            text: text.into(),
-            size,
-        }
-    }
-}
-
 pub enum Orientation {
     Horizontal,
     Vertical,

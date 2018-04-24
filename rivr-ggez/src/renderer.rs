@@ -1,7 +1,7 @@
 use {
     ggez::{
         Context,
-        graphics::{self, Mesh, Rect, Text, Image},
+        graphics::{self, Mesh, Rect, Image},
     },
 
     rivr::{
@@ -112,28 +112,6 @@ impl<'a> Renderer for GgezRivrRenderer<'a> {
         let mesh = Mesh::from_triangles(self.ctx, &flattened_vertices).map_err(egtr)?;
 
         graphics::draw(self.ctx, &mesh, Point2::new(0.0, 0.0), 0.0).map_err(egtr)?;
-
-        Ok(())
-    }
-
-    fn render_text(
-        &mut self,
-        panel_id: PanelId,
-        text: &String, /* text_font: Option<&String>, */ text_size: u32,
-        position: Point2<f32>, size: Vector2<f32>, color: Srgba,
-    ) -> Result<(), Error> {
-        self.prepare_cache(panel_id)?;
-
-        let font = self.cache.retrive_create_font(self.ctx, text_size)?;
-        let text = Text::new(self.ctx, text, font).map_err(egtr)?;
-
-        let x_offset = (size.x - text.width() as f32) * 0.5;
-        let y_offset = (size.y - text.height() as f32) * 0.5;
-        graphics::set_color(self.ctx, color_convert(color)).map_err(egtr)?;
-        graphics::draw(self.ctx, &text, Point2::new(
-            (position.x + x_offset).round(),
-            (position.y + y_offset).round(),
-        ), 0.0).map_err(egtr)?;
 
         Ok(())
     }
