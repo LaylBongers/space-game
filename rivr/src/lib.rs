@@ -10,9 +10,11 @@ pub mod layouting;
 pub mod panels;
 pub mod rendering;
 mod error;
+mod event;
 mod ui;
 
 pub use {
     error::{Error, RenderingError},
+    event::{Event},
     ui::{Ui, PanelId},
 };

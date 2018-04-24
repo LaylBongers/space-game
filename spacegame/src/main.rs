@@ -124,6 +124,7 @@ impl EventHandler for MainState {
         const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
+            self.ui_system.update();
             self.input_handler.update()?;
             self.game_state.update(&self.log, DELTA, &self.object_classes);
         }

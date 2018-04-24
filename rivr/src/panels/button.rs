@@ -3,7 +3,7 @@ use {
     palette::{Srgba},
     cassowary::{Solver},
 
-    Ui, PanelId, Error,
+    Ui, PanelId, Error, Event,
     attributes::{PanelSize, PanelBox, PanelText},
     input::{FrameCollision},
     layouting::{LayoutVariables, PanelLayout},
@@ -17,6 +17,7 @@ pub struct ButtonPanel {
     label: Option<PanelText>,
 
     hovering: bool,
+    pressed: Event,
 }
 
 impl ButtonPanel {
@@ -27,7 +28,14 @@ impl ButtonPanel {
             label,
 
             hovering: false,
+            pressed: Event::new(),
         }
+    }
+}
+
+impl ButtonPanel {
+    pub fn event_pressed(&self) -> Event {
+        self.pressed.clone()
     }
 }
 
@@ -65,5 +73,5 @@ impl Panel for ButtonPanel {
 
     fn handle_hover_end(&mut self) -> bool { self.hovering = false; true }
 
-    fn handle_pressed(&mut self) {}
+    fn handle_pressed(&mut self) { self.pressed.raise() }
 }

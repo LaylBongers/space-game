@@ -14,6 +14,7 @@ use {
 #[derive(Clone)]
 pub struct PanelBox {
     pub background: Option<Srgba>,
+    pub background_hovering: Option<Srgba>,
     pub border_radius: f32,
 }
 
@@ -21,6 +22,7 @@ impl Default for PanelBox {
     fn default() -> Self {
         PanelBox {
             background: None,
+            background_hovering: None,
             border_radius: 0.0,
         }
     }
@@ -34,7 +36,7 @@ impl PanelBox {
         let background = if !hovering {
             self.background
         } else {
-            Some(Srgba::new(1.0, 0.0, 0.0, 1.0))
+            self.background_hovering.or(self.background)
         };
 
         if let Some(background) = background {
