@@ -6,12 +6,11 @@ use {
         strength::{MEDIUM},
     },
 
-    Ui, PanelId, Error,
     attributes::{PanelSize, PanelBox, Orientation},
     input::{FrameCollision},
-    layouting::{LayoutVariables, PanelLayout},
     panels::{Panel},
     rendering::{Renderer},
+    Ui, PanelId, Error, LayoutVariables, PanelLayout, Resources,
 };
 
 
@@ -107,7 +106,8 @@ impl Panel for StackPanel {
 
     fn render(
         &self,
-        renderer: &mut Renderer, ui: &Ui, this_id: PanelId, this_layout: &PanelLayout,
+        ui: &Ui, _resources: &Resources, renderer: &mut Renderer,
+        this_id: PanelId, this_layout: &PanelLayout,
         frame: &mut FrameCollision,
     ) -> Result<(), Error> {
         self.panel_box.render(renderer, this_id, this_layout, false)?;
@@ -129,7 +129,7 @@ impl Panel for StackPanel {
                 },
             };
 
-            renderer.render_cache(this_id, *child_id, position)?;
+            renderer.render_panel(this_id, *child_id, position)?;
             frame.set(*child_id, position, child.layout.size);
         }
 

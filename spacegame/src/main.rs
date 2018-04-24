@@ -93,7 +93,7 @@ impl MainState {
         // Initialize game subsystems
         let renderer = Renderer::new(ctx)?;
         let input_handler = InputHandler::new(ctx)?;
-        let ui_system = UiSystem::new();
+        let ui_system = UiSystem::new(ctx)?;
 
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();

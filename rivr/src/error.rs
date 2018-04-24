@@ -4,8 +4,14 @@ pub enum Error {
     RootAlreadyExists,
     /// The UI doesn't have a root when it's required for the operation.
     NoRoot,
-    Resource { resource: Option<String>, error: String },
+    Resource(ResourceError),
     Rendering(RenderingError),
+}
+
+#[derive(Debug)]
+pub enum ResourceError {
+    InvalidId,
+    Other { resource: Option<String>, error: String },
 }
 
 #[derive(Debug)]

@@ -1,12 +1,11 @@
 use {
     cassowary::{Solver},
 
-    Ui, PanelId, Error,
     attributes::{PanelSize, PanelBox},
     input::{FrameCollision},
-    layouting::{LayoutVariables, PanelLayout},
     panels::{Panel},
     rendering::{Renderer},
+    Ui, PanelId, Error, LayoutVariables, PanelLayout, Resources,
 };
 
 pub struct EmptyPanel {
@@ -35,7 +34,8 @@ impl Panel for EmptyPanel {
 
     fn render(
         &self,
-        renderer: &mut Renderer, _ui: &Ui, this_id: PanelId, this_layout: &PanelLayout,
+        _ui: &Ui, _resources: &Resources, renderer: &mut Renderer,
+        this_id: PanelId, this_layout: &PanelLayout,
         _frame: &mut FrameCollision,
     ) -> Result<(), Error> {
         self.panel_box.render(renderer, this_id, this_layout, false)?;

@@ -3,10 +3,9 @@ use {
 
     cassowary::{Solver},
 
-    Ui, PanelId, Error,
     input::{FrameCollision},
-    layouting::{LayoutVariables, PanelLayout},
     rendering::{Renderer},
+    Ui, PanelId, Error, LayoutVariables, PanelLayout, Resources,
 };
 
 pub trait Panel: Any {
@@ -22,7 +21,7 @@ pub trait Panel: Any {
 
     fn render(
         &self,
-        renderer: &mut Renderer, ui: &Ui,
+        ui: &Ui, resources: &Resources, renderer: &mut Renderer,
         this_id: PanelId, this_layout: &PanelLayout,
         frame: &mut FrameCollision,
     ) -> Result<(), Error>;

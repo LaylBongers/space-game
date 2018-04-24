@@ -6,9 +6,8 @@ use {
         tessellation as lt,
     },
 
-    Error, PanelId,
-    layouting::{PanelLayout},
     rendering::{Renderer},
+    Error, PanelId, PanelLayout,
 };
 
 #[derive(Clone)]

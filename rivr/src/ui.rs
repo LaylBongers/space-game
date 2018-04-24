@@ -1,9 +1,8 @@
 use {
     metrohash::{MetroHashMap},
 
-    layouting::{PanelLayout, LayoutVariables},
     panels::{Panel},
-    Error,
+    Error, PanelLayout, LayoutVariables,
 };
 
 pub struct Ui {
@@ -73,6 +72,4 @@ pub struct PanelEntry {
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub struct PanelId {
-    id: u32,
-}
+pub struct PanelId { id: u32 }

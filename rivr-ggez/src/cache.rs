@@ -9,7 +9,7 @@ use {
     metrohash::{MetroHashMap},
 
     rivr::{
-        Error, PanelId,
+        Error, PanelId, ResourceError,
         attributes::{Vector2},
     },
 
@@ -51,10 +51,10 @@ impl GgezRivrCache {
         }
 
         if self.fonts.contains_key(&name) {
-            return Err(Error::Resource {
+            return Err(Error::Resource(ResourceError::Other {
                 resource: Some(name),
                 error: "Font already added to cache".into(),
-            })
+            }))
         }
 
         self.fonts.insert(name, FontCache {
@@ -104,15 +104,15 @@ impl GgezRivrCache {
 
         // Try to find the font cache, use the default, or error if we can't find it
         let requested_font_name = text_font.or(self.default_font.as_ref())
-            .ok_or(Error::Resource {
+            .ok_or_else(|| Error::Resource(ResourceError::Other {
                 resource: None,
                 error: "Could not fall back to default font, no fonts are loaded".into()
-            })?;
+            }))?;
         let font_cache = self.fonts.get_mut(requested_font_name)
-            .ok_or_else(|| Error::Resource {
+            .ok_or_else(|| Error::Resource(ResourceError::Other {
                 resource: Some(requested_font_name.clone()),
                 error: "Font is not in cache".into()
-            })?;
+            }))?;
 
         // Find the cached size for this font, or generate a cache for that
         if !font_cache.sizes.contains_key(&text_size) {

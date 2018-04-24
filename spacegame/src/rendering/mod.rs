@@ -72,7 +72,7 @@ impl Renderer {
         {
             let mut renderer = GgezRivrRenderer::new(ctx, &mut self.rivr_cache);
             rivr::rendering::render(
-                &mut ui_system.ui, &mut renderer, &mut ui_system.frame,
+                &mut ui_system.ui, &ui_system.resources, &mut renderer, &mut ui_system.frame,
             ).unwrap();
         }
 

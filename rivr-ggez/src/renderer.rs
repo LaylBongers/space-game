@@ -1,7 +1,7 @@
 use {
     ggez::{
         Context,
-        graphics::{self, Mesh, Rect, Text},
+        graphics::{self, Mesh, Rect, Text, Image},
     },
 
     rivr::{
@@ -76,7 +76,7 @@ impl<'a> Renderer for GgezRivrRenderer<'a> {
         self.cache.clear_cache(self.ctx, panel_id)
     }
 
-    fn render_cache(
+    fn render_panel(
         &mut self,
         target_id: PanelId,
         source_id: PanelId,
@@ -134,6 +134,27 @@ impl<'a> Renderer for GgezRivrRenderer<'a> {
             (position.x + x_offset).round(),
             (position.y + y_offset).round(),
         ), 0.0).map_err(egtr)?;
+
+        Ok(())
+    }
+
+    fn render_raw(
+        &mut self,
+        panel_id: PanelId,
+        image_data: &Vec<u8>, image_size: Vector2<usize>,
+        color: Srgba,
+    ) -> Result<(), Error> {
+        self.prepare_cache(panel_id)?;
+
+        let image = Image::from_rgba8(
+            self.ctx,
+            image_size.x as u16,
+            image_size.y as u16,
+            image_data,
+        ).map_err(egtr)?;
+
+        graphics::set_color(self.ctx, color_convert(color)).map_err(egtr)?;
+        graphics::draw(self.ctx, &image, Point2::new(0.0, 0.0), 0.0).map_err(egtr)?;
 
         Ok(())
     }

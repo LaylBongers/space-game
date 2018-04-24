@@ -3,12 +3,11 @@ use {
     palette::{Srgba},
     cassowary::{Solver},
 
-    Ui, PanelId, Error, Event,
     attributes::{PanelSize, PanelBox, PanelText},
     input::{FrameCollision},
-    layouting::{LayoutVariables, PanelLayout},
     panels::{Panel},
     rendering::{Renderer},
+    Ui, PanelId, Error, Event, LayoutVariables, PanelLayout, Resources,
 };
 
 pub struct ButtonPanel {
@@ -51,7 +50,8 @@ impl Panel for ButtonPanel {
 
     fn render(
         &self,
-        renderer: &mut Renderer, _ui: &Ui, this_id: PanelId, this_layout: &PanelLayout,
+        _ui: &Ui, _resources: &Resources, renderer: &mut Renderer,
+        this_id: PanelId, this_layout: &PanelLayout,
         _frame: &mut FrameCollision,
     ) -> Result<(), Error> {
         self.panel_box.render(renderer, this_id, this_layout, self.hovering)?;

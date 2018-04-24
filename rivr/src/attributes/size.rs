@@ -5,7 +5,7 @@ use {
         strength::{WEAK, STRONG, REQUIRED},
     },
 
-    layouting::{LayoutVariables},
+    LayoutVariables,
 };
 
 pub struct PanelSize {
