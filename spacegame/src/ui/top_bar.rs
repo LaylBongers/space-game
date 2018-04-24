@@ -9,7 +9,7 @@ use {
 };
 
 pub struct TopBar {
-    build_pressed: Event,
+    build_floor_pressed: Event,
     destroy_pressed: Event,
     destroy_all_pressed: Event,
 }
@@ -21,8 +21,8 @@ impl TopBar {
             .. PanelBox::default()
         };
 
-        let (build_button_id, build_pressed) =
-            labeled_button(ui, resources, "Build", font);
+        let (build_floor_button_id, build_floor_pressed) =
+            labeled_button(ui, resources, "Build Floor", font);
         let (destroy_button_id, destroy_pressed) =
             labeled_button(ui, resources, "Destroy", font);
         let (destroy_all_button_id, destroy_all_pressed) =
@@ -33,20 +33,20 @@ impl TopBar {
             panel_box.clone(),
             Orientation::Horizontal, 3.0,
         );
-        top_bar.add_child(build_button_id);
+        top_bar.add_child(build_floor_button_id);
         top_bar.add_child(destroy_button_id);
         top_bar.add_child(destroy_all_button_id);
         let top_bar_id = ui.add_panel(top_bar);
 
         (TopBar {
-            build_pressed,
+            build_floor_pressed,
             destroy_pressed,
             destroy_all_pressed,
         }, top_bar_id)
     }
 
     pub fn update(&self, build_state: &mut BuildState) {
-        if self.build_pressed.check() {
+        if self.build_floor_pressed.check() {
             build_state.choice = BuildChoice::Floor;
         }
         if self.destroy_pressed.check() {
@@ -65,14 +65,14 @@ fn labeled_button(
     let label_id = ui.add_panel(label);
 
     let button = ButtonPanel::new(
-        PanelSize::absolute(72.0, 24.0),
+        PanelSize::new(AxisSize::Min, AxisSize::Absolute(24.0)),
         PanelBox {
             background: Some(Srgba::new(1.0, 1.0, 1.0, 1.0)),
             background_hovering: Some(Srgba::new(0.95, 0.95, 0.95, 1.0)),
             border_radius: 3.0,
             .. PanelBox::default()
         },
-        Some(label_id),
+        Some(label_id), 3.0,
     );
     let pressed = button.event_pressed();
     let button_id = ui.add_panel(button);

@@ -17,17 +17,21 @@ pub struct ButtonPanel {
     size: PanelSize,
     panel_box: PanelBox,
     children: Vec<PanelId>,
+    margin: f32,
 
     hovering: bool,
     pressed: Event,
 }
 
 impl ButtonPanel {
-    pub fn new(size: PanelSize, panel_box: PanelBox, content: Option<PanelId>) -> Self {
+    pub fn new(
+        size: PanelSize, panel_box: PanelBox, content: Option<PanelId>, margin: f32,
+    ) -> Self {
         ButtonPanel {
             size,
             panel_box,
             children: content.map(|c| vec!(c)).unwrap_or_default(),
+            margin,
 
             hovering: false,
             pressed: Event::new(),
@@ -56,8 +60,8 @@ impl Panel for ButtonPanel {
         if let Some(content_id) = self.children.get(0) {
             let content = &ui.get(*content_id).unwrap().layout.variables;
             solver.add_constraints(&[
-                this.width |GE(MEDIUM)| content.width,
-                this.height |GE(MEDIUM)| content.height,
+                this.width |GE(MEDIUM)| content.width + (self.margin * 2.0),
+                this.height |GE(MEDIUM)| content.height + (self.margin * 2.0),
             ]).unwrap();
         }
     }
