@@ -16,19 +16,20 @@ pub fn layout(ui: &mut Ui, root_id: PanelId, target_size: Vector2<f32>) {
     add_panel_constraints(&mut solver, ui, root_id, 1.0);
 
     // Constrain the root panel to the window
-    let target_width = ui.target_variables.width;
-    let target_height = ui.target_variables.height;
     {
-        let root = &ui.get_mut(root_id).unwrap().layout.variables;
+        let target = ui.target_variables();
+
+        let root = &ui.get(root_id).unwrap().layout.variables;
         solver.add_constraints(&[
-            root.width |LE(REQUIRED)| target_width,
-            root.height |LE(REQUIRED)| target_height,
+            root.width |LE(REQUIRED)| target.width,
+            root.height |LE(REQUIRED)| target.height,
         ]).unwrap();
+
+        solver.add_edit_variable(target.width, STRONG).unwrap();
+        solver.suggest_value(target.width, target_size.x as f64).unwrap();
+        solver.add_edit_variable(target.height, STRONG).unwrap();
+        solver.suggest_value(target.height, target_size.y as f64).unwrap();
     }
-    solver.add_edit_variable(target_width, STRONG).unwrap();
-    solver.suggest_value(target_width, target_size.x as f64).unwrap();
-    solver.add_edit_variable(target_height, STRONG).unwrap();
-    solver.suggest_value(target_height, target_size.y as f64).unwrap();
 
     // Finally, retrieve the solved data
     for (_panel_id, entry) in &mut ui.entries {

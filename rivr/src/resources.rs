@@ -11,7 +11,7 @@ pub struct Resources {
 }
 
 impl Resources {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Resources {
             fonts: MetroHashMap::default(),
             next_id: 0,

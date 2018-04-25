@@ -5,7 +5,7 @@ use {
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
-    Ui, PanelId, Error, LayoutVariables, PanelLayout, Resources,
+    Ui, PanelId, Error, LayoutVariables, PanelLayout,
 };
 
 pub struct EmptyPanel {
@@ -34,7 +34,7 @@ impl Panel for EmptyPanel {
 
     fn render(
         &self,
-        _ui: &Ui, _resources: &Resources, renderer: &mut Renderer,
+        _ui: &Ui, renderer: &mut Renderer,
         this_id: PanelId, this_layout: &PanelLayout,
         _frame: &mut FrameCollision,
     ) -> Result<(), Error> {

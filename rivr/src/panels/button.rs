@@ -10,7 +10,7 @@ use {
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
-    Ui, PanelId, Error, Event, LayoutVariables, PanelLayout, Resources,
+    Ui, PanelId, Error, Event, LayoutVariables, PanelLayout,
 };
 
 pub struct ButtonPanel {
@@ -68,7 +68,7 @@ impl Panel for ButtonPanel {
 
     fn render(
         &self,
-        ui: &Ui, _resources: &Resources, renderer: &mut Renderer,
+        ui: &Ui, renderer: &mut Renderer,
         this_id: PanelId, this_layout: &PanelLayout,
         frame: &mut FrameCollision,
     ) -> Result<(), Error> {

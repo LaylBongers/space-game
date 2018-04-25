@@ -5,7 +5,7 @@ use {
 
     input::{FrameCollision},
     rendering::{Renderer},
-    Ui, PanelId, Error, LayoutVariables, PanelLayout, Resources,
+    Ui, PanelId, Error, LayoutVariables, PanelLayout,
 };
 
 pub trait Panel: Any {
@@ -21,7 +21,7 @@ pub trait Panel: Any {
 
     fn render(
         &self,
-        ui: &Ui, resources: &Resources, renderer: &mut Renderer,
+        ui: &Ui, renderer: &mut Renderer,
         this_id: PanelId, this_layout: &PanelLayout,
         frame: &mut FrameCollision,
     ) -> Result<(), Error>;

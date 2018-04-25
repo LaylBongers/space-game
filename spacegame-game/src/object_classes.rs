@@ -5,11 +5,8 @@ pub trait ObjectClass {
     fn is_walkable(&self) -> bool;
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Deserialize, Serialize)]
-pub struct ObjectClassId(pub i32);
-
 pub struct ObjectClasses {
-    classes: Vec<Box<ObjectClass>>,
+    classes: Vec<ObjectClassEntry>,
 }
 
 impl ObjectClasses {
@@ -19,14 +16,34 @@ impl ObjectClasses {
         }
     }
 
-    pub fn register<C: ObjectClass + 'static>(&mut self, class: C) -> ObjectClassId {
-        self.classes.push(Box::new(class));
-        ObjectClassId(self.classes.len() as i32 - 1)
+    pub fn classes(&self) -> &Vec<ObjectClassEntry> {
+        &self.classes
+    }
+
+    pub fn register<S: Into<String>, C: ObjectClass + 'static>(
+        &mut self, friendly_name: S, class: C
+    ) -> ObjectClassId {
+        self.classes.push(ObjectClassEntry {
+            friendly_name: friendly_name.into(),
+            class: Box::new(class),
+        });
+        ObjectClassId { id: self.classes.len() - 1 }
     }
 
     pub fn get(&self, id: ObjectClassId) -> Option<&ObjectClass> {
-        self.classes.get(id.0 as usize).map(|v| v.as_ref())
+        self.classes.get(id.id)
+            .map(|v| v.class.as_ref())
     }
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Deserialize, Serialize)]
+pub struct ObjectClassId {
+    pub id: usize,
+}
+
+pub struct ObjectClassEntry {
+    pub friendly_name: String,
+    pub class: Box<ObjectClass>,
 }
 
 pub struct GenericObjectClass {

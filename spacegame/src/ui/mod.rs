@@ -8,34 +8,35 @@ use {
         attributes::{PanelSize, PanelBox, Orientation},
         input::{FrameCollision},
         panels::{StackPanel},
-        Ui, Resources,
+        Ui,
     },
 
-    spacegame_game::state::{BuildState},
+    spacegame_game::{
+        state::{BuildState},
+        ObjectClasses,
+    },
     ui::top_bar::{TopBar},
 };
 
 pub struct UiSystem {
     pub ui: Ui,
-    pub resources: Resources,
     pub frame: FrameCollision,
 
     top_bar: TopBar,
 }
 
 impl UiSystem {
-    pub fn new(ctx: &mut Context) -> GameResult<Self> {
+    pub fn new(ctx: &mut Context, object_classes: &ObjectClasses) -> GameResult<Self> {
         let mut ui = Ui::new();
-        let mut resources = Resources::new();
 
         // Add resources for use in the UI globally
         let mut file = ctx.filesystem.open("/DejaVuSansMono.ttf")?;
         let mut bytes = Vec::new();
         file.read_to_end(&mut bytes).unwrap();
-        let font = resources.add_font(bytes);
+        let font = ui.resources.add_font(bytes);
 
         // Set up the UI itself
-        let (top_bar, top_bar_id) = TopBar::new(&mut ui, &resources, font);
+        let (top_bar, top_bar_id) = TopBar::new(&mut ui, font, object_classes);
 
         let mut root = StackPanel::new(
             PanelSize::max(),
@@ -47,7 +48,6 @@ impl UiSystem {
 
         Ok(UiSystem {
             ui,
-            resources,
             frame: FrameCollision::new(),
 
             top_bar,

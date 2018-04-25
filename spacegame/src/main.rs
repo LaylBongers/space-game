@@ -90,19 +90,19 @@ impl MainState {
     fn new(ctx: &mut Context, log: Logger) -> GameResult<MainState> {
         info!(log, "Loading game");
 
+        // Set up all the objects we can place in ships
+        let mut object_classes = ObjectClasses::new();
+        object_classes.register("Wall", GenericObjectClass {
+            uvs: Rect::new(0.0, 0.0, 0.5, 0.5), walkable: false,
+        });
+        object_classes.register("Door", GenericObjectClass {
+            uvs: Rect::new(0.5, 0.0, 0.5, 0.5), walkable: true,
+        });
+
         // Initialize game subsystems
         let renderer = Renderer::new(ctx)?;
         let input_handler = InputHandler::new(ctx)?;
-        let ui_system = UiSystem::new(ctx)?;
-
-        // Set up all the objects we can place in ships
-        let mut object_classes = ObjectClasses::new();
-        object_classes.register(GenericObjectClass {
-            uvs: Rect::new(0.0, 0.0, 0.5, 0.5), walkable: false,
-        });
-        object_classes.register(GenericObjectClass {
-            uvs: Rect::new(0.5, 0.0, 0.5, 0.5), walkable: true,
-        });
+        let ui_system = UiSystem::new(ctx, &object_classes)?;
 
         let game_state = GameState::new(&log);
 

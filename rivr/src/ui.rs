@@ -2,7 +2,7 @@ use {
     metrohash::{MetroHashMap},
 
     panels::{Panel},
-    Error, PanelLayout, LayoutVariables,
+    Error, PanelLayout, LayoutVariables, Resources,
 };
 
 pub struct Ui {
@@ -10,7 +10,9 @@ pub struct Ui {
     next_id: u32,
 
     root_id: Option<PanelId>,
-    pub(crate) target_variables: LayoutVariables,
+    target_variables: LayoutVariables,
+
+    pub resources: Resources,
 }
 
 impl Ui {
@@ -21,7 +23,13 @@ impl Ui {
 
             root_id: None,
             target_variables: LayoutVariables::new(),
+
+            resources: Resources::new(),
         }
+    }
+
+    pub(crate) fn target_variables(&self) -> &LayoutVariables {
+        &self.target_variables
     }
 
     pub fn get(&self, panel_id: PanelId) -> Option<&PanelEntry> {

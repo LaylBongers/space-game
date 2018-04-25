@@ -10,4 +10,4 @@ extern crate metrohash;
 pub mod state;
 mod object_classes;
 
-pub use self::object_classes::{ObjectClass, ObjectClassId, ObjectClasses, GenericObjectClass};
+pub use self::object_classes::{ObjectClass, ObjectClasses, ObjectClassId, ObjectClassEntry, GenericObjectClass};

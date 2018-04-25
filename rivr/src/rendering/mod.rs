@@ -3,7 +3,7 @@ use {
     palette::{Srgba},
 
     input::{FrameCollision},
-    Error, RenderingError, Ui, PanelId, Resources,
+    Error, RenderingError, Ui, PanelId,
 };
 
 pub trait Renderer {
@@ -43,7 +43,7 @@ pub trait Renderer {
 }
 
 pub fn render<R: Renderer>(
-    ui: &mut Ui, resources: &Resources, renderer: &mut R, frame: &mut FrameCollision
+    ui: &mut Ui, renderer: &mut R, frame: &mut FrameCollision
 ) -> Result<(), Error> {
     let root_id = ui.root_id()?;
 
@@ -57,7 +57,7 @@ pub fn render<R: Renderer>(
     frame.set(root_id, Point2::new(0.0, 0.0), size);
 
     // Make sure the root panel is rendered, then display it to the target
-    render_panel(ui, resources, renderer, root_id, frame)?;
+    render_panel(ui, renderer, root_id, frame)?;
     renderer.finish_to_target(root_id)?;
 
     // Mark everything as rendered, at this point everything should be there
@@ -69,7 +69,7 @@ pub fn render<R: Renderer>(
 }
 
 fn render_panel<R: Renderer>(
-    ui: &Ui, resources: &Resources, renderer: &mut R,
+    ui: &Ui, renderer: &mut R,
     panel_id: PanelId, frame: &mut FrameCollision,
 ) -> Result<bool, Error> {
     let panel_entry = ui.get(panel_id).unwrap();
@@ -96,7 +96,7 @@ fn render_panel<R: Renderer>(
     let mut child_rendered = false;
     if let Some(children) = panel_entry.panel.visible_children() {
         for child_id in children {
-            child_rendered |= render_panel(ui, resources, renderer, *child_id, frame)?
+            child_rendered |= render_panel(ui, renderer, *child_id, frame)?
         }
     }
 
@@ -104,7 +104,7 @@ fn render_panel<R: Renderer>(
     if cache_empty || child_rendered || panel_entry.needs_rendering {
         renderer.clear_cache(panel_id)?;
 
-        panel_entry.panel.render(ui, resources, renderer, panel_id, &panel_entry.layout, frame)?;
+        panel_entry.panel.render(ui, renderer, panel_id, &panel_entry.layout, frame)?;
 
         Ok(true)
     } else {

@@ -8,7 +8,7 @@ use {
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
-    Ui, PanelId, Error, LayoutVariables, PanelLayout, FontId, Resources,
+    Ui, PanelId, Error, LayoutVariables, PanelLayout, FontId,
 };
 
 pub struct LabelPanel {
@@ -21,13 +21,13 @@ pub struct LabelPanel {
 
 impl LabelPanel {
     pub fn new<S: Into<String>>(
-        resources: &Resources, text: S, font_id: FontId, points: f32,
+        ui: &Ui, text: S, font_id: FontId, points: f32,
     ) -> Result<Self, Error> {
         let text: String = text.into();
         let text_scale = display_independent_scale(points, 96.0, 96.0);
 
         // Calculate sizing data for this label from the text we got
-        let font = resources.font(font_id)?;
+        let font = ui.resources.font(font_id)?;
         let (_glyphs, mut text_bounds) = layout_text_line(&text, font, text_scale);
         text_bounds.x = text_bounds.x.ceil();
         text_bounds.y = text_bounds.y.ceil();
@@ -55,12 +55,12 @@ impl Panel for LabelPanel {
 
     fn render(
         &self,
-        _ui: &Ui, resources: &Resources, renderer: &mut Renderer,
+        ui: &Ui, renderer: &mut Renderer,
         this_id: PanelId, _this_layout: &PanelLayout,
         _frame: &mut FrameCollision,
     ) -> Result<(), Error> {
         // First, layout the glyphs
-        let font = resources.font(self.font_id)?;
+        let font = ui.resources.font(self.font_id)?;
         let (glyphs, text_size) = layout_text_line(&self.text, font, self.text_scale);
 
         // Prepare the image data to render the glyphs to
