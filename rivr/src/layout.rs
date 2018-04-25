@@ -13,6 +13,7 @@ pub fn layout(ui: &mut Ui, root_id: PanelId, target_size: Vector2<f32>) {
     let mut solver = Solver::new();
 
     // Recursively add the constraints for all our panels
+    // The only reason this has to be recursive is for the depth value on constraints
     add_panel_constraints(&mut solver, ui, root_id, 1);
 
     // Constrain the root panel to the window
@@ -33,8 +34,8 @@ pub fn layout(ui: &mut Ui, root_id: PanelId, target_size: Vector2<f32>) {
 
     // Finally, retrieve the solved data
     for (_panel_id, entry) in &mut ui.entries {
-        // TODO: The preferred way to get values is fetch_changes, check if there's a special
-        // reason for this or if get_value is fine
+        // TODO: Instead of re-creating the solver every time we should just update it if something
+        // changes
         entry.layout.size = Vector2::new(
             solver.get_value(entry.layout.variables.width) as f32,
             solver.get_value(entry.layout.variables.height) as f32,

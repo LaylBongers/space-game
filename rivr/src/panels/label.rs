@@ -24,10 +24,10 @@ pub struct LabelPanel {
 
 impl LabelPanel {
     pub fn new<S: Into<String>>(
-        ui: &Ui, text: S, font_id: FontId, points: f32,
+        ui: &Ui, text: S, font_id: FontId, text_scale: f32,
     ) -> Result<Self, Error> {
         let text: String = text.into();
-        let text_scale = display_independent_scale(points, 96.0, 96.0);
+        let text_scale = Scale::uniform(text_scale);
 
         // Calculate sizing data for this label from the text we got
         let font = ui.resources.font(font_id)?;
@@ -71,11 +71,13 @@ impl Panel for LabelPanel {
     ) -> Result<(), Error> {
         // First, layout the glyphs
         let font = ui.resources.font(self.font_id)?;
-        let (glyphs, text_size) = layout_text_line(&self.text, font, self.text_scale);
+        let (glyphs, text_scale) = layout_text_line(
+            &self.text, font, self.text_scale,
+        );
 
         // Prepare the image data to render the glyphs to
-        let width_px = ::std::cmp::max(text_size.x.ceil() as usize, 1);
-        let height_px = ::std::cmp::max(text_size.y.ceil() as usize, 1);
+        let width_px = ::std::cmp::max(text_scale.x.ceil() as usize, 1);
+        let height_px = ::std::cmp::max(text_scale.y.ceil() as usize, 1);
         let bytes_per_pixel = 4;
         let mut pixel_data = vec![0; width_px * height_px * bytes_per_pixel];
         let pitch = width_px * bytes_per_pixel;
@@ -151,18 +153,4 @@ fn layout_text_line<'a>(
         caret.x,
         caret.y + -v_metrics.descent,
     ))
-}
-
-fn display_independent_scale(points: f32, dpi_w: f32, dpi_h: f32) -> Scale {
-    // Calculate pixels per point
-    let points = points as f32;
-    let points_per_inch = 72.0;
-    let pixels_per_point_w = dpi_w * (1.0 / points_per_inch);
-    let pixels_per_point_h = dpi_h * (1.0 / points_per_inch);
-
-    // Scale is in units of pixels, so.
-    Scale {
-        x: pixels_per_point_w * points,
-        y: pixels_per_point_h * points,
-    }
 }
