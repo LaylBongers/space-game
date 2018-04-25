@@ -44,11 +44,13 @@ impl Ship {
         self.units.push(unit);
     }
 
-    pub fn update(&mut self, log: &Logger, delta: f32, object_classes: &ObjectClasses) {
-        if self.tiles.check_changed() {
+    pub fn update(&mut self, log: &Logger, object_classes: &ObjectClasses, delta: f32) {
+        if self.tiles.handle_changed(object_classes) {
             // Since the world has changed, we can mark all tasks as being possible again
             self.task_queue.clear_unreachable();
         }
+
+        self.tiles.update(object_classes, delta);
 
         for unit in &mut self.units {
             unit.update(log, delta, &mut self.tiles, &mut self.task_queue, object_classes);

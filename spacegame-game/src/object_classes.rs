@@ -1,4 +1,8 @@
-use ggez::graphics::{Rect};
+use {
+    ggez::graphics::{Rect},
+
+    state::ship::{Object},
+};
 
 pub struct ObjectClasses {
     classes: Vec<ObjectClass>,
@@ -34,4 +38,26 @@ pub struct ObjectClass {
     pub friendly_name: String,
     pub uvs: Rect,
     pub is_walkable: bool,
+
+    pub behavior: Option<Box<ObjectBehavior>>,
+}
+
+pub trait ObjectBehavior {
+    fn update(&self, object: &mut Object, delta: f32);
+}
+
+pub struct DoorObjectBehavior;
+
+impl ObjectBehavior for DoorObjectBehavior {
+    fn update(&self, object: &mut Object, delta: f32) {
+        const OPEN_TIME: f32 = 0.25;
+
+        if object.is_opening {
+            object.openness += delta / OPEN_TIME;
+        } else {
+            object.openness -= delta / OPEN_TIME;
+        }
+
+        object.openness = object.openness.min(1.0).max(0.0);
+    }
 }

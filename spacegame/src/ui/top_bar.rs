@@ -88,7 +88,7 @@ fn labeled_button(
     let label_id = ui.add_panel(label);
 
     let button = ButtonPanel::new(
-        PanelSize::absolute(72.0, 24.0),
+        PanelSize::absolute(84.0, 24.0),
         PanelBox {
             background: Some(Srgba::new(1.0, 1.0, 1.0, 1.0)),
             background_hovering: Some(Srgba::new(0.95, 0.95, 0.95, 1.0)),

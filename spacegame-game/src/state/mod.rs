@@ -41,7 +41,7 @@ impl GameState {
         }
     }
 
-    pub fn update(&mut self, log: &Logger, delta: f32, object_classes: &ObjectClasses) {
-        self.ship.update(log, delta, object_classes);
+    pub fn update(&mut self, log: &Logger, object_classes: &ObjectClasses, delta: f32) {
+        self.ship.update(log, object_classes, delta);
     }
 }

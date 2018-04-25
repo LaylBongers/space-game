@@ -26,7 +26,7 @@ use {
     sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}},
 
     spacegame_game::{
-        ObjectClasses, ObjectClass,
+        ObjectClasses, ObjectClass, DoorObjectBehavior,
         state::{GameState},
     },
     input::{InputHandler},
@@ -93,10 +93,16 @@ impl MainState {
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();
         object_classes.register(ObjectClass {
-            friendly_name: "Wall".into(), uvs: Rect::new(0.0, 0.0, 0.5, 0.5), is_walkable: false,
+            friendly_name: "Wall".into(),
+            uvs: Rect::new(0.0, 0.0, 0.5, 0.5),
+            is_walkable: false,
+            behavior: None,
         });
         object_classes.register(ObjectClass {
-            friendly_name: "Door".into(), uvs: Rect::new(0.5, 0.0, 0.5, 0.5), is_walkable: true,
+            friendly_name: "Door".into(),
+            uvs: Rect::new(0.5, 0.0, 0.5, 0.5),
+            is_walkable: true,
+            behavior: Some(Box::new(DoorObjectBehavior)),
         });
 
         // Initialize game subsystems
@@ -126,7 +132,7 @@ impl EventHandler for MainState {
         while timer::check_update_time(ctx, DESIRED_FPS) {
             self.ui_system.update(&mut self.game_state.build_state);
             self.input_handler.update()?;
-            self.game_state.update(&self.log, DELTA, &self.object_classes);
+            self.game_state.update(&self.log, &self.object_classes, DELTA);
         }
 
         Ok(())
