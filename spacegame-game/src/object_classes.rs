@@ -1,12 +1,7 @@
 use ggez::graphics::{Rect};
 
-pub trait ObjectClass {
-    fn uvs(&self) -> Rect;
-    fn is_walkable(&self) -> bool;
-}
-
 pub struct ObjectClasses {
-    classes: Vec<ObjectClassEntry>,
+    classes: Vec<ObjectClass>,
 }
 
 impl ObjectClasses {
@@ -16,23 +11,17 @@ impl ObjectClasses {
         }
     }
 
-    pub fn classes(&self) -> &Vec<ObjectClassEntry> {
+    pub fn classes(&self) -> &Vec<ObjectClass> {
         &self.classes
     }
 
-    pub fn register<S: Into<String>, C: ObjectClass + 'static>(
-        &mut self, friendly_name: S, class: C
-    ) -> ObjectClassId {
-        self.classes.push(ObjectClassEntry {
-            friendly_name: friendly_name.into(),
-            class: Box::new(class),
-        });
+    pub fn register(&mut self, class: ObjectClass) -> ObjectClassId {
+        self.classes.push(class);
         ObjectClassId { id: self.classes.len() - 1 }
     }
 
     pub fn get(&self, id: ObjectClassId) -> Option<&ObjectClass> {
         self.classes.get(id.id)
-            .map(|v| v.class.as_ref())
     }
 }
 
@@ -41,22 +30,8 @@ pub struct ObjectClassId {
     pub id: usize,
 }
 
-pub struct ObjectClassEntry {
+pub struct ObjectClass {
     pub friendly_name: String,
-    pub class: Box<ObjectClass>,
-}
-
-pub struct GenericObjectClass {
     pub uvs: Rect,
-    pub walkable: bool,
-}
-
-impl ObjectClass for GenericObjectClass {
-    fn uvs(&self) -> Rect {
-        self.uvs
-    }
-
-    fn is_walkable(&self) -> bool {
-        self.walkable
-    }
+    pub is_walkable: bool,
 }

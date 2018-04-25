@@ -143,7 +143,7 @@ fn draw_build_placeholder(
         BuildChoice::Floor =>
             Some(Rect::new(0.0, 0.5, 0.5, 0.5)),
         BuildChoice::Object(id) =>
-            Some(object_classes.get(id).unwrap().uvs()),
+            Some(object_classes.get(id).unwrap().uvs),
         _ => None
     };
 

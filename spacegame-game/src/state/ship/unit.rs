@@ -225,7 +225,7 @@ fn is_walkable(tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClass
     if let Ok(tile) = tile_res {
         tile.floor && tile.object
             .as_ref()
-            .map(|o| object_classes.get(o.class).unwrap().is_walkable())
+            .map(|o| object_classes.get(o.class).unwrap().is_walkable)
             .unwrap_or(true)
     } else {
         false

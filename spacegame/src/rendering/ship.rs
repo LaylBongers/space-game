@@ -70,7 +70,7 @@ fn draw_tiles(
 
             // Add graphic for objects
             if let Some(ref object) = tile.object {
-                let uvs = object_classes.get(object.class).unwrap().uvs();
+                let uvs = object_classes.get(object.class).unwrap().uvs;
 
                 tiles_batch.add(DrawParam {
                     src: uvs,

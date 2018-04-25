@@ -26,7 +26,7 @@ use {
     sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}},
 
     spacegame_game::{
-        ObjectClasses, GenericObjectClass,
+        ObjectClasses, ObjectClass,
         state::{GameState},
     },
     input::{InputHandler},
@@ -92,11 +92,11 @@ impl MainState {
 
         // Set up all the objects we can place in ships
         let mut object_classes = ObjectClasses::new();
-        object_classes.register("Wall", GenericObjectClass {
-            uvs: Rect::new(0.0, 0.0, 0.5, 0.5), walkable: false,
+        object_classes.register(ObjectClass {
+            friendly_name: "Wall".into(), uvs: Rect::new(0.0, 0.0, 0.5, 0.5), is_walkable: false,
         });
-        object_classes.register("Door", GenericObjectClass {
-            uvs: Rect::new(0.5, 0.0, 0.5, 0.5), walkable: true,
+        object_classes.register(ObjectClass {
+            friendly_name: "Door".into(), uvs: Rect::new(0.5, 0.0, 0.5, 0.5), is_walkable: true,
         });
 
         // Initialize game subsystems
