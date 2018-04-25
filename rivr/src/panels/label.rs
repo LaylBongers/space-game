@@ -1,10 +1,13 @@
 use {
     nalgebra::{Vector2},
     palette::{Srgba},
-    cassowary::{Solver},
+    cassowary::{
+        Solver,
+        WeightedRelation::*,
+        strength::{STRONG, REQUIRED},
+    },
     rusttype::{Font, Scale, PositionedGlyph, point},
 
-    attributes::{PanelSize},
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
@@ -47,10 +50,17 @@ impl Panel for LabelPanel {
         &self,
         solver: &mut Solver, _ui: &Ui,
         this: &LayoutVariables,
-        c_depth: f64,
+        _c_depth: f64,
     ) {
-        let size = PanelSize::absolute(self.text_bounds.x, self.text_bounds.y);
-        size.add_constraints(solver, this, c_depth);
+        solver.add_constraints(&[
+            // Must be non-negative size
+            this.width |GE(REQUIRED)| 0.0,
+            this.height |GE(REQUIRED)| 0.0,
+
+            // Prefer to contain its contents
+            this.width |EQ(STRONG)| self.text_bounds.x as f64,
+            this.height |EQ(STRONG)| self.text_bounds.y as f64,
+        ]).unwrap();
     }
 
     fn render(

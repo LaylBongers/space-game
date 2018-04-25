@@ -2,7 +2,7 @@ use {
     cassowary::{
         Solver, Variable,
         WeightedRelation::*,
-        strength::{WEAK, STRONG, REQUIRED},
+        strength::{WEAK, MEDIUM, REQUIRED},
     },
 
     LayoutVariables,
@@ -54,10 +54,8 @@ impl PanelSize {
 
 #[derive(Copy, Clone)]
 pub enum AxisSize {
-    /// Tries to keep the panel to this size.
-    Absolute(f32),
     /// Tries to keep the panel to this size, but allows panel contents to overwrite it.
-    Suggest(f32),
+    Absolute(f32),
     /// Tries to make the panel as big as possible.
     Max,
     /// Tries to make the panel as small as possible.
@@ -70,9 +68,7 @@ impl AxisSize {
     ) {
         let constraint = match self {
             AxisSize::Absolute(value) =>
-                axis |EQ(STRONG)| value as f64,
-            AxisSize::Suggest(value) =>
-                axis |EQ(WEAK * c_depth)| value as f64,
+                axis |EQ(MEDIUM)| value as f64,
             AxisSize::Max =>
                 axis |EQ(WEAK * c_depth)| 1_000_000.0,
             AxisSize::Min =>

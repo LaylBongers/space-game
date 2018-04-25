@@ -3,7 +3,7 @@ use {
     cassowary::{
         Solver,
         WeightedRelation::*,
-        strength::{MEDIUM},
+        strength::{STRONG},
     },
 
     attributes::{PanelSize, PanelBox},
@@ -60,8 +60,8 @@ impl Panel for ButtonPanel {
         if let Some(content_id) = self.children.get(0) {
             let content = &ui.get(*content_id).unwrap().layout.variables;
             solver.add_constraints(&[
-                this.width |GE(MEDIUM)| content.width + (self.margin * 2.0),
-                this.height |GE(MEDIUM)| content.height + (self.margin * 2.0),
+                this.width |GE(STRONG)| content.width + (self.margin * 2.0),
+                this.height |GE(STRONG)| content.height + (self.margin * 2.0),
             ]).unwrap();
         }
     }

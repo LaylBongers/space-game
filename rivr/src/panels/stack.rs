@@ -3,7 +3,7 @@ use {
     cassowary::{
         Solver, Expression, Variable,
         WeightedRelation::*,
-        strength::{MEDIUM},
+        strength::{STRONG},
     },
 
     attributes::{PanelSize, PanelBox, Orientation},
@@ -61,7 +61,7 @@ impl StackPanel {
                 // We need to size our minor axis to be bigger than the size of children + margin
                 solver.add_constraint(
                     minor_axis_map(this)
-                    |GE(MEDIUM)|
+                    |GE(STRONG)|
                     minor_axis_map(child) + (self.margin * 2.0)
                 ).unwrap();
             }
@@ -71,13 +71,13 @@ impl StackPanel {
             if self.margin != 0.0 {
                 major_total_margin += self.margin;
                 solver.add_constraint(
-                    minor_axis_map(this) |GE(MEDIUM)| self.margin * 2.0
+                    minor_axis_map(this) |GE(STRONG)| self.margin * 2.0
                 ).unwrap();
             }
         }
 
         solver.add_constraint(
-            major_axis_map(this) |GE(MEDIUM)| major_total_width + major_total_margin
+            major_axis_map(this) |GE(STRONG)| major_total_width + major_total_margin
         ).unwrap();
     }
 }
