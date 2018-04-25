@@ -87,7 +87,7 @@ impl InputHandler {
             position_f, &mut ui_system.ui, &ui_system.frame
         ).unwrap();
         self.build_input.handle_mouse_move(
-            position,
+            position, &self.ui_input,
             &mut game_state.build_state, &mut game_state.camera, &mut game_state.ship
         );
         self.camera_input.handle_mouse_move(rel_position, &mut game_state.camera);

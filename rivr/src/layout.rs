@@ -13,7 +13,7 @@ pub fn layout(ui: &mut Ui, root_id: PanelId, target_size: Vector2<f32>) {
     let mut solver = Solver::new();
 
     // Recursively add the constraints for all our panels
-    add_panel_constraints(&mut solver, ui, root_id, 1.0);
+    add_panel_constraints(&mut solver, ui, root_id, 1);
 
     // Constrain the root panel to the window
     {
@@ -45,7 +45,7 @@ pub fn layout(ui: &mut Ui, root_id: PanelId, target_size: Vector2<f32>) {
 pub fn add_panel_constraints(
     solver: &mut Solver, ui: &Ui,
     panel_id: PanelId,
-    c_depth: f64,
+    depth: u32,
 ) {
     let panel_entry = ui.get(panel_id).unwrap();
     let panel_variables = &panel_entry.layout.variables;
@@ -53,12 +53,15 @@ pub fn add_panel_constraints(
     panel_entry.panel.add_constraints(
         solver, ui,
         panel_variables,
-        c_depth,
+        // This value is used to put priority on WEAK constraints, currently it's set to prefer
+        // parents over children, but this may change depending on what turns out to be more
+        // intuitive
+        1.0 / depth as f64,
     );
 
     if let Some(children) = panel_entry.panel.visible_children() {
         for child_id in children {
-            add_panel_constraints(solver, ui, *child_id, c_depth + 0.01);
+            add_panel_constraints(solver, ui, *child_id, depth + 1);
         }
     }
 }

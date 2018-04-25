@@ -135,4 +135,8 @@ impl Panel for StackPanel {
 
         Ok(())
     }
+
+    fn is_capturing_cursor(&self) -> bool {
+        self.panel_box.background.is_some()
+    }
 }
