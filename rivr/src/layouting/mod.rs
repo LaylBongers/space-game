@@ -57,7 +57,7 @@ pub fn add_panel_constraints(
         // This value is used to put priority on WEAK constraints, currently it's set to prefer
         // parents over children, but this may change depending on what turns out to be more
         // intuitive
-        1.0 / depth as f64,
+        1.0 / (depth as f64),
     );
 
     if let Some(children) = panel_entry.panel.visible_children() {
@@ -91,6 +91,17 @@ impl PanelLayout {
         PanelLayout {
             size: Vector2::new(0.0, 0.0),
             variables: LayoutVariables::new(),
+        }
+    }
+}
+
+/// Constrains children with Absolute sizes to maintain their ratio.
+pub struct Distributor {
+}
+
+impl Distributor {
+    pub fn new() -> Self {
+        Distributor {
         }
     }
 }

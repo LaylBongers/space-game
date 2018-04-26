@@ -3,6 +3,7 @@ use {
     palette::{Srgba},
 
     input::{FrameCollision},
+    layouting,
     Error, RenderingError, Ui, PanelId,
 };
 
@@ -50,7 +51,7 @@ pub fn render<R: Renderer>(
     // First re-layout the UI, we only need to do this during rendering, input should make use of
     // the cached information gathered here to be consistent with what's visible on screen
     let size = renderer.target_size();
-    ::layout::layout(ui, root_id, size);
+    layouting::layout(ui, root_id, size);
 
     // Insert the parent into the frame, this is needed because parents are responsible for adding
     // children to the frame, but the root has no parent

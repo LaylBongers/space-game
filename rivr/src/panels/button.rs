@@ -7,10 +7,11 @@ use {
     },
 
     attributes::{PanelSize, PanelBox},
+    layouting::{LayoutVariables, PanelLayout},
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
-    Ui, PanelId, Error, Event, LayoutVariables, PanelLayout,
+    Ui, PanelId, Error, Event,
 };
 
 pub struct ButtonPanel {

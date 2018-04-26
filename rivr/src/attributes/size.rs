@@ -5,9 +5,10 @@ use {
         strength::{WEAK, MEDIUM, REQUIRED},
     },
 
-    LayoutVariables,
+    layouting::{LayoutVariables},
 };
 
+#[derive(Clone)]
 pub struct PanelSize {
     pub x: AxisSize,
     pub y: AxisSize,
@@ -45,7 +46,7 @@ impl PanelSize {
     pub fn add_constraints(
         &self, solver: &mut Solver,
         this: &LayoutVariables,
-        c_depth: f64
+        c_depth: f64,
     ) {
         self.x.add_constraints(solver, this.width, c_depth);
         self.y.add_constraints(solver, this.height, c_depth);
@@ -63,8 +64,18 @@ pub enum AxisSize {
 }
 
 impl AxisSize {
+    pub fn is_absolute(self) -> bool {
+        if let AxisSize::Absolute(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+
     pub fn add_constraints(
-        self, solver: &mut Solver, axis: Variable, c_depth: f64
+        self,
+        solver: &mut Solver, axis: Variable,
+        c_depth: f64,
     ) {
         let constraint = match self {
             AxisSize::Absolute(value) =>

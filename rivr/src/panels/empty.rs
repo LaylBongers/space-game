@@ -2,10 +2,11 @@ use {
     cassowary::{Solver},
 
     attributes::{PanelSize, PanelBox},
+    layouting::{LayoutVariables, PanelLayout},
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
-    Ui, PanelId, Error, LayoutVariables, PanelLayout,
+    Ui, PanelId, Error,
 };
 
 pub struct EmptyPanel {

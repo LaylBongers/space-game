@@ -7,10 +7,11 @@ use {
     },
 
     attributes::{PanelSize, PanelBox, Orientation},
+    layouting::{LayoutVariables, PanelLayout},
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
-    Ui, PanelId, Error, LayoutVariables, PanelLayout,
+    Ui, PanelId, Error,
 };
 
 
@@ -53,16 +54,18 @@ impl StackPanel {
 
         if self.children.len() != 0 {
             for child_id in &self.children {
-                let child = &ui.get(*child_id).unwrap().layout.variables;
+                let child = ui.get(*child_id).unwrap();
+                let child_variables = &child.layout.variables;
 
-                major_total_width = major_total_width + major_axis_map(child);
+                // Add this child to our total size expression
+                major_total_width = major_total_width + major_axis_map(child_variables);
                 major_total_margin += self.margin;
 
                 // We need to size our minor axis to be bigger than the size of children + margin
                 solver.add_constraint(
                     minor_axis_map(this)
                     |GE(STRONG)|
-                    minor_axis_map(child) + (self.margin * 2.0)
+                    minor_axis_map(child_variables) + (self.margin * 2.0)
                 ).unwrap();
             }
         } else {
@@ -76,6 +79,7 @@ impl StackPanel {
             }
         }
 
+        // This panel's size should be at least the size of all children combined
         solver.add_constraint(
             major_axis_map(this) |GE(STRONG)| major_total_width + major_total_margin
         ).unwrap();
@@ -83,9 +87,7 @@ impl StackPanel {
 }
 
 impl Panel for StackPanel {
-    fn visible_children(&self) -> Option<&Vec<PanelId>> {
-        Some(&self.children)
-    }
+    fn visible_children(&self) -> Option<&Vec<PanelId>> { Some(&self.children) }
 
     fn add_constraints(
         &self,
@@ -97,10 +99,12 @@ impl Panel for StackPanel {
 
         // Prefer a size that at least contains all children
         match self.orientation {
-            Orientation::Horizontal =>
-                self.constrain_axis_to_children(solver, ui, this, |c| c.width, |c| c.height),
-            Orientation::Vertical =>
-                self.constrain_axis_to_children(solver, ui, this, |c| c.height, |c| c.width),
+            Orientation::Horizontal => self.constrain_axis_to_children(
+                solver, ui, this, |c| c.width, |c| c.height,
+            ),
+            Orientation::Vertical => self.constrain_axis_to_children(
+                solver, ui, this, |c| c.height, |c| c.width,
+            ),
         }
     }
 

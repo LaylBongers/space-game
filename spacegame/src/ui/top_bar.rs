@@ -1,7 +1,7 @@
 use {
     rivr::{
         attributes::{PanelSize, AxisSize, PanelBox, Orientation, Srgba},
-        panels::{ButtonPanel, StackPanel, LabelPanel},
+        panels::{ButtonPanel, StackPanel, LabelPanel, EmptyPanel},
         Ui, Event, PanelId, FontId,
     },
 
@@ -12,6 +12,47 @@ use {
 };
 
 pub struct TopBar {
+    buid_menu: BuildMenu,
+    game_menu: GameMenu,
+}
+
+impl TopBar {
+    pub fn new(ui: &mut Ui, font: FontId, object_classes: &ObjectClasses) -> (Self, PanelId) {
+        let (buid_menu, buid_menu_id) = BuildMenu::new(ui, font, object_classes);
+        let (game_menu, game_menu_id) = GameMenu::new(ui, font);
+
+        let spacer = EmptyPanel::new(
+            PanelSize::new(AxisSize::Max, AxisSize::Max),
+            PanelBox::default()
+        );
+        let spacer_id = ui.add_panel(spacer);
+
+        let mut top_bar = StackPanel::new(
+            PanelSize::new(AxisSize::Max, AxisSize::Min),
+            PanelBox {
+                background: Some(Srgba::new(1.0, 1.0, 1.0, 0.8)),
+                .. PanelBox::default()
+            },
+            Orientation::Horizontal, 0.0,
+        );
+        top_bar.add_child(buid_menu_id);
+        top_bar.add_child(spacer_id);
+        top_bar.add_child(game_menu_id);
+        let top_bar_id = ui.add_panel(top_bar);
+
+        (TopBar {
+            buid_menu,
+            game_menu,
+        }, top_bar_id)
+    }
+
+    pub fn update(&self, build_state: &mut BuildState) {
+        self.buid_menu.update(build_state);
+        self.game_menu.update();
+    }
+}
+
+struct BuildMenu {
     build_floor_pressed: Event,
     destroy_pressed: Event,
     destroy_all_pressed: Event,
@@ -19,13 +60,8 @@ pub struct TopBar {
     build_buttons: Vec<(Event, ObjectClassId)>,
 }
 
-impl TopBar {
+impl BuildMenu {
     pub fn new(ui: &mut Ui, font: FontId, object_classes: &ObjectClasses) -> (Self, PanelId) {
-        let panel_box = PanelBox {
-            background: Some(Srgba::new(1.0, 1.0, 1.0, 0.8)),
-            .. PanelBox::default()
-        };
-
         let (build_floor_button_id, build_floor_pressed) =
             labeled_button(ui, "Build Floor", font);
         let (destroy_button_id, destroy_pressed) =
@@ -33,33 +69,33 @@ impl TopBar {
         let (destroy_all_button_id, destroy_all_pressed) =
             labeled_button(ui, "Destroy All", font);
 
-        let mut top_bar = StackPanel::new(
-            PanelSize::new(AxisSize::Max, AxisSize::Min),
-            panel_box.clone(),
+        let mut build_menu = StackPanel::new(
+            PanelSize::new(AxisSize::Min, AxisSize::Min),
+            PanelBox::default(),
             Orientation::Horizontal, 3.0,
         );
-        top_bar.add_child(build_floor_button_id);
+        build_menu.add_child(build_floor_button_id);
 
         // Add all the buttons for different objects
         let mut build_buttons = Vec::new();
         for (id, class) in object_classes.classes().iter().enumerate() {
             let (build_button_id, build_pressed) =
                 labeled_button(ui, &format!("Build {}", class.friendly_name), font);
-            top_bar.add_child(build_button_id);
+            build_menu.add_child(build_button_id);
             build_buttons.push((build_pressed, ObjectClassId { id }));
         }
 
-        top_bar.add_child(destroy_button_id);
-        top_bar.add_child(destroy_all_button_id);
-        let top_bar_id = ui.add_panel(top_bar);
+        build_menu.add_child(destroy_button_id);
+        build_menu.add_child(destroy_all_button_id);
+        let build_menu_id = ui.add_panel(build_menu);
 
-        (TopBar {
+        (BuildMenu {
             build_floor_pressed,
             destroy_pressed,
             destroy_all_pressed,
 
             build_buttons,
-        }, top_bar_id)
+        }, build_menu_id)
     }
 
     pub fn update(&self, build_state: &mut BuildState) {
@@ -78,6 +114,32 @@ impl TopBar {
                 build_state.choice = BuildChoice::Object(*id);
             }
         }
+    }
+}
+
+struct GameMenu {
+    save_pressed: Event,
+}
+
+impl GameMenu {
+    pub fn new(ui: &mut Ui, font: FontId) -> (Self, PanelId) {
+        let (save_button_id, save_pressed) =
+            labeled_button(ui, "Save", font);
+
+        let mut game_menu = StackPanel::new(
+            PanelSize::new(AxisSize::Min, AxisSize::Min),
+            PanelBox::default(),
+            Orientation::Horizontal, 3.0,
+        );
+        game_menu.add_child(save_button_id);
+        let game_menu_id = ui.add_panel(game_menu);
+
+        (GameMenu {
+            save_pressed,
+        }, game_menu_id)
+    }
+
+    pub fn update(&self) {
     }
 }
 

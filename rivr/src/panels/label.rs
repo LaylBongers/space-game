@@ -8,10 +8,11 @@ use {
     },
     rusttype::{Font, Scale, PositionedGlyph, point},
 
+    layouting::{LayoutVariables, PanelLayout},
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
-    Ui, PanelId, Error, LayoutVariables, PanelLayout, FontId,
+    Ui, PanelId, Error, FontId,
 };
 
 pub struct LabelPanel {

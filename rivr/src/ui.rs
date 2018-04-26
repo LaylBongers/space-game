@@ -1,8 +1,9 @@
 use {
     metrohash::{MetroHashMap},
 
+    layouting::{LayoutVariables, PanelLayout},
     panels::{Panel},
-    Error, PanelLayout, LayoutVariables, Resources,
+    Error, Resources,
 };
 
 pub struct Ui {

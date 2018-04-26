@@ -3,9 +3,10 @@ use {
 
     cassowary::{Solver},
 
+    layouting::{LayoutVariables, PanelLayout},
     input::{FrameCollision},
     rendering::{Renderer},
-    Ui, PanelId, Error, LayoutVariables, PanelLayout,
+    Ui, PanelId, Error,
 };
 
 pub trait Panel: Any {
