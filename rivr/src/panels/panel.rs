@@ -1,24 +1,18 @@
 use {
     std::any::{Any},
 
-    cassowary::{Solver},
+    cassowary::{Constraint},
 
-    layouting::{LayoutVariables, PanelLayout},
     input::{FrameCollision},
     rendering::{Renderer},
-    Ui, PanelId, Error,
+    Ui, PanelId, Error, PanelLayout, PanelVariables,
 };
 
 pub trait Panel: Any {
     /// Returns a vector of the children that need to be layouted, and rendered.
     fn visible_children(&self) -> Option<&Vec<PanelId>> { None }
 
-    fn add_constraints(
-        &self,
-        solver: &mut Solver, ui: &Ui,
-        this: &LayoutVariables,
-        c_depth: f64,
-    );
+    fn constraints(&self, ui: &Ui, this: &PanelVariables) -> Vec<Constraint>;
 
     fn render(
         &self,

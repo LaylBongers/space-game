@@ -4,6 +4,7 @@ use {
     std::io::{Read},
 
     ggez::{Context, GameResult},
+    slog::{Logger},
     rivr::{
         attributes::{PanelSize, PanelBox, Orientation},
         input::{FrameCollision},
@@ -12,7 +13,7 @@ use {
     },
 
     spacegame_game::{
-        state::{BuildState},
+        state::{GameState},
         ObjectClasses,
     },
     ui::top_bar::{TopBar},
@@ -54,7 +55,11 @@ impl UiSystem {
         })
     }
 
-    pub fn update(&self, build_state: &mut BuildState) {
-        self.top_bar.update(build_state);
+    pub fn update(
+        &self, log: &Logger, ctx: &mut Context, game_state: &mut GameState
+    ) -> GameResult<()> {
+        self.top_bar.update(log, ctx, game_state)?;
+
+        Ok(())
     }
 }

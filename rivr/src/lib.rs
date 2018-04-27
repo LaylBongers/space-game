@@ -7,7 +7,6 @@ extern crate rusttype;
 
 pub mod attributes;
 pub mod input;
-pub mod layouting;
 pub mod panels;
 pub mod rendering;
 mod error;
@@ -19,5 +18,5 @@ pub use {
     error::{Error, ResourceError, RenderingError},
     event::{Event},
     resources::{Resources, FontId},
-    ui::{Ui, PanelId},
+    ui::{Ui, PanelId, PanelEntry, PanelLayout, PanelVariables},
 };

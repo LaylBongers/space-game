@@ -1,17 +1,16 @@
 use {
     nalgebra::{Point2},
     cassowary::{
-        Solver,
         WeightedRelation::*,
         strength::{STRONG},
+        Constraint,
     },
 
     attributes::{PanelSize, PanelBox},
-    layouting::{LayoutVariables, PanelLayout},
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
-    Ui, PanelId, Error, Event,
+    Ui, PanelId, Error, Event, PanelVariables, PanelLayout
 };
 
 pub struct ButtonPanel {
@@ -49,22 +48,19 @@ impl ButtonPanel {
 impl Panel for ButtonPanel {
     fn visible_children(&self) -> Option<&Vec<PanelId>> { Some(&self.children) }
 
-    fn add_constraints(
-        &self,
-        solver: &mut Solver, ui: &Ui,
-        this: &LayoutVariables,
-        c_depth: f64,
-    ) {
-        self.size.add_constraints(solver, this, c_depth);
+    fn constraints(&self, ui: &Ui, this: &PanelVariables) -> Vec<Constraint> {
+        let mut constraints = Vec::new();
+
+        self.size.add_constraints(&mut constraints, this);
 
         // We need to be at least the size of the content unless size specifies otherwise
         if let Some(content_id) = self.children.get(0) {
-            let content = &ui.get(*content_id).unwrap().layout.variables;
-            solver.add_constraints(&[
-                this.width |GE(STRONG)| content.width + (self.margin * 2.0),
-                this.height |GE(STRONG)| content.height + (self.margin * 2.0),
-            ]).unwrap();
+            let content = &ui.get(*content_id).unwrap().variables;
+            constraints.push(this.width |GE(STRONG)| content.width + (self.margin * 2.0));
+            constraints.push(this.height |GE(STRONG)| content.height + (self.margin * 2.0));
         }
+
+        constraints
     }
 
     fn render(

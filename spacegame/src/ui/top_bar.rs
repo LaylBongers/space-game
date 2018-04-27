@@ -1,4 +1,9 @@
 use {
+    ggez::{Context, GameResult},
+    slog::{Logger},
+    serde::{Deserialize, Serialize},
+    rmp_serde::{Deserializer, Serializer},
+
     rivr::{
         attributes::{PanelSize, AxisSize, PanelBox, Orientation, Srgba},
         panels::{ButtonPanel, StackPanel, LabelPanel, EmptyPanel},
@@ -6,7 +11,7 @@ use {
     },
 
     spacegame_game::{
-        state::{BuildState, BuildChoice},
+        state::{GameState, BuildState, BuildChoice},
         ObjectClasses, ObjectClassId,
     },
 };
@@ -23,12 +28,12 @@ impl TopBar {
 
         let spacer = EmptyPanel::new(
             PanelSize::new(AxisSize::Max, AxisSize::Max),
-            PanelBox::default()
+            PanelBox::default(),
         );
         let spacer_id = ui.add_panel(spacer);
 
         let mut top_bar = StackPanel::new(
-            PanelSize::new(AxisSize::Max, AxisSize::Min),
+            PanelSize::new(AxisSize::Max, AxisSize::Absolute(0.0)),
             PanelBox {
                 background: Some(Srgba::new(1.0, 1.0, 1.0, 0.8)),
                 .. PanelBox::default()
@@ -46,9 +51,13 @@ impl TopBar {
         }, top_bar_id)
     }
 
-    pub fn update(&self, build_state: &mut BuildState) {
-        self.buid_menu.update(build_state);
-        self.game_menu.update();
+    pub fn update(
+        &self, log: &Logger, ctx: &mut Context, game_state: &mut GameState
+    ) -> GameResult<()> {
+        self.buid_menu.update(&mut game_state.build_state);
+        self.game_menu.update(log, ctx, game_state)?;
+
+        Ok(())
     }
 }
 
@@ -118,28 +127,62 @@ impl BuildMenu {
 }
 
 struct GameMenu {
+    new_pressed: Event,
     save_pressed: Event,
+    load_pressed: Event,
 }
 
 impl GameMenu {
     pub fn new(ui: &mut Ui, font: FontId) -> (Self, PanelId) {
+        let (new_button_id, new_pressed) =
+            labeled_button(ui, "New", font);
         let (save_button_id, save_pressed) =
             labeled_button(ui, "Save", font);
+        let (load_button_id, load_pressed) =
+            labeled_button(ui, "Load", font);
 
         let mut game_menu = StackPanel::new(
             PanelSize::new(AxisSize::Min, AxisSize::Min),
             PanelBox::default(),
             Orientation::Horizontal, 3.0,
         );
+        game_menu.add_child(new_button_id);
         game_menu.add_child(save_button_id);
+        game_menu.add_child(load_button_id);
         let game_menu_id = ui.add_panel(game_menu);
 
         (GameMenu {
+            new_pressed,
             save_pressed,
+            load_pressed,
         }, game_menu_id)
     }
 
-    pub fn update(&self) {
+    pub fn update(
+        &self, log: &Logger, ctx: &mut Context, game_state: &mut GameState
+    ) -> GameResult<()> {
+        if self.new_pressed.check() {
+            info!(log, "Creating new game");
+
+            *game_state = GameState::new(log);
+        }
+
+        if self.save_pressed.check() {
+            info!(log, "Saving game");
+
+            let mut file = ctx.filesystem.create("/save.mp")?;
+            game_state.serialize(&mut Serializer::new(&mut file)).unwrap();
+        }
+
+        if self.load_pressed.check() {
+            info!(log, "Loading game");
+
+            let mut file = ctx.filesystem.open("/save.mp")?;
+            let mut de = Deserializer::new(&mut file);
+            *game_state = Deserialize::deserialize(&mut de).unwrap();
+        }
+
+        Ok(())
     }
 }
 

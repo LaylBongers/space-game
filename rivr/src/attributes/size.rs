@@ -1,11 +1,11 @@
 use {
     cassowary::{
-        Solver, Variable,
         WeightedRelation::*,
         strength::{WEAK, MEDIUM, REQUIRED},
+        Variable, Constraint,
     },
 
-    layouting::{LayoutVariables},
+    PanelVariables,
 };
 
 #[derive(Clone)]
@@ -44,12 +44,10 @@ impl PanelSize {
     }
 
     pub fn add_constraints(
-        &self, solver: &mut Solver,
-        this: &LayoutVariables,
-        c_depth: f64,
+        &self, constraints: &mut Vec<Constraint>, this: &PanelVariables,
     ) {
-        self.x.add_constraints(solver, this.width, c_depth);
-        self.y.add_constraints(solver, this.height, c_depth);
+        self.x.add_constraints(constraints, this.width);
+        self.y.add_constraints(constraints, this.height);
     }
 }
 
@@ -74,23 +72,20 @@ impl AxisSize {
 
     pub fn add_constraints(
         self,
-        solver: &mut Solver, axis: Variable,
-        c_depth: f64,
+        constraints: &mut Vec<Constraint>, axis: Variable,
     ) {
         let constraint = match self {
             AxisSize::Absolute(value) =>
                 axis |EQ(MEDIUM)| value as f64,
             AxisSize::Max =>
-                axis |EQ(WEAK * c_depth)| 1_000_000.0,
+                axis |EQ(WEAK)| 1_000_000.0,
             AxisSize::Min =>
-                axis |EQ(WEAK * c_depth)| 0.0,
+                axis |EQ(WEAK)| 0.0,
         };
 
-        solver.add_constraints(&[
-            // Must be non-negative size
-            axis |GE(REQUIRED)| 0.0,
-            // The size constraint
-            constraint,
-        ]).unwrap();
+        // Must be non-negative size
+        constraints.push(axis |GE(REQUIRED)| 0.0);
+        // The size constraint itself
+        constraints.push(constraint);
     }
 }

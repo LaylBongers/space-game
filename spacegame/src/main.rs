@@ -13,7 +13,7 @@ mod rendering;
 mod ui;
 
 use {
-    std::{env, path},
+    std::{path},
 
     ggez::{
         Context, GameResult, GameError,
@@ -53,13 +53,9 @@ pub fn main() {
     };
     let ctx = &mut Context::load_from_conf("spacegame", "carbidegames", c).unwrap();
 
-    // We add the CARGO_MANIFEST_DIR/resources do the filesystems paths so we we look in the cargo
-    // project for files.
-    if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
-        let mut path = path::PathBuf::from(manifest_dir);
-        path.push("resources");
-        ctx.filesystem.mount(&path, true);
-    }
+    // Just add the local resources directory
+    let path = path::PathBuf::from("./resources");
+    ctx.filesystem.mount(&path, true);
 
     // Initialize and run the game
     let result = MainState::new(ctx, log.clone())
@@ -130,7 +126,7 @@ impl EventHandler for MainState {
         const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            self.ui_system.update(&mut self.game_state.build_state);
+            self.ui_system.update(&self.log, ctx, &mut self.game_state)?;
             self.input_handler.update()?;
             self.game_state.update(&self.log, &self.object_classes, DELTA);
         }

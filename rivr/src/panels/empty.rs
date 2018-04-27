@@ -1,12 +1,11 @@
 use {
-    cassowary::{Solver},
+    cassowary::{Constraint},
 
     attributes::{PanelSize, PanelBox},
-    layouting::{LayoutVariables, PanelLayout},
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
-    Ui, PanelId, Error,
+    Ui, PanelId, Error, PanelVariables, PanelLayout,
 };
 
 pub struct EmptyPanel {
@@ -24,13 +23,10 @@ impl EmptyPanel {
 }
 
 impl Panel for EmptyPanel {
-    fn add_constraints(
-        &self,
-        solver: &mut Solver, _ui: &Ui,
-        this: &LayoutVariables,
-        c_depth: f64,
-    ) {
-        self.size.add_constraints(solver, this, c_depth);
+    fn constraints(&self, _ui: &Ui, this: &PanelVariables) -> Vec<Constraint> {
+        let mut constraints = Vec::new();
+        self.size.add_constraints(&mut constraints, this);
+        constraints
     }
 
     fn render(

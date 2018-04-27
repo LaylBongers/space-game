@@ -2,17 +2,16 @@ use {
     nalgebra::{Vector2},
     palette::{Srgba},
     cassowary::{
-        Solver,
         WeightedRelation::*,
         strength::{STRONG, REQUIRED},
+        Constraint,
     },
     rusttype::{Font, Scale, PositionedGlyph, point},
 
-    layouting::{LayoutVariables, PanelLayout},
     input::{FrameCollision},
     panels::{Panel},
     rendering::{Renderer},
-    Ui, PanelId, Error, FontId,
+    Ui, PanelId, Error, FontId, PanelVariables, PanelLayout,
 };
 
 pub struct LabelPanel {
@@ -47,13 +46,8 @@ impl LabelPanel {
 }
 
 impl Panel for LabelPanel {
-    fn add_constraints(
-        &self,
-        solver: &mut Solver, _ui: &Ui,
-        this: &LayoutVariables,
-        _c_depth: f64,
-    ) {
-        solver.add_constraints(&[
+    fn constraints(&self, _ui: &Ui, this: &PanelVariables) -> Vec<Constraint> {
+        vec!(
             // Must be non-negative size
             this.width |GE(REQUIRED)| 0.0,
             this.height |GE(REQUIRED)| 0.0,
@@ -61,7 +55,7 @@ impl Panel for LabelPanel {
             // Prefer to contain its contents
             this.width |EQ(STRONG)| self.text_bounds.x as f64,
             this.height |EQ(STRONG)| self.text_bounds.y as f64,
-        ]).unwrap();
+        )
     }
 
     fn render(
