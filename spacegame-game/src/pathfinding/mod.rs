@@ -42,6 +42,20 @@ pub fn find_path(
     }
 }
 
+pub fn walk_cost(tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClasses) -> WalkCost {
+    if let Ok(tile) = tile_res {
+        if !tile.floor {
+            WalkCost::NotWalkable
+        } else {
+            tile.object.as_ref()
+                .map(|o| object_classes.get(o.class).unwrap().walk_cost)
+                .unwrap_or(WalkCost::Multiplier(1.0))
+        }
+    } else {
+        WalkCost::NotWalkable
+    }
+}
+
 struct Costs {
     // Can only use Ord cost, f32 isn't Ord
     straight: f32,
@@ -64,48 +78,40 @@ fn neighbors(
                 continue
             }
 
-            // Retrieve the tile data itself
-            let tile_res =  tiles.get(neighbor);
-
             // Make sure we can walk over this tile
-            // We always allow the start, we want to move off where we are even if it's blocked
-            // We start pathing at the goal anyways, so we don't have to add an exception for that
-            if !is_walkable(&tile_res, object_classes) &&
-                !(neighbor == start)
-            {
-                continue
-            }
+            let walk_cost = walk_cost(tiles.get(neighbor), object_classes);
+            let cost_multiplier = if let WalkCost::Multiplier(value) = walk_cost {
+                value
+            } else {
+                // We always allow the start, we want to move off where we are even if it's
+                // blocked. We start pathing at the goal anyways, so we don't have to add an
+                // exception for that
+                if neighbor == start {
+                    1.0
+                } else {
+                    continue
+                }
+            };
 
-            // Get any additional walk cost we have from this tile's object
-            // TODO: This re-does a lot of stuff from the previous is_walkable, find a way to just
-            // re-use that data.
-            // TODO: The way this is used in calculations is technically currently incorrect,
+            // TODO: The way walk cost is used in calculations is technically currently incorrect,
             // because moving to this tile we only spend half of the time on this one and half on
             // the previous one. Therefore, both should be taken into account.
-            let object_multiplier = if let Ok(tile) = tile_res {
-                if let Some(ref object) = tile.object {
-                    let class = object_classes.get(object.class).unwrap();
-                    if let WalkCost::Multiplier(value) = class.walk_cost {
-                        value
-                    } else { 1.0 }
-                } else { 1.0 }
-            } else { 1.0 };
 
             // Cost differ for straight and diagonal movement
             let cost = if x == node.x || y == node.y {
-                (costs.straight * object_multiplier * COST_MULTIPLIER) as i32
+                (costs.straight * cost_multiplier * COST_MULTIPLIER) as i32
             } else {
                 // Hard corner check is not needed if we don't actually need to move to it, which
                 // is the case if we're not goal inclusive and the node is the goal
                 if !(!goal_inclusive && node == goal) {
                     // Make sure we're not moving through a hard corner
-                    if !is_walkable(&tiles.get(Point2::new(x, node.y)), object_classes) ||
-                       !is_walkable(&tiles.get(Point2::new(node.x, y)), object_classes) {
+                    if !is_walkable(tiles.get(Point2::new(x, node.y)), object_classes) ||
+                       !is_walkable(tiles.get(Point2::new(node.x, y)), object_classes) {
                         continue
                     }
                 }
 
-                (costs.diagonal * object_multiplier * COST_MULTIPLIER) as i32
+                (costs.diagonal * cost_multiplier * COST_MULTIPLIER) as i32
             };
 
             neighbors.push((neighbor, cost));
@@ -115,19 +121,8 @@ fn neighbors(
     neighbors
 }
 
-fn is_walkable(tile_res: &Result<&Tile, TilesError>, object_classes: &ObjectClasses) -> bool {
-    if let Ok(tile) = tile_res {
-        let has_bocking_object = tile.object.as_ref()
-            .map(|o| {
-                let class = object_classes.get(o.class).unwrap();
-                class.walk_cost == WalkCost::NotWalkable
-            })
-            .unwrap_or(false);
-
-        tile.floor && !has_bocking_object
-    } else {
-        false
-    }
+fn is_walkable(tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClasses) -> bool {
+    walk_cost(tile_res, object_classes) != WalkCost::NotWalkable
 }
 
 fn heuristic(node: Point2<i32>, start: Point2<i32>, costs: &Costs) -> i32 {

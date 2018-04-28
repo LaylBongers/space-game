@@ -117,21 +117,24 @@ impl Unit {
 
         let target = Point2::new(target.x as f32 + 0.5, target.y as f32 + 0.5);
 
-        // TODO: If we encounter something that blocks us from moving, cancel the path & job
+        // Get how much we need to adjust the speed for the tile we're over
         let t_pos = Point2::new(self.position.x as i32, self.position.y as i32);
-        let object_cost_multiplier = if let Some(ref object) = tiles.get(t_pos).unwrap().object {
-            let class = object_classes.get(object.class).unwrap();
-            if let WalkCost::Multiplier(value) = class.walk_cost {
-                value
-            } else { 1.0 }
-        } else { 1.0 };
+        let walk_cost = pathfinding::walk_cost(tiles.get(t_pos), object_classes);
+        let cost_multiplier = if let WalkCost::Multiplier(value) = walk_cost {
+            value
+        } else {
+            // We're currently over something unwalkable, in this case we don't want the unit to be
+            // stuck so just give it its based speed
+            1.0
+        };
 
         // Calculate how far away we are and how far we can travel
         let distance = self.position.distance(&target);
-        let distance_possible = (UNIT_SPEED / object_cost_multiplier) * delta;
+        let distance_possible = (UNIT_SPEED / cost_multiplier) * delta;
 
         // If we're within our travel distance, just arrive
         if distance < distance_possible {
+            // TODO: If we encounter something that blocks us from moving, cancel the path & job
             self.path.as_mut().unwrap().pop();
             self.position = target;
         } else {
