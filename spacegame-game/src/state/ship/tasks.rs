@@ -1,9 +1,11 @@
-use alga::linear::{EuclideanSpace};
-use nalgebra::{Point2};
-use metrohash::{MetroHashMap};
-use slog::{Logger};
+use {
+    alga::linear::{EuclideanSpace},
+    nalgebra::{Point2},
+    metrohash::{MetroHashMap},
+    slog::{Logger},
 
-use {ObjectClassId};
+    object_class::{ObjectClassId},
+};
 
 #[derive(Deserialize, Serialize)]
 pub struct TaskQueue {

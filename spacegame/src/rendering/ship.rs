@@ -6,7 +6,7 @@ use {
     nalgebra::{Point2},
 
     spacegame_game::{
-        ObjectClasses,
+        object_class::{ObjectClasses},
         state::{GameState, Camera, ship::{Ship}},
     },
 };

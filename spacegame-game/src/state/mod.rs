@@ -11,7 +11,7 @@ use {
     nalgebra::{Vector2, Point2},
     slog::{Logger},
 
-    ObjectClasses,
+    object_class::{ObjectClasses},
     state::ship::{Ship},
 };
 

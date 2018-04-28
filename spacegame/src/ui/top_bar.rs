@@ -11,8 +11,8 @@ use {
     },
 
     spacegame_game::{
+        object_class::{ObjectClasses, ObjectClassId},
         state::{GameState, BuildState, BuildChoice},
-        ObjectClasses, ObjectClassId,
     },
 };
 

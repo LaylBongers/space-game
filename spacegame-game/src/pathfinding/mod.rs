@@ -2,8 +2,8 @@ use {
     nalgebra::{Point2},
     pathfindingc::{astar},
 
+    object_class::{ObjectClasses, WalkCost},
     state::ship::{Tiles, Tile, TilesError},
-    ObjectClasses, WalkCost,
 };
 
 const COST_MULTIPLIER: f32 = 100.0;
@@ -15,8 +15,8 @@ pub fn find_path(
 ) -> Option<Vec<Point2<i32>>> {
     // Calculate some advance values relevant to pathfinding
     let costs = Costs {
-        straight: (seconds_per_unit * COST_MULTIPLIER) as i32,
-        diagonal: (f32::sqrt(2.0) * seconds_per_unit * COST_MULTIPLIER) as i32,
+        straight: seconds_per_unit,
+        diagonal: f32::sqrt(2.0) * seconds_per_unit,
     };
 
     // Now do the actual pathfinding
@@ -44,8 +44,8 @@ pub fn find_path(
 
 struct Costs {
     // Can only use Ord cost, f32 isn't Ord
-    straight: i32,
-    diagonal: i32,
+    straight: f32,
+    diagonal: f32,
 }
 
 fn neighbors(
@@ -79,18 +79,21 @@ fn neighbors(
             // Get any additional walk cost we have from this tile's object
             // TODO: This re-does a lot of stuff from the previous is_walkable, find a way to just
             // re-use that data.
-            let additional_cost = if let Ok(tile) = tile_res {
+            // TODO: The way this is used in calculations is technically currently incorrect,
+            // because moving to this tile we only spend half of the time on this one and half on
+            // the previous one. Therefore, both should be taken into account.
+            let object_multiplier = if let Ok(tile) = tile_res {
                 if let Some(ref object) = tile.object {
                     let class = object_classes.get(object.class).unwrap();
-                    if let WalkCost::Seconds(value) = class.walk_cost {
-                        (value * COST_MULTIPLIER) as i32
-                    } else { 0 }
-                } else { 0 }
-            } else { 0 };
+                    if let WalkCost::Multiplier(value) = class.walk_cost {
+                        value
+                    } else { 1.0 }
+                } else { 1.0 }
+            } else { 1.0 };
 
             // Cost differ for straight and diagonal movement
             let cost = if x == node.x || y == node.y {
-                costs.straight + additional_cost
+                (costs.straight * object_multiplier * COST_MULTIPLIER) as i32
             } else {
                 // Hard corner check is not needed if we don't actually need to move to it, which
                 // is the case if we're not goal inclusive and the node is the goal
@@ -102,7 +105,7 @@ fn neighbors(
                     }
                 }
 
-                costs.diagonal + additional_cost
+                (costs.diagonal * object_multiplier * COST_MULTIPLIER) as i32
             };
 
             neighbors.push((neighbor, cost));
@@ -128,7 +131,10 @@ fn is_walkable(tile_res: &Result<&Tile, TilesError>, object_classes: &ObjectClas
 }
 
 fn heuristic(node: Point2<i32>, start: Point2<i32>, costs: &Costs) -> i32 {
+    let cost_straight = (costs.straight * COST_MULTIPLIER) as i32;
+    let cost_diagonal = (costs.diagonal * COST_MULTIPLIER) as i32;
+
     let dx = (node.x - start.x).abs();
     let dy = (node.y - start.y).abs();
-    costs.straight*(dx + dy) + (costs.diagonal - 2*costs.straight) * dx.min(dy)
+    cost_straight*(dx + dy) + (cost_diagonal - 2*cost_straight) * dx.min(dy)
 }

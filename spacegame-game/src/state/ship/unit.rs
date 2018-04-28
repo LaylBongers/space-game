@@ -3,9 +3,9 @@ use {
     nalgebra::{Point2},
     slog::{Logger},
 
+    object_class::{ObjectClasses, WalkCost},
     pathfinding,
     state::ship::{TaskId, TaskQueue, Object, Tiles},
-    ObjectClasses,
 };
 
 const UNIT_SPEED: f32 = 1.5;
@@ -39,7 +39,7 @@ impl Unit {
         delta: f32,
     ) {
         self.update_task(log, object_classes, tiles, task_queue, delta);
-        self.update_movement(delta);
+        self.update_movement(object_classes, tiles, delta);
     }
 
     fn update_task(
@@ -107,8 +107,8 @@ impl Unit {
         }
     }
 
-    fn update_movement(&mut self, delta: f32) {
-        // Update the path we're following
+    fn update_movement(&mut self, object_classes: &ObjectClasses, tiles: &mut Tiles, delta: f32) {
+        // Get the next target tile in the path we're following
         let target = if let Some(ref path) = self.path {
             *path.iter().last().unwrap()
         } else {
@@ -117,9 +117,18 @@ impl Unit {
 
         let target = Point2::new(target.x as f32 + 0.5, target.y as f32 + 0.5);
 
+        // TODO: If we encounter something that blocks us from moving, cancel the path & job
+        let t_pos = Point2::new(self.position.x as i32, self.position.y as i32);
+        let object_cost_multiplier = if let Some(ref object) = tiles.get(t_pos).unwrap().object {
+            let class = object_classes.get(object.class).unwrap();
+            if let WalkCost::Multiplier(value) = class.walk_cost {
+                value
+            } else { 1.0 }
+        } else { 1.0 };
+
         // Calculate how far away we are and how far we can travel
         let distance = self.position.distance(&target);
-        let distance_possible = UNIT_SPEED * delta;
+        let distance_possible = (UNIT_SPEED / object_cost_multiplier) * delta;
 
         // If we're within our travel distance, just arrive
         if distance < distance_possible {

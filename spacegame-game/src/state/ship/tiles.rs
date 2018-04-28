@@ -2,7 +2,7 @@ use {
     nalgebra::{Vector2, Point2},
     metrohash::{MetroHashMap},
 
-    ObjectClassId, ObjectClasses,
+    object_class::{ObjectClassId, ObjectClasses},
 };
 
 #[derive(Deserialize, Serialize)]

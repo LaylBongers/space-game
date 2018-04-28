@@ -1,8 +1,10 @@
-use nalgebra::{Point2, Vector2};
-use slog::{Logger};
+use {
+    nalgebra::{Point2, Vector2},
+    slog::{Logger},
 
-use {ObjectClasses};
-use state::ship::{Tiles, Unit, TaskQueue};
+    object_class::{ObjectClasses},
+    state::ship::{Tiles, Unit, TaskQueue},
+};
 
 #[derive(Deserialize, Serialize)]
 pub struct Ship {

@@ -7,8 +7,6 @@ extern crate serde;
 extern crate pathfinding as pathfindingc;
 extern crate metrohash;
 
+pub mod object_class;
 pub mod state;
 pub mod pathfinding;
-mod object_classes;
-
-pub use self::object_classes::{ObjectClass, ObjectClasses, ObjectClassId, ObjectBehavior, DoorObjectBehavior, WalkCost};

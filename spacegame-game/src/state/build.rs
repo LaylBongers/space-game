@@ -1,5 +1,7 @@
-use nalgebra::{Point2};
-use {ObjectClassId};
+use {
+    nalgebra::{Point2},
+    object_class::{ObjectClassId},
+};
 
 #[derive(Deserialize, Serialize)]
 pub struct BuildState {

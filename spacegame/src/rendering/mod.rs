@@ -14,7 +14,7 @@ use {
     rivr::{self},
     rivr_ggez::{GgezRivrCache, GgezRivrRenderer},
     spacegame_game::{
-        ObjectClasses,
+        object_class::{ObjectClasses},
         state::{
             normalize_area, GameState, BuildState, BuildDrag, BuildChoice, Camera,
             ship::{Ship},

@@ -13,8 +13,8 @@ use {
     },
 
     spacegame_game::{
+        object_class::{ObjectClasses},
         state::{GameState},
-        ObjectClasses,
     },
     ui::top_bar::{TopBar},
 };
