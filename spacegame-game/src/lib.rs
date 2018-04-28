@@ -10,3 +10,12 @@ extern crate metrohash;
 pub mod object_class;
 pub mod state;
 pub mod pathfinding;
+
+use {
+    object_class::{ObjectClassId},
+};
+
+#[derive(Debug)]
+pub enum Error {
+    ObjectClassNotFound(ObjectClassId)
+}

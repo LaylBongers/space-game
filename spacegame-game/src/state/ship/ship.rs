@@ -4,6 +4,7 @@ use {
 
     object_class::{ObjectClasses},
     state::ship::{Tiles, Unit, TaskQueue},
+    Error,
 };
 
 #[derive(Deserialize, Serialize)]
@@ -46,18 +47,22 @@ impl Ship {
         self.units.push(unit);
     }
 
-    pub fn update(&mut self, log: &Logger, object_classes: &ObjectClasses, delta: f32) {
-        if self.tiles.handle_changed(object_classes) {
+    pub fn update(
+        &mut self, log: &Logger, object_classes: &ObjectClasses, delta: f32,
+    ) -> Result<(), Error> {
+        if self.tiles.handle_changed(object_classes)? {
             // Since the world has changed, we can mark all tasks as being possible again
             self.task_queue.clear_unreachable();
         }
 
-        self.tiles.update(object_classes, delta);
+        self.tiles.update(object_classes, delta)?;
 
         for unit in &mut self.units {
-            unit.update(log, object_classes, &mut self.tiles, &mut self.task_queue, delta);
+            unit.update(log, object_classes, &mut self.tiles, &mut self.task_queue, delta)?;
         }
 
         self.task_queue.update(log);
+
+        Ok(())
     }
 }

@@ -2,8 +2,9 @@ use {
     nalgebra::{Point2},
     pathfindingc::{astar},
 
-    object_class::{ObjectClasses, WalkCost},
+    object_class::{ObjectClasses},
     state::ship::{Tiles, Tile, TilesError},
+    Error,
 };
 
 const COST_MULTIPLIER: f32 = 100.0;
@@ -42,17 +43,22 @@ pub fn find_path(
     }
 }
 
-pub fn walk_cost(tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClasses) -> WalkCost {
-    if let Ok(tile) = tile_res {
-        if !tile.floor {
-            WalkCost::NotWalkable
+#[derive(PartialEq, Copy, Clone)]
+pub enum Walkable {
+    Never,
+    Always,
+    Openable,
+}
+
+impl Walkable {
+    pub fn from_tile_res(
+        tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClasses
+    ) -> Result<Walkable, Error> {
+        if let Ok(tile) = tile_res {
+            tile.walkable(object_classes)
         } else {
-            tile.object.as_ref()
-                .map(|o| object_classes.get(o.class).unwrap().walk_cost)
-                .unwrap_or(WalkCost::Multiplier(1.0))
+            Ok(Walkable::Never)
         }
-    } else {
-        WalkCost::NotWalkable
     }
 }
 
@@ -79,19 +85,15 @@ fn neighbors(
             }
 
             // Make sure we can walk over this tile
-            let walk_cost = walk_cost(tiles.get(neighbor), object_classes);
-            let cost_multiplier = if let WalkCost::Multiplier(value) = walk_cost {
-                value
-            } else {
+            let walkable = Walkable::from_tile_res(tiles.get(neighbor), object_classes).unwrap();
+            if walkable == Walkable::Never {
                 // We always allow the start, we want to move off where we are even if it's
                 // blocked. We start pathing at the goal anyways, so we don't have to add an
                 // exception for that
-                if neighbor == start {
-                    1.0
-                } else {
+                if neighbor != start {
                     continue
                 }
-            };
+            }
 
             // TODO: The way walk cost is used in calculations is technically currently incorrect,
             // because moving to this tile we only spend half of the time on this one and half on
@@ -99,19 +101,19 @@ fn neighbors(
 
             // Cost differ for straight and diagonal movement
             let cost = if x == node.x || y == node.y {
-                (costs.straight * cost_multiplier * COST_MULTIPLIER) as i32
+                (costs.straight * COST_MULTIPLIER) as i32
             } else {
                 // Hard corner check is not needed if we don't actually need to move to it, which
                 // is the case if we're not goal inclusive and the node is the goal
                 if !(!goal_inclusive && node == goal) {
                     // Make sure we're not moving through a hard corner
-                    if !is_walkable(tiles.get(Point2::new(x, node.y)), object_classes) ||
-                       !is_walkable(tiles.get(Point2::new(node.x, y)), object_classes) {
+                    if !is_walkable(tiles.get(Point2::new(x, node.y)), object_classes).unwrap() ||
+                       !is_walkable(tiles.get(Point2::new(node.x, y)), object_classes).unwrap() {
                         continue
                     }
                 }
 
-                (costs.diagonal * cost_multiplier * COST_MULTIPLIER) as i32
+                (costs.diagonal * COST_MULTIPLIER) as i32
             };
 
             neighbors.push((neighbor, cost));
@@ -121,8 +123,10 @@ fn neighbors(
     neighbors
 }
 
-fn is_walkable(tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClasses) -> bool {
-    walk_cost(tile_res, object_classes) != WalkCost::NotWalkable
+fn is_walkable(
+    tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClasses
+) -> Result<bool, Error> {
+    Ok(Walkable::from_tile_res(tile_res, object_classes)? != Walkable::Never)
 }
 
 fn heuristic(node: Point2<i32>, start: Point2<i32>, costs: &Costs) -> i32 {

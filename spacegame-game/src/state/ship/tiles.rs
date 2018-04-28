@@ -3,6 +3,8 @@ use {
     metrohash::{MetroHashMap},
 
     object_class::{ObjectClassId, ObjectClasses},
+    pathfinding::{Walkable},
+    Error,
 };
 
 #[derive(Deserialize, Serialize)]
@@ -59,13 +61,13 @@ impl Tiles {
         self.changed = true
     }
 
-    pub fn handle_changed(&mut self, object_classes: &ObjectClasses) -> bool {
-        if self.changed {
+    pub fn handle_changed(&mut self, object_classes: &ObjectClasses) -> Result<bool, Error> {
+        Ok(if self.changed {
             // Find any tiles that ask for update events
             self.tiles_with_behaviors.clear();
             for (i, tile) in self.tiles.iter().enumerate() {
                 if let Some(ref object) = tile.object {
-                    let class = object_classes.get(object.class).unwrap();
+                    let class = object_classes.get(object.class)?;
                     if class.behavior.is_some() {
                         self.tiles_with_behaviors.push(i);
                     }
@@ -76,20 +78,22 @@ impl Tiles {
             true
         } else {
             false
-        }
+        })
     }
 
-    pub fn update(&mut self, object_classes: &ObjectClasses, delta: f32) {
+    pub fn update(&mut self, object_classes: &ObjectClasses, delta: f32) -> Result<(), Error> {
         for i in &self.tiles_with_behaviors {
             let object = self.tiles[*i]
                 .object.as_mut()
                     .expect("Found tile without object in tiles with behaviors");
-            let behavior = object_classes.get(object.class).unwrap()
+            let behavior = object_classes.get(object.class)?
                 .behavior.as_ref()
                     .expect("Found tile class without behavior in tiles with behaviors");
 
             behavior.update(object, delta);
         }
+
+        Ok(())
     }
 
     fn index(&self, position: Point2<i32>) -> usize {
@@ -115,12 +119,28 @@ impl Tile {
             object: None,
         }
     }
+
+    pub fn walkable(&self, object_classes: &ObjectClasses) -> Result<Walkable, Error> {
+        if !self.floor {
+            return Ok(Walkable::Never)
+        }
+
+        Ok(if let Some(ref object) = self.object {
+            let class = object_classes.get(object.class)?;
+            if let Some(ref behavior) = class.behavior {
+                behavior.walkable()
+            } else {
+                Walkable::Never
+            }
+        } else {
+            Walkable::Always
+        })
+    }
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct Object {
     pub class: ObjectClassId,
-
     pub values: MetroHashMap<String, f32>,
 }
 
@@ -128,7 +148,6 @@ impl Object {
     pub fn new(class: ObjectClassId) -> Self {
         Object {
             class,
-
             values: MetroHashMap::default(),
         }
     }

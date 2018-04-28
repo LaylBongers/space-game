@@ -87,7 +87,7 @@ impl BuildMenu {
 
         // Add all the buttons for different objects
         let mut build_buttons = Vec::new();
-        for (id, class) in object_classes.classes().iter().enumerate() {
+        for (id, class) in object_classes.entries().iter().enumerate() {
             let (build_button_id, build_pressed) =
                 labeled_button(ui, &format!("Build {}", class.friendly_name), font);
             build_menu.add_child(build_button_id);
@@ -170,14 +170,16 @@ impl GameMenu {
         if self.save_pressed.check() {
             info!(log, "Saving game");
 
-            let mut file = ctx.filesystem.create("/save.mp")?;
+            let mut file = ctx.filesystem.create("/save.game")?;
+
             game_state.serialize(&mut Serializer::new(&mut file)).unwrap();
         }
 
         if self.load_pressed.check() {
             info!(log, "Loading game");
 
-            let mut file = ctx.filesystem.open("/save.mp")?;
+            let mut file = ctx.filesystem.open("/save.game")?;
+
             let mut de = Deserializer::new(&mut file);
             *game_state = Deserialize::deserialize(&mut de).unwrap();
         }

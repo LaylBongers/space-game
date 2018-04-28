@@ -3,9 +3,10 @@ use {
     nalgebra::{Point2},
     slog::{Logger},
 
-    object_class::{ObjectClasses, WalkCost},
+    object_class::{ObjectClasses},
     pathfinding,
-    state::ship::{TaskId, TaskQueue, Object, Tiles},
+    state::ship::{TaskId, TaskQueue, Tiles},
+    Error,
 };
 
 const UNIT_SPEED: f32 = 1.5;
@@ -37,16 +38,18 @@ impl Unit {
         &mut self, log: &Logger,
         object_classes: &ObjectClasses, tiles: &mut Tiles, task_queue: &mut TaskQueue,
         delta: f32,
-    ) {
-        self.update_task(log, object_classes, tiles, task_queue, delta);
-        self.update_movement(object_classes, tiles, delta);
+    ) -> Result<(), Error> {
+        self.update_task(log, object_classes, tiles, task_queue, delta)?;
+        self.update_movement(delta);
+
+        Ok(())
     }
 
     fn update_task(
         &mut self, log: &Logger,
         object_classes: &ObjectClasses, tiles: &mut Tiles, task_queue: &mut TaskQueue,
         delta: f32,
-    ) {
+    ) -> Result<(), Error> {
         // A lot of the functionality in here is sequential steps to complete a task checked every
         // frame. For performance it may be beneficial to restructure it into something else that
         // lets a unit sequantially go through the actions needed (find task -> move to -> work).
@@ -61,7 +64,7 @@ impl Unit {
 
             // If we're still path following, don't do anything
             if self.path.is_some() {
-                return
+                return Ok(())
             }
 
             let task_center = Point2::new(
@@ -78,7 +81,7 @@ impl Unit {
                 // If the work's done, we can add an object to the tile
                 if task.is_done() {
                     tiles.get_mut(task.position()).unwrap()
-                        .object = Some(Object::new(task.object_class()));
+                        .object = Some(object_classes.create_object(task.object_class())?);
                     tiles.mark_changed();
                 }
             } else {
@@ -105,9 +108,11 @@ impl Unit {
             self.assigned_task = task_queue.assign_task(log, self.position);
             self.path = None;
         }
+
+        Ok(())
     }
 
-    fn update_movement(&mut self, object_classes: &ObjectClasses, tiles: &mut Tiles, delta: f32) {
+    fn update_movement(&mut self, delta: f32) {
         // Get the next target tile in the path we're following
         let target = if let Some(ref path) = self.path {
             *path.iter().last().unwrap()
@@ -117,20 +122,9 @@ impl Unit {
 
         let target = Point2::new(target.x as f32 + 0.5, target.y as f32 + 0.5);
 
-        // Get how much we need to adjust the speed for the tile we're over
-        let t_pos = Point2::new(self.position.x as i32, self.position.y as i32);
-        let walk_cost = pathfinding::walk_cost(tiles.get(t_pos), object_classes);
-        let cost_multiplier = if let WalkCost::Multiplier(value) = walk_cost {
-            value
-        } else {
-            // We're currently over something unwalkable, in this case we don't want the unit to be
-            // stuck so just give it its based speed
-            1.0
-        };
-
         // Calculate how far away we are and how far we can travel
         let distance = self.position.distance(&target);
-        let distance_possible = (UNIT_SPEED / cost_multiplier) * delta;
+        let distance_possible = UNIT_SPEED * delta;
 
         // If we're within our travel distance, just arrive
         if distance < distance_possible {

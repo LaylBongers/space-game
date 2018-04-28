@@ -7,35 +7,49 @@ pub use self::{
 use {
     ggez::graphics::{Rect},
 
+    pathfinding::{Walkable},
     state::ship::{Object},
+    Error,
 };
 
 pub struct ObjectClasses {
-    classes: Vec<ObjectClass>,
+    entries: Vec<ObjectClass>,
 }
 
 impl ObjectClasses {
     pub fn new() -> Self {
         ObjectClasses {
-            classes: Vec::new()
+            entries: Vec::new()
         }
     }
 
-    pub fn classes(&self) -> &Vec<ObjectClass> {
-        &self.classes
+    pub fn entries(&self) -> &Vec<ObjectClass> {
+        &self.entries
     }
 
     pub fn register(&mut self, class: ObjectClass) -> ObjectClassId {
-        self.classes.push(class);
-        ObjectClassId { id: self.classes.len() - 1 }
+        self.entries.push(class);
+        ObjectClassId { id: self.entries.len() - 1 }
     }
 
-    pub fn get(&self, id: ObjectClassId) -> Option<&ObjectClass> {
-        self.classes.get(id.id)
+    pub fn get(&self, id: ObjectClassId) -> Result<&ObjectClass, Error> {
+        self.entries.get(id.id)
+            .ok_or(Error::ObjectClassNotFound(id))
+    }
+
+    pub fn create_object(&self, id: ObjectClassId) -> Result<Object, Error> {
+        let class = self.get(id)?;
+
+        let mut object = Object::new(id);
+        if let Some(ref behavior) = class.behavior {
+            behavior.initialize(&mut object);
+        }
+
+        Ok(object)
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct ObjectClassId {
     pub id: usize,
 }
@@ -43,17 +57,13 @@ pub struct ObjectClassId {
 pub struct ObjectClass {
     pub friendly_name: String,
     pub uvs: Rect,
-    pub walk_cost: WalkCost,
 
     pub behavior: Option<Box<ObjectBehavior>>,
 }
 
-#[derive(PartialEq, Copy, Clone)]
-pub enum WalkCost {
-    NotWalkable,
-    Multiplier(f32),
-}
-
 pub trait ObjectBehavior {
+    fn walkable(&self) -> Walkable;
+
+    fn initialize(&self, object: &mut Object);
     fn update(&self, object: &mut Object, delta: f32);
 }

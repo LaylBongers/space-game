@@ -13,6 +13,7 @@ use {
 
     object_class::{ObjectClasses},
     state::ship::{Ship},
+    Error,
 };
 
 #[derive(Deserialize, Serialize)]
@@ -41,7 +42,11 @@ impl GameState {
         }
     }
 
-    pub fn update(&mut self, log: &Logger, object_classes: &ObjectClasses, delta: f32) {
-        self.ship.update(log, object_classes, delta);
+    pub fn update(
+        &mut self, log: &Logger, object_classes: &ObjectClasses, delta: f32
+    ) -> Result<(), Error> {
+        self.ship.update(log, object_classes, delta)?;
+
+        Ok(())
     }
 }

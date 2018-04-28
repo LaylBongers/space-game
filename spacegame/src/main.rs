@@ -26,7 +26,7 @@ use {
     sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}},
 
     spacegame_game::{
-        object_class::{ObjectClasses, ObjectClass, DoorObjectBehavior, WalkCost},
+        object_class::{ObjectClasses, ObjectClass, DoorObjectBehavior},
         state::{GameState},
     },
     input::{InputHandler},
@@ -91,13 +91,11 @@ impl MainState {
         object_classes.register(ObjectClass {
             friendly_name: "Wall".into(),
             uvs: Rect::new(0.0, 0.0, 0.5, 0.5),
-            walk_cost: WalkCost::NotWalkable,
             behavior: None,
         });
         object_classes.register(ObjectClass {
             friendly_name: "Door".into(),
             uvs: Rect::new(0.5, 0.0, 0.5, 0.5),
-            walk_cost: WalkCost::Multiplier(5.0),
             behavior: Some(Box::new(DoorObjectBehavior)),
         });
 
@@ -128,7 +126,7 @@ impl EventHandler for MainState {
         while timer::check_update_time(ctx, DESIRED_FPS) {
             self.ui_system.update(&self.log, ctx, &mut self.game_state)?;
             self.input_handler.update()?;
-            self.game_state.update(&self.log, &self.object_classes, DELTA);
+            self.game_state.update(&self.log, &self.object_classes, DELTA).unwrap();
         }
 
         Ok(())
