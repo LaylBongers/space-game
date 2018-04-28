@@ -53,7 +53,7 @@ impl Ship {
         self.tiles.update(object_classes, delta);
 
         for unit in &mut self.units {
-            unit.update(log, delta, &mut self.tiles, &mut self.task_queue, object_classes);
+            unit.update(log, object_classes, &mut self.tiles, &mut self.task_queue, delta);
         }
 
         self.task_queue.update(log);

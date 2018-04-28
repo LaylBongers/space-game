@@ -3,18 +3,20 @@ use {
     pathfindingc::{astar},
 
     state::ship::{Tiles, Tile, TilesError},
-    ObjectClasses,
+    ObjectClasses, WalkCost,
 };
+
+const COST_MULTIPLIER: f32 = 100.0;
 
 /// Finds a path to the goal, returns None if no path could be found.
 pub fn find_path(
-    start: Point2<i32>, goal: Point2<i32>, goal_inclusive: bool,
+    start: Point2<i32>, goal: Point2<i32>, goal_inclusive: bool, seconds_per_unit: f32,
     tiles: &Tiles, object_classes: &ObjectClasses,
 ) -> Option<Vec<Point2<i32>>> {
     // Calculate some advance values relevant to pathfinding
     let costs = Costs {
-        straight: 100,
-        diagonal: (f32::sqrt(2.0) * 100.0) as i32,
+        straight: (seconds_per_unit * COST_MULTIPLIER) as i32,
+        diagonal: (f32::sqrt(2.0) * seconds_per_unit * COST_MULTIPLIER) as i32,
     };
 
     // Now do the actual pathfinding
@@ -68,27 +70,39 @@ fn neighbors(
             // Make sure we can walk over this tile
             // We always allow the start, we want to move off where we are even if it's blocked
             // We start pathing at the goal anyways, so we don't have to add an exception for that
-            if !is_walkable(tile_res, object_classes) &&
+            if !is_walkable(&tile_res, object_classes) &&
                 !(neighbor == start)
             {
                 continue
             }
 
+            // Get any additional walk cost we have from this tile's object
+            // TODO: This re-does a lot of stuff from the previous is_walkable, find a way to just
+            // re-use that data.
+            let additional_cost = if let Ok(tile) = tile_res {
+                if let Some(ref object) = tile.object {
+                    let class = object_classes.get(object.class).unwrap();
+                    if let WalkCost::Seconds(value) = class.walk_cost {
+                        (value * COST_MULTIPLIER) as i32
+                    } else { 0 }
+                } else { 0 }
+            } else { 0 };
+
             // Cost differ for straight and diagonal movement
             let cost = if x == node.x || y == node.y {
-                costs.straight
+                costs.straight + additional_cost
             } else {
                 // Hard corner check is not needed if we don't actually need to move to it, which
                 // is the case if we're not goal inclusive and the node is the goal
                 if !(!goal_inclusive && node == goal) {
                     // Make sure we're not moving through a hard corner
-                    if !is_walkable(tiles.get(Point2::new(x, node.y)), object_classes) ||
-                       !is_walkable(tiles.get(Point2::new(node.x, y)), object_classes) {
+                    if !is_walkable(&tiles.get(Point2::new(x, node.y)), object_classes) ||
+                       !is_walkable(&tiles.get(Point2::new(node.x, y)), object_classes) {
                         continue
                     }
                 }
 
-                costs.diagonal
+                costs.diagonal + additional_cost
             };
 
             neighbors.push((neighbor, cost));
@@ -98,12 +112,16 @@ fn neighbors(
     neighbors
 }
 
-fn is_walkable(tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClasses) -> bool {
+fn is_walkable(tile_res: &Result<&Tile, TilesError>, object_classes: &ObjectClasses) -> bool {
     if let Ok(tile) = tile_res {
-        tile.floor && tile.object
-            .as_ref()
-            .map(|o| object_classes.get(o.class).unwrap().is_walkable)
-            .unwrap_or(true)
+        let has_bocking_object = tile.object.as_ref()
+            .map(|o| {
+                let class = object_classes.get(o.class).unwrap();
+                class.walk_cost == WalkCost::NotWalkable
+            })
+            .unwrap_or(false);
+
+        tile.floor && !has_bocking_object
     } else {
         false
     }

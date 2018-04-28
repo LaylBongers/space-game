@@ -37,9 +37,15 @@ pub struct ObjectClassId {
 pub struct ObjectClass {
     pub friendly_name: String,
     pub uvs: Rect,
-    pub is_walkable: bool,
+    pub walk_cost: WalkCost,
 
     pub behavior: Option<Box<ObjectBehavior>>,
+}
+
+#[derive(PartialEq, Copy, Clone)]
+pub enum WalkCost {
+    NotWalkable,
+    Seconds(f32),
 }
 
 pub trait ObjectBehavior {

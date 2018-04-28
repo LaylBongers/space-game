@@ -8,6 +8,8 @@ use {
     ObjectClasses,
 };
 
+const UNIT_SPEED: f32 = 1.5;
+
 #[derive(Deserialize, Serialize)]
 pub struct Unit {
     position: Point2<f32>,
@@ -32,16 +34,18 @@ impl Unit {
     }
 
     pub fn update(
-        &mut self, log: &Logger, delta: f32,
-        tiles: &mut Tiles, task_queue: &mut TaskQueue, object_classes: &ObjectClasses
+        &mut self, log: &Logger,
+        object_classes: &ObjectClasses, tiles: &mut Tiles, task_queue: &mut TaskQueue,
+        delta: f32,
     ) {
-        self.update_task(log, delta, tiles, task_queue, object_classes);
+        self.update_task(log, object_classes, tiles, task_queue, delta);
         self.update_movement(delta);
     }
 
     fn update_task(
-        &mut self, log: &Logger, delta: f32,
-        tiles: &mut Tiles, task_queue: &mut TaskQueue, object_classes: &ObjectClasses
+        &mut self, log: &Logger,
+        object_classes: &ObjectClasses, tiles: &mut Tiles, task_queue: &mut TaskQueue,
+        delta: f32,
     ) {
         // A lot of the functionality in here is sequential steps to complete a task checked every
         // frame. For performance it may be beneficial to restructure it into something else that
@@ -81,7 +85,8 @@ impl Unit {
                 // We're not there, find a path to our destination
                 if let Some(path) = pathfinding::find_path(
                     Point2::new(self.position.x as i32, self.position.y as i32),
-                    task.position(), false, tiles, object_classes,
+                    task.position(), false, 1.0 / UNIT_SPEED,
+                    tiles, object_classes,
                 ) {
                     self.path = Some(path);
                 } else {
@@ -110,12 +115,11 @@ impl Unit {
             return
         };
 
-        let speed = 1.5;
         let target = Point2::new(target.x as f32 + 0.5, target.y as f32 + 0.5);
 
         // Calculate how far away we are and how far we can travel
         let distance = self.position.distance(&target);
-        let distance_possible = speed * delta;
+        let distance_possible = UNIT_SPEED * delta;
 
         // If we're within our travel distance, just arrive
         if distance < distance_possible {

@@ -26,8 +26,8 @@ use {
     sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}},
 
     spacegame_game::{
-        ObjectClasses, ObjectClass, DoorObjectBehavior,
         state::{GameState},
+        ObjectClasses, ObjectClass, DoorObjectBehavior, WalkCost,
     },
     input::{InputHandler},
     rendering::{Renderer},
@@ -91,13 +91,13 @@ impl MainState {
         object_classes.register(ObjectClass {
             friendly_name: "Wall".into(),
             uvs: Rect::new(0.0, 0.0, 0.5, 0.5),
-            is_walkable: false,
+            walk_cost: WalkCost::NotWalkable,
             behavior: None,
         });
         object_classes.register(ObjectClass {
             friendly_name: "Door".into(),
             uvs: Rect::new(0.5, 0.0, 0.5, 0.5),
-            is_walkable: true,
+            walk_cost: WalkCost::Seconds(50.0),
             behavior: Some(Box::new(DoorObjectBehavior)),
         });
 
