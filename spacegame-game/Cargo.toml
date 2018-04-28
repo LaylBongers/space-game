@@ -10,5 +10,5 @@ nalgebra = { version = "0.14", features = ["serde-serialize"] }
 slog = "2"
 serde = "1"
 serde_derive = "1"
-pathfinding = "0.6"
+pathfinding = "0.7"
 metrohash = "1"

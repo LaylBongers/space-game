@@ -1,10 +1,12 @@
-use alga::linear::{EuclideanSpace};
-use nalgebra::{Point2};
-use slog::{Logger};
-use pathfinding;
+use {
+    alga::linear::{EuclideanSpace},
+    nalgebra::{Point2},
+    slog::{Logger},
 
-use {ObjectClasses};
-use state::ship::{TaskId, TaskQueue, Object, Tiles, Tile, TilesError};
+    pathfinding,
+    state::ship::{TaskId, TaskQueue, Object, Tiles},
+    ObjectClasses,
+};
 
 #[derive(Deserialize, Serialize)]
 pub struct Unit {
@@ -77,7 +79,12 @@ impl Unit {
                 }
             } else {
                 // We're not there, find a path to our destination
-                if !self.path_to(task.position(), false, tiles, object_classes) {
+                if let Some(path) = pathfinding::find_path(
+                    Point2::new(self.position.x as i32, self.position.y as i32),
+                    task.position(), false, tiles, object_classes,
+                ) {
+                    self.path = Some(path);
+                } else {
                     // We couldn't find a path, mark the task as unreachable
                     task.set_unreachable(true);
                     task.set_assigned(false);
@@ -92,41 +99,6 @@ impl Unit {
             // We don't have a task, or the task we had is gone, wait while finding a new one
             self.assigned_task = task_queue.assign_task(log, self.position);
             self.path = None;
-        }
-    }
-
-    /// Finds a path to the goal, returns false if no path could be found.
-    fn path_to(
-        &mut self, goal: Point2<i32>, goal_inclusive: bool,
-        tiles: &Tiles, object_classes: &ObjectClasses,
-    ) -> bool {
-        // Calculate some advance values relevant to pathfinding
-        let costs = Costs {
-            straight: 100,
-            diagonal: (f32::sqrt(2.0) * 100.0) as i32,
-        };
-        let start = Point2::new(self.position.x as i32, self.position.y as i32);
-
-        // Now do the actual pathfinding
-        // Keep in mind our path following wants the path in reverse
-        let result = pathfinding::astar(
-            &goal,
-            |node| neighbors(*node, start, goal, goal_inclusive, &costs, tiles, object_classes),
-            |node| heuristic(*node, start, &costs),
-            |node| *node == start,
-        );
-
-        if let Some((mut path, _cost)) = result {
-            if !goal_inclusive {
-                path.remove(0);
-            }
-            self.path = Some(path);
-
-            // Everything's set for path following, return that we found a path
-            true
-        } else {
-            // We didn't find a path, return that this is unreachable
-            false
         }
     }
 
@@ -161,79 +133,4 @@ impl Unit {
             self.path = None
         }
     }
-}
-
-struct Costs {
-    // Can only use Ord cost, f32 isn't Ord
-    straight: i32,
-    diagonal: i32,
-}
-
-fn neighbors(
-    node: Point2<i32>, start: Point2<i32>, goal: Point2<i32>,
-    goal_inclusive: bool, costs: &Costs,
-    tiles: &Tiles, object_classes: &ObjectClasses
-) -> Vec<(Point2<i32>, i32)> {
-    let mut neighbors = Vec::new();
-
-    for y in node.y-1..node.y+2 {
-        for x in node.x-1..node.x+2 {
-            let neighbor = Point2::new(x, y);
-
-            // If this is the same one, skip it
-            if node == neighbor {
-                continue
-            }
-
-            // Retrieve the tile data itself
-            let tile_res =  tiles.get(neighbor);
-
-            // Make sure we can walk over this tile
-            // We always allow the start, we want to move off where we are even if it's blocked
-            // We start at the goal anyways, so we don't have to add an exception for that
-            if !is_walkable(tile_res, object_classes) &&
-                !(neighbor == start)
-            {
-                continue
-            }
-
-            // Cost differ for straight and diagonal movement
-            let cost = if x == node.x || y == node.y {
-                costs.straight
-            } else {
-                // If it's a diagonal we also need to check we're not moving through a hard corner
-                // Except, if it's the start and the end's not inclusive, we can ignore that
-                // because we're only trying to reach it one tile away, not move to it
-                if !(!goal_inclusive && node == goal) {
-                    if !is_walkable(tiles.get(Point2::new(x, node.y)), object_classes) ||
-                       !is_walkable(tiles.get(Point2::new(node.x, y)), object_classes) {
-                        continue
-                    }
-                }
-
-                costs.diagonal
-            };
-
-            neighbors.push((neighbor, cost));
-        }
-    }
-
-    neighbors
-}
-
-fn is_walkable(tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClasses) -> bool {
-    if let Ok(tile) = tile_res {
-        tile.floor && tile.object
-            .as_ref()
-            .map(|o| object_classes.get(o.class).unwrap().is_walkable)
-            .unwrap_or(true)
-    } else {
-        false
-    }
-}
-
-fn heuristic(node: Point2<i32>, start: Point2<i32>, costs: &Costs) -> i32 {
-    let dx = (node.x - start.x).abs();
-    let dy = (node.y - start.y).abs();
-    costs.straight*(dx + dy) + (costs.diagonal - 2*costs.straight) * dx.min(dy)
 }

@@ -119,6 +119,7 @@ impl Ui {
             if panel.variables.width == *variable {
                 panel.layout.size.x = *value as f32;
             } else {
+                assert_eq!(panel.variables.height, *variable);
                 panel.layout.size.y = *value as f32;
             }
         }

@@ -1,5 +1,6 @@
 use {
     nalgebra::{Vector2, Point2},
+    metrohash::{MetroHashMap},
 
     ObjectClassId, ObjectClasses,
 };
@@ -120,8 +121,7 @@ impl Tile {
 pub struct Object {
     pub class: ObjectClassId,
 
-    pub openness: f32,
-    pub is_opening: bool,
+    pub values: MetroHashMap<String, f32>,
 }
 
 impl Object {
@@ -129,8 +129,7 @@ impl Object {
         Object {
             class,
 
-            openness: 0.0,
-            is_opening: false,
+            values: MetroHashMap::default(),
         }
     }
 }
