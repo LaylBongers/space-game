@@ -26,15 +26,15 @@ impl TaskQueue {
         &self.tasks
     }
 
-    pub fn task(&self, id: TaskId) -> Option<&Task> {
+    pub fn get(&self, id: TaskId) -> Option<&Task> {
         self.tasks.get(&id)
     }
 
-    pub fn task_mut(&mut self, id: TaskId) -> Option<&mut Task> {
+    pub fn get_mut(&mut self, id: TaskId) -> Option<&mut Task> {
         self.tasks.get_mut(&id)
     }
 
-    pub fn task_at(&self, position: Point2<i32>) -> Option<TaskId> {
+    pub fn get_at(&self, position: Point2<i32>) -> Option<TaskId> {
         for (key, task) in &self.tasks {
             if task.position == position {
                 return Some(*key)
@@ -44,7 +44,7 @@ impl TaskQueue {
         None
     }
 
-    pub fn queue_task(&mut self, task: Task) -> Result<(), TaskQueueError> {
+    pub fn queue(&mut self, task: Task) -> Result<(), TaskQueueError> {
         let id = TaskId(self.next_task_id);
         self.next_task_id += 1;
         self.tasks.insert(id, task);
@@ -52,14 +52,14 @@ impl TaskQueue {
         Ok(())
     }
 
-    pub fn dequeue_task(&mut self, id: TaskId) -> Result<(), TaskQueueError> {
+    pub fn dequeue(&mut self, id: TaskId) -> Result<(), TaskQueueError> {
         self.tasks.remove(&id)
             .ok_or(TaskQueueError::InvalidTaskId { id })?;
 
         Ok(())
     }
 
-    pub fn assign_task(&mut self, log: &Logger, closest_to: Point2<f32>) -> Option<TaskId> {
+    pub fn assign(&mut self, log: &Logger, closest_to: Point2<f32>) -> Option<TaskId> {
         let mut found_distance_squared = ::std::f32::INFINITY;
         let mut found_task = None;
 
@@ -84,7 +84,7 @@ impl TaskQueue {
 
         // If we found a task, assign it
         if let Some(task_id) = found_task {
-            self.task_mut(task_id).unwrap().set_assigned(true);
+            self.get_mut(task_id).unwrap().set_assigned(true);
             info!(log, "Assigned task {}", task_id.0);
         }
 

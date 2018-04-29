@@ -99,11 +99,11 @@ impl BuildInputHandler {
                             let tile = ship.tiles.get_mut(tile_pos).unwrap();
                             let has_tile = tile.floor;
                             let has_object = tile.object.is_some();
-                            let has_task = ship.task_queue.task_at(tile_pos).is_some();
+                            let has_task = ship.task_queue.get_at(tile_pos).is_some();
 
                             if has_tile && !has_object && !has_task {
                                 let task = Task::new(tile_pos, id, 1.0);
-                                ship.task_queue.queue_task(task).unwrap();
+                                ship.task_queue.queue(task).unwrap();
                                 self.build_sound_queued = true;
                             }
                         },
@@ -117,8 +117,8 @@ impl BuildInputHandler {
 
                             tile.object = None;
 
-                            if let Some(task_id) = ship.task_queue.task_at(tile_pos) {
-                                ship.task_queue.dequeue_task(task_id).unwrap();
+                            if let Some(task_id) = ship.task_queue.get_at(tile_pos) {
+                                ship.task_queue.dequeue(task_id).unwrap();
                                 self.build_sound_queued = true;
                             }
                         },
@@ -133,8 +133,8 @@ impl BuildInputHandler {
                             tile.floor = false;
                             tile.object = None;
 
-                            if let Some(task_id) = ship.task_queue.task_at(tile_pos) {
-                                ship.task_queue.dequeue_task(task_id).unwrap();
+                            if let Some(task_id) = ship.task_queue.get_at(tile_pos) {
+                                ship.task_queue.dequeue(task_id).unwrap();
                                 self.build_sound_queued = true;
                             }
                         },
