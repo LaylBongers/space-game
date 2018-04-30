@@ -4,7 +4,7 @@ use {
     slog::{Logger},
 
     object_class::{ObjectClasses},
-    pathfinding,
+    pathfinding::{self, Walkable},
     state::ship::{TaskId, TaskQueue, Tiles},
     Error,
 };
@@ -60,8 +60,9 @@ impl Unit {
 #[derive(Deserialize, Serialize)]
 enum Action {
     FindTask,
-    Work { task_id: TaskId, },
-    FollowPath { path: Vec<Point2<i32>>, },
+    Work { task_id: TaskId },
+    FollowPath { path: Vec<Point2<i32>> },
+    OpenDoor { target: Point2<i32> },
 }
 
 impl Action {
@@ -122,7 +123,7 @@ impl Action {
                     }
                 }
             },
-            Action::FollowPath { ref mut path, } => {
+            Action::FollowPath { ref mut path } => {
                 let target = *path.iter().last().unwrap();
                 let target = Point2::new(target.x as f32 + 0.5, target.y as f32 + 0.5);
 
@@ -132,21 +133,68 @@ impl Action {
 
                 // If we're within our travel distance, just arrive
                 if distance < distance_possible {
-                    // TODO: If we encounter something that blocks us from moving, cancel the path
-                    path.pop();
+                    // We've arrived, see what we need to do with the next tile
                     *unit_position = target;
+
+                    // If there isn't anything next, we're done
+                    if path.len() < 2 {
+                        ActionResult::Done
+                    } else {
+                        let next_target = path[path.len() - 2];
+                        let next_tile = tiles.get(next_target)?;
+                        match next_tile.walkable(object_classes).unwrap() {
+                            // If it's never walkable, something probably changed in the world that
+                            // now makes this blocked, just give up on following it
+                            Walkable::Never => ActionResult::Done,
+                            // If it's always walkable, nothing to worry about, continue to the
+                            // next path node
+                            Walkable::Always => {
+                                path.pop();
+                                ActionResult::Continue
+                            },
+                            // If it can be opened, we need to open it first
+                            Walkable::Openable => {
+                                let object = next_tile.object.as_ref().unwrap();
+                                let class = object_classes.get(object.class)?;
+                                if class.behavior.as_ref().unwrap().is_open(&object) {
+                                    path.pop();
+                                    ActionResult::Continue
+                                } else {
+                                    ActionResult::Push(Action::OpenDoor { target: next_target })
+                                }
+                            },
+                        }
+                    }
+                    // If we have a next entry, we need to make sure it's not blocked
                 } else {
                     // If not, travel closer
                     let difference = target - *unit_position;
                     let move_amount = difference / distance * distance_possible;
                     *unit_position += move_amount;
-                }
 
-                // If the path's at the end, we can stop following
-                if path.is_empty() {
-                    ActionResult::Done
-                } else {
                     ActionResult::Continue
+                }
+            },
+            Action::OpenDoor { target } => {
+                let tile = tiles.get_mut(target)?;
+
+                if let Some(ref mut object) = tile.object {
+                    let class = object_classes.get(object.class)?;
+                    if let Some(ref behavior) = class.behavior {
+                        if behavior.work_open(object, delta) {
+                            // It's open now
+                            ActionResult::Done
+                        } else {
+                            // We need to keep opening it
+                            ActionResult::Continue
+                        }
+                    } else {
+                        // This isn't a door anymore
+                        ActionResult::Done
+                    }
+                } else {
+                    // This isn't a door anymore
+                    ActionResult::Done
                 }
             },
         };

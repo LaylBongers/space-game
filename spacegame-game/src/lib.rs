@@ -12,10 +12,12 @@ pub mod state;
 pub mod pathfinding;
 
 use {
+    nalgebra::{Point2},
     object_class::{ObjectClassId},
 };
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
-    ObjectClassNotFound(ObjectClassId)
+    ObjectClassNotFound(ObjectClassId),
+    OutOfBounds { position: Point2<i32> },
 }

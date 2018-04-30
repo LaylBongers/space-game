@@ -68,4 +68,5 @@ pub trait ObjectBehavior {
     fn update(&self, object: &mut Object, delta: f32);
 
     fn is_open(&self, object: &Object) -> bool;
+    fn work_open(&self, object: &mut Object, delta: f32) -> bool;
 }

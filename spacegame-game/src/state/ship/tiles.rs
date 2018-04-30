@@ -35,20 +35,20 @@ impl Tiles {
         self.size
     }
 
-    pub fn get(&self, position: Point2<i32>) -> Result<&Tile, TilesError> {
+    pub fn get(&self, position: Point2<i32>) -> Result<&Tile, Error> {
         if self.is_in_bounds(position) {
             Ok(&self.tiles[self.index(position)])
         } else {
-            Err(TilesError::OutOfBounds { position })
+            Err(Error::OutOfBounds { position })
         }
     }
 
-    pub fn get_mut(&mut self, position: Point2<i32>) -> Result<&mut Tile, TilesError> {
+    pub fn get_mut(&mut self, position: Point2<i32>) -> Result<&mut Tile, Error> {
         if self.is_in_bounds(position) {
             let index = self.index(position);
             Ok(&mut self.tiles[index])
         } else {
-            Err(TilesError::OutOfBounds { position })
+            Err(Error::OutOfBounds { position })
         }
     }
 
@@ -99,11 +99,6 @@ impl Tiles {
     fn index(&self, position: Point2<i32>) -> usize {
         (position.x + (position.y * self.size.x)) as usize
     }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum TilesError {
-    OutOfBounds { position: Point2<i32> },
 }
 
 #[derive(Deserialize, Serialize)]

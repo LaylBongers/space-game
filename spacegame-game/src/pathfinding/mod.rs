@@ -3,7 +3,7 @@ use {
     pathfindingc::{astar},
 
     object_class::{ObjectClasses},
-    state::ship::{Tiles, Tile, TilesError},
+    state::ship::{Tiles, Tile},
     Error,
 };
 
@@ -52,7 +52,7 @@ pub enum Walkable {
 
 impl Walkable {
     pub fn from_tile_res(
-        tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClasses
+        tile_res: Result<&Tile, Error>, object_classes: &ObjectClasses
     ) -> Result<Walkable, Error> {
         if let Ok(tile) = tile_res {
             tile.walkable(object_classes)
@@ -124,7 +124,7 @@ fn neighbors(
 }
 
 fn is_walkable(
-    tile_res: Result<&Tile, TilesError>, object_classes: &ObjectClasses
+    tile_res: Result<&Tile, Error>, object_classes: &ObjectClasses
 ) -> Result<bool, Error> {
     Ok(Walkable::from_tile_res(tile_res, object_classes)? != Walkable::Never)
 }
