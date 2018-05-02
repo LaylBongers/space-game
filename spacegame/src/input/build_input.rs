@@ -6,8 +6,13 @@ use nalgebra::{Point2};
 use {
     rivr::input::{PcInputHandler},
 
+    mtk_tilegame::tasks::{Task},
+
     spacegame_game::{
-        state::{normalize_area, BuildState, BuildDrag, BuildChoice, Camera, ship::{Ship, Task}}
+        state::{
+            ship::{Ship, TaskPayload},
+            normalize_area, BuildState, BuildDrag, BuildChoice, Camera,
+        },
     },
 };
 
@@ -102,7 +107,7 @@ impl BuildInputHandler {
                             let has_task = ship.task_queue.get_at(tile_pos).is_some();
 
                             if has_tile && !has_object && !has_task {
-                                let task = Task::new(tile_pos, id, 1.0);
+                                let task = Task::new(tile_pos, TaskPayload::new(id, 1.0));
                                 ship.task_queue.queue(task).unwrap();
                                 self.build_sound_queued = true;
                             }
@@ -146,7 +151,7 @@ impl BuildInputHandler {
             state.drag = BuildDrag::Hovering { position: self.last_tile_position };
 
             if world_changed {
-                ship.tiles.mark_changed();
+                ship.tiles.changed.raise();
             }
         }
     }

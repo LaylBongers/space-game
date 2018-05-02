@@ -3,9 +3,14 @@ use {
     nalgebra::{Point2},
     slog::{Logger},
 
+    mtk_tilegame::{
+        tasks::{TaskId, TaskQueue, TaskPayload as TP},
+        tiles::{Tiles}
+    },
+
     object_class::{ObjectClasses},
     pathfinding::{self, Walkable},
-    state::ship::{TaskId, TaskQueue, Tiles},
+    state::ship::{Tile, TaskPayload},
     Error,
 };
 
@@ -33,7 +38,8 @@ impl Unit {
 
     pub fn update(
         &mut self, log: &Logger,
-        object_classes: &ObjectClasses, tiles: &mut Tiles, task_queue: &mut TaskQueue,
+        object_classes: &ObjectClasses,
+        tiles: &mut Tiles<Tile>, task_queue: &mut TaskQueue<TaskPayload>,
         delta: f32,
     ) -> Result<(), Error> {
         let result = {
@@ -69,7 +75,8 @@ impl Action {
     fn update(
         &mut self,
         log: &Logger,
-        object_classes: &ObjectClasses, tiles: &mut Tiles, task_queue: &mut TaskQueue,
+        object_classes: &ObjectClasses,
+        tiles: &mut Tiles<Tile>, task_queue: &mut TaskQueue<TaskPayload>,
         unit_position: &mut Point2<f32>, delta: f32,
     ) -> Result<ActionResult, Error> {
         let result = match *self {
@@ -84,21 +91,23 @@ impl Action {
                 let task = task_queue.get_mut(task_id).unwrap();
 
                 let task_center = Point2::new(
-                    task.position().x as f32 + 0.5,
-                    task.position().y as f32 + 0.5
+                    task.position.x as f32 + 0.5,
+                    task.position.y as f32 + 0.5
                 );
 
                 // Check if we're at the destination
                 if (task_center.x - unit_position.x).abs() < 1.1 &&
                    (task_center.y - unit_position.y).abs() < 1.1 {
                     // We're there, apply work
-                    task.apply_work(delta);
+                    task.payload.apply_work(delta);
 
                     // If the work's done, we can add an object to the tile
-                    if task.is_done() {
-                        tiles.get_mut(task.position()).unwrap()
-                            .object = Some(object_classes.create_object(task.object_class())?);
-                        tiles.mark_changed();
+                    if task.payload.is_done() {
+                        tiles.get_mut(task.position).unwrap()
+                            .object = Some(object_classes.create_object(
+                                task.payload.object_class
+                            )?);
+                        tiles.changed.raise();
 
                         ActionResult::Done
                     } else {
@@ -108,14 +117,14 @@ impl Action {
                     // We're not there, find a path to our destination
                     if let Some(path) = pathfinding::find_path(
                         Point2::new(unit_position.x as i32, unit_position.y as i32),
-                        task.position(), false, 1.0 / UNIT_SPEED,
+                        task.position, false, 1.0 / UNIT_SPEED,
                         tiles, object_classes,
                     ) {
                         ActionResult::Push(Action::FollowPath { path })
                     } else {
                         // We couldn't find a path, mark the task as unreachable
-                        task.set_unreachable(true);
-                        task.set_assigned(false);
+                        task.unreachable = true;
+                        task.assigned = false;
 
                         info!(log, "Unassigned task {}, it's unreachable", task_id.0);
 

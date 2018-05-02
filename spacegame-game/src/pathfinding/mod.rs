@@ -2,8 +2,10 @@ use {
     nalgebra::{Point2},
     pathfindingc::{astar},
 
+    mtk_tilegame::{self, tiles::{Tiles}},
+
     object_class::{ObjectClasses},
-    state::ship::{Tiles, Tile},
+    state::ship::{Tile},
     Error,
 };
 
@@ -12,7 +14,7 @@ const COST_MULTIPLIER: f32 = 100.0;
 /// Finds a path to the goal, returns None if no path could be found.
 pub fn find_path(
     start: Point2<i32>, goal: Point2<i32>, goal_inclusive: bool, seconds_per_unit: f32,
-    tiles: &Tiles, object_classes: &ObjectClasses,
+    tiles: &Tiles<Tile>, object_classes: &ObjectClasses,
 ) -> Option<Vec<Point2<i32>>> {
     // Calculate some advance values relevant to pathfinding
     let costs = Costs {
@@ -52,7 +54,7 @@ pub enum Walkable {
 
 impl Walkable {
     pub fn from_tile_res(
-        tile_res: Result<&Tile, Error>, object_classes: &ObjectClasses
+        tile_res: Result<&Tile, mtk_tilegame::tiles::Error>, object_classes: &ObjectClasses
     ) -> Result<Walkable, Error> {
         if let Ok(tile) = tile_res {
             tile.walkable(object_classes)
@@ -71,7 +73,7 @@ struct Costs {
 fn neighbors(
     node: Point2<i32>, start: Point2<i32>, goal: Point2<i32>,
     goal_inclusive: bool, costs: &Costs,
-    tiles: &Tiles, object_classes: &ObjectClasses
+    tiles: &Tiles<Tile>, object_classes: &ObjectClasses
 ) -> Vec<(Point2<i32>, i32)> {
     let mut neighbors = Vec::new();
 
@@ -124,7 +126,7 @@ fn neighbors(
 }
 
 fn is_walkable(
-    tile_res: Result<&Tile, Error>, object_classes: &ObjectClasses
+    tile_res: Result<&Tile, mtk_tilegame::tiles::Error>, object_classes: &ObjectClasses
 ) -> Result<bool, Error> {
     Ok(Walkable::from_tile_res(tile_res, object_classes)? != Walkable::Never)
 }

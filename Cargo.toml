@@ -1,7 +1,8 @@
 [workspace]
 members = [
-    "rivr",
-    "rivr-ggez",
+    "mtk/mtk-tilegame",
+    "rivr/rivr",
+    "rivr/rivr-ggez",
     "spacegame",
     "spacegame-game",
 ]

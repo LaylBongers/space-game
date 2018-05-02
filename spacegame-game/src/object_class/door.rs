@@ -19,7 +19,6 @@ impl ObjectBehavior for DoorObjectBehavior {
     }
 
     fn update(&self, object: &mut Object, delta: f32) {
-
         let mut openess = object.values["openness"];
         let mut cooldown = object.values["cooldown"];
 

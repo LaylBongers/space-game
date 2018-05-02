@@ -3,18 +3,16 @@ use {
     nalgebra::{Point2},
     metrohash::{MetroHashMap},
     slog::{Logger},
-
-    object_class::{ObjectClassId},
 };
 
 #[derive(Deserialize, Serialize)]
-pub struct TaskQueue {
+pub struct TaskQueue<P> {
     // Faster non-crypto hasher for small & medium key sizes
-    tasks: MetroHashMap<TaskId, Task>,
+    tasks: MetroHashMap<TaskId, Task<P>>,
     next_task_id: u32,
 }
 
-impl TaskQueue {
+impl<P: TaskPayload> TaskQueue<P> {
     pub fn new() -> Self {
         TaskQueue {
             tasks: MetroHashMap::default(),
@@ -22,15 +20,15 @@ impl TaskQueue {
         }
     }
 
-    pub fn tasks(&self) -> &MetroHashMap<TaskId, Task> {
+    pub fn tasks(&self) -> &MetroHashMap<TaskId, Task<P>> {
         &self.tasks
     }
 
-    pub fn get(&self, id: TaskId) -> Option<&Task> {
+    pub fn get(&self, id: TaskId) -> Option<&Task<P>> {
         self.tasks.get(&id)
     }
 
-    pub fn get_mut(&mut self, id: TaskId) -> Option<&mut Task> {
+    pub fn get_mut(&mut self, id: TaskId) -> Option<&mut Task<P>> {
         self.tasks.get_mut(&id)
     }
 
@@ -44,7 +42,7 @@ impl TaskQueue {
         None
     }
 
-    pub fn queue(&mut self, task: Task) -> Result<(), TaskQueueError> {
+    pub fn queue(&mut self, task: Task<P>) -> Result<(), TaskQueueError> {
         let id = TaskId(self.next_task_id);
         self.next_task_id += 1;
         self.tasks.insert(id, task);
@@ -66,14 +64,14 @@ impl TaskQueue {
         // Find the closest valid task
         for (key, task) in &mut self.tasks {
             // We don't want a task that's already assigned, or one we can't reach
-            if task.assigned() || task.unreachable() {
+            if task.assigned || task.unreachable {
                 continue
             }
 
             // Check if this task is closer than what we found
             let task_center = Point2::new(
-                task.position().x as f32 + 0.5,
-                task.position().y as f32 + 0.5
+                task.position.x as f32 + 0.5,
+                task.position.y as f32 + 0.5
             );
             let distance_squared = closest_to.distance_squared(&task_center);
             if distance_squared < found_distance_squared {
@@ -84,7 +82,7 @@ impl TaskQueue {
 
         // If we found a task, assign it
         if let Some(task_id) = found_task {
-            self.get_mut(task_id).unwrap().set_assigned(true);
+            self.get_mut(task_id).unwrap().assigned = true;
             info!(log, "Assigned task {}", task_id.0);
         }
 
@@ -93,7 +91,7 @@ impl TaskQueue {
 
     pub fn clear_unreachable(&mut self) {
         for (_, task) in &mut self.tasks {
-            task.set_unreachable(false);
+            task.unreachable = false;
         }
     }
 
@@ -101,7 +99,7 @@ impl TaskQueue {
         let mut done = Vec::new();
 
         for (key, task) in &self.tasks {
-            if task.is_done() {
+            if task.payload.is_done() {
                 info!(log, "Removing task {} from queue, it's done", key.0);
                 done.push(*key);
             }
@@ -122,58 +120,26 @@ pub enum TaskQueueError {
 pub struct TaskId(pub u32);
 
 #[derive(Deserialize, Serialize)]
-pub struct Task {
-    position: Point2<i32>,
-    object_class: ObjectClassId,
-    assigned: bool,
-    unreachable: bool,
+pub struct Task<P> {
+    pub position: Point2<i32>,
+    pub assigned: bool,
+    pub unreachable: bool,
 
-    work_done: f32,
-    work_target: f32,
+    pub payload: P,
 }
 
-impl Task {
-    pub fn new(position: Point2<i32>, object_class: ObjectClassId, work_target: f32) -> Self {
+impl<P: TaskPayload> Task<P> {
+    pub fn new(position: Point2<i32>, payload: P) -> Self {
         Task {
             position,
-            object_class,
             assigned: false,
             unreachable: false,
 
-            work_done: 0.0,
-            work_target,
+            payload,
         }
     }
+}
 
-    pub fn position(&self) -> Point2<i32> {
-        self.position
-    }
-
-    pub fn object_class(&self) -> ObjectClassId {
-        self.object_class
-    }
-
-    pub fn assigned(&self) -> bool {
-        self.assigned
-    }
-
-    pub fn set_assigned(&mut self, value: bool) {
-        self.assigned = value;
-    }
-
-    pub fn unreachable(&self) -> bool {
-        self.unreachable
-    }
-
-    pub fn set_unreachable(&mut self, value: bool) {
-        self.unreachable = value;
-    }
-
-    pub fn apply_work(&mut self, amount: f32) {
-        self.work_done += amount;
-    }
-
-    pub fn is_done(&self) -> bool {
-        self.work_done > self.work_target
-    }
+pub trait TaskPayload {
+    fn is_done(&self) -> bool;
 }

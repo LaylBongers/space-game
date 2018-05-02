@@ -10,6 +10,7 @@ slog = "2"
 sloggers = "0.2"
 serde = "1"
 rmp-serde = "0.13"
-rivr = { path = "../rivr" }
-rivr-ggez = { path = "../rivr-ggez" }
+mtk-tilegame = { path = "../mtk/mtk-tilegame" }
+rivr = { path = "../rivr/rivr" }
+rivr-ggez = { path = "../rivr/rivr-ggez" }
 spacegame-game = { path = "../spacegame-game" }

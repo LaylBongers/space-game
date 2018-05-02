@@ -1,15 +1,12 @@
 [package]
-name = "spacegame-game"
+name = "mtk-tilegame"
 version = "0.1.0"
 authors = ["Layl <LaylConway@users.noreply.github.com>"]
 
 [dependencies]
 alga = "0.5"
-ggez = "0.4"
 nalgebra = { version = "0.14", features = ["serde-serialize"] }
-slog = "2"
 serde = "1"
 serde_derive = "1"
-pathfinding = "0.7"
+slog = "2"
 metrohash = "1"
-mtk-tilegame = { path = "../mtk/mtk-tilegame" }

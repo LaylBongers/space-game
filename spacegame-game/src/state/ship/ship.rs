@@ -2,8 +2,13 @@ use {
     nalgebra::{Point2, Vector2},
     slog::{Logger},
 
+    mtk_tilegame::{
+        tasks::{TaskQueue},
+        tiles::{Tiles}
+    },
+
     object_class::{ObjectClasses},
-    state::ship::{Tiles, Unit, TaskQueue},
+    state::ship::{Unit, Tile, TaskPayload},
     Error,
 };
 
@@ -11,8 +16,11 @@ use {
 pub struct Ship {
     units: Vec<Unit>,
 
-    pub tiles: Tiles,
-    pub task_queue: TaskQueue,
+    pub tiles: Tiles<Tile>,
+    pub task_queue: TaskQueue<TaskPayload>,
+
+    tiles_with_behaviors: Vec<Point2<i32>>,
+    tiles_changed: bool,
 }
 
 impl Ship {
@@ -22,6 +30,9 @@ impl Ship {
 
             tiles: Tiles::empty(size),
             task_queue: TaskQueue::new(),
+
+            tiles_with_behaviors: Vec::new(),
+            tiles_changed: false,
         }
     }
 
@@ -50,12 +61,21 @@ impl Ship {
     pub fn update(
         &mut self, log: &Logger, object_classes: &ObjectClasses, delta: f32,
     ) -> Result<(), Error> {
-        if self.tiles.handle_changed(object_classes)? {
+        if self.handle_tiles_changed(object_classes)? {
             // Since the world has changed, we can mark all tasks as being possible again
             self.task_queue.clear_unreachable();
         }
 
-        self.tiles.update(object_classes, delta)?;
+        for i in &self.tiles_with_behaviors {
+            let object = self.tiles.get_mut(*i)?
+                .object.as_mut()
+                    .expect("Found tile without object in tiles with behaviors");
+            let behavior = object_classes.get(object.class)?
+                .behavior.as_ref()
+                    .expect("Found tile class without behavior in tiles with behaviors");
+
+            behavior.update(object, delta);
+        }
 
         for unit in &mut self.units {
             unit.update(log, object_classes, &mut self.tiles, &mut self.task_queue, delta)?;
@@ -64,5 +84,29 @@ impl Ship {
         self.task_queue.update(log);
 
         Ok(())
+    }
+
+    fn handle_tiles_changed(&mut self, object_classes: &ObjectClasses) -> Result<bool, Error> {
+        Ok(if self.tiles_changed {
+            // Find any tiles that ask for update events
+            self.tiles_with_behaviors.clear();
+            for y in 0..self.tiles.size().y {
+                for x in 0..self.tiles.size().x {
+                    let position = Point2::new(x, y);
+                    let tile = self.tiles.get(position)?;
+                    if let Some(ref object) = tile.object {
+                        let class = object_classes.get(object.class)?;
+                        if class.behavior.is_some() {
+                            self.tiles_with_behaviors.push(position);
+                        }
+                    }
+                }
+            }
+
+            self.tiles_changed = false;
+            true
+        } else {
+            false
+        })
     }
 }

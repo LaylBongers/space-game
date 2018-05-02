@@ -96,9 +96,9 @@ fn draw_tasks(
     let mut unreachable_tasks_builder = MeshBuilder::new();
 
     for (_, task) in ship.task_queue.tasks() {
-        let (fx, fy) = (task.position().x as f32, task.position().y as f32);
+        let (fx, fy) = (task.position.x as f32, task.position.y as f32);
 
-        let builder = if !task.unreachable() {
+        let builder = if !task.unreachable {
             &mut tasks_builder
         } else {
             &mut unreachable_tasks_builder

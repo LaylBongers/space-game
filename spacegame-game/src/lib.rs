@@ -6,18 +6,24 @@ extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate pathfinding as pathfindingc;
 extern crate metrohash;
+extern crate mtk_tilegame;
 
 pub mod object_class;
 pub mod state;
 pub mod pathfinding;
 
 use {
-    nalgebra::{Point2},
     object_class::{ObjectClassId},
 };
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
     ObjectClassNotFound(ObjectClassId),
-    OutOfBounds { position: Point2<i32> },
+    Tiles(mtk_tilegame::tiles::Error),
+}
+
+impl From<mtk_tilegame::tiles::Error> for Error {
+    fn from(error: mtk_tilegame::tiles::Error) -> Self {
+        Error::Tiles(error)
+    }
 }
