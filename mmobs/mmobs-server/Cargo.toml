@@ -1,0 +1,6 @@
+[package]
+name = "mmobs-server"
+version = "0.1.0"
+authors = ["Layl <LaylConway@users.noreply.github.com>"]
+
+[dependencies]

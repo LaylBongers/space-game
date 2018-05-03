@@ -77,13 +77,8 @@ impl TaskPayload {
         }
     }
 
-    pub fn apply_work(&mut self, amount: f32) {
+    pub fn apply_work(&mut self, amount: f32) -> bool {
         self.work_done += amount;
-    }
-}
-
-impl ::mtk_tilegame::tasks::TaskPayload for TaskPayload {
-    fn is_done(&self) -> bool {
         self.work_done > self.work_target
     }
 }

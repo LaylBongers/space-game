@@ -4,7 +4,7 @@ use {
     slog::{Logger},
 
     mtk_tilegame::{
-        tasks::{TaskId, TaskQueue, TaskPayload as TP},
+        tasks::{TaskId, TaskQueue},
         tiles::{Tiles}
     },
 
@@ -99,10 +99,10 @@ impl Action {
                 if (task_center.x - unit_position.x).abs() < 1.1 &&
                    (task_center.y - unit_position.y).abs() < 1.1 {
                     // We're there, apply work
-                    task.payload.apply_work(delta);
+                    task.done = task.payload.apply_work(delta);
 
                     // If the work's done, we can add an object to the tile
-                    if task.payload.is_done() {
+                    if task.done {
                         tiles.get_mut(task.position).unwrap()
                             .object = Some(object_classes.create_object(
                                 task.payload.object_class

@@ -12,7 +12,7 @@ pub struct TaskQueue<P> {
     next_task_id: u32,
 }
 
-impl<P: TaskPayload> TaskQueue<P> {
+impl<P> TaskQueue<P> {
     pub fn new() -> Self {
         TaskQueue {
             tasks: MetroHashMap::default(),
@@ -99,7 +99,7 @@ impl<P: TaskPayload> TaskQueue<P> {
         let mut done = Vec::new();
 
         for (key, task) in &self.tasks {
-            if task.payload.is_done() {
+            if task.done {
                 info!(log, "Removing task {} from queue, it's done", key.0);
                 done.push(*key);
             }
@@ -124,22 +124,20 @@ pub struct Task<P> {
     pub position: Point2<i32>,
     pub assigned: bool,
     pub unreachable: bool,
+    pub done: bool,
 
     pub payload: P,
 }
 
-impl<P: TaskPayload> Task<P> {
+impl<P> Task<P> {
     pub fn new(position: Point2<i32>, payload: P) -> Self {
         Task {
             position,
             assigned: false,
             unreachable: false,
+            done: false,
 
             payload,
         }
     }
-}
-
-pub trait TaskPayload {
-    fn is_done(&self) -> bool;
 }

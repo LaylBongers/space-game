@@ -1,5 +1,7 @@
 [workspace]
 members = [
+    "mmobs/mmobs-client",
+    "mmobs/mmobs-server",
     "mtk/mtk-tilegame",
     "rivr/rivr",
     "rivr/rivr-ggez",
