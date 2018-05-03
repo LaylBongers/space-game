@@ -3,12 +3,11 @@ use {
     slog::{Logger},
 
     mtk_tilegame::{
-        tasks::{TaskQueue},
         tiles::{Tiles}
     },
 
     object_class::{ObjectClasses},
-    state::ship::{Unit, Tile, TaskPayload},
+    state::ship::{Unit, Tile, TaskQueue},
     Error,
 };
 
@@ -17,7 +16,7 @@ pub struct Ship {
     units: Vec<Unit>,
 
     pub tiles: Tiles<Tile>,
-    pub task_queue: TaskQueue<TaskPayload>,
+    pub task_queue: TaskQueue,
 
     tiles_with_behaviors: Vec<Point2<i32>>,
     tiles_changed: bool,

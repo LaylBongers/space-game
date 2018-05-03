@@ -14,11 +14,13 @@ pub mod pathfinding;
 
 use {
     object_class::{ObjectClassId},
+    state::ship::{TaskId},
 };
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    ObjectClassNotFound(ObjectClassId),
+    InvalidClassId(ObjectClassId),
+    InvalidTaskId(TaskId),
     Tiles(mtk_tilegame::tiles::Error),
 }
 

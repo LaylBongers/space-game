@@ -1,8 +1,12 @@
 mod ship;
+mod tasks;
 mod unit;
 
-pub use self::ship::{Ship};
-pub use self::unit::{Unit};
+pub use self::{
+    ship::{Ship},
+    tasks::{TaskQueue, TaskId, Task},
+    unit::{Unit},
+};
 
 use {
     metrohash::{MetroHashMap},
@@ -58,27 +62,5 @@ impl Object {
             class,
             values: MetroHashMap::default(),
         }
-    }
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct TaskPayload {
-    object_class: ObjectClassId,
-    work_done: f32,
-    work_target: f32,
-}
-
-impl TaskPayload {
-    pub fn new(object_class: ObjectClassId, work_target: f32) -> Self {
-        TaskPayload {
-            object_class,
-            work_done: 0.0,
-            work_target,
-        }
-    }
-
-    pub fn apply_work(&mut self, amount: f32) -> bool {
-        self.work_done += amount;
-        self.work_done > self.work_target
     }
 }

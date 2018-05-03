@@ -3,16 +3,19 @@ use {
     nalgebra::{Point2},
     metrohash::{MetroHashMap},
     slog::{Logger},
+
+    object_class::{ObjectClassId},
+    Error,
 };
 
 #[derive(Deserialize, Serialize)]
-pub struct TaskQueue<P> {
+pub struct TaskQueue {
     // Faster non-crypto hasher for small & medium key sizes
-    tasks: MetroHashMap<TaskId, Task<P>>,
+    tasks: MetroHashMap<TaskId, Task>,
     next_task_id: u32,
 }
 
-impl<P> TaskQueue<P> {
+impl TaskQueue {
     pub fn new() -> Self {
         TaskQueue {
             tasks: MetroHashMap::default(),
@@ -20,15 +23,15 @@ impl<P> TaskQueue<P> {
         }
     }
 
-    pub fn tasks(&self) -> &MetroHashMap<TaskId, Task<P>> {
+    pub fn tasks(&self) -> &MetroHashMap<TaskId, Task> {
         &self.tasks
     }
 
-    pub fn get(&self, id: TaskId) -> Option<&Task<P>> {
+    pub fn get(&self, id: TaskId) -> Option<&Task> {
         self.tasks.get(&id)
     }
 
-    pub fn get_mut(&mut self, id: TaskId) -> Option<&mut Task<P>> {
+    pub fn get_mut(&mut self, id: TaskId) -> Option<&mut Task> {
         self.tasks.get_mut(&id)
     }
 
@@ -42,7 +45,7 @@ impl<P> TaskQueue<P> {
         None
     }
 
-    pub fn queue(&mut self, task: Task<P>) -> Result<(), TaskQueueError> {
+    pub fn queue(&mut self, task: Task) -> Result<(), Error> {
         let id = TaskId(self.next_task_id);
         self.next_task_id += 1;
         self.tasks.insert(id, task);
@@ -50,9 +53,9 @@ impl<P> TaskQueue<P> {
         Ok(())
     }
 
-    pub fn dequeue(&mut self, id: TaskId) -> Result<(), TaskQueueError> {
+    pub fn dequeue(&mut self, id: TaskId) -> Result<(), Error> {
         self.tasks.remove(&id)
-            .ok_or(TaskQueueError::InvalidTaskId { id })?;
+            .ok_or(Error::InvalidTaskId(id))?;
 
         Ok(())
     }
@@ -99,7 +102,7 @@ impl<P> TaskQueue<P> {
         let mut done = Vec::new();
 
         for (key, task) in &self.tasks {
-            if task.done {
+            if task.is_done() {
                 info!(log, "Removing task {} from queue, it's done", key.0);
                 done.push(*key);
             }
@@ -111,33 +114,38 @@ impl<P> TaskQueue<P> {
     }
 }
 
-#[derive(Debug, PartialEq)]
-pub enum TaskQueueError {
-    InvalidTaskId { id: TaskId },
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq, Deserialize, Serialize)]
 pub struct TaskId(pub u32);
 
 #[derive(Deserialize, Serialize)]
-pub struct Task<P> {
+pub struct Task {
     pub position: Point2<i32>,
+    pub object_class: ObjectClassId,
     pub assigned: bool,
     pub unreachable: bool,
-    pub done: bool,
 
-    pub payload: P,
+    work_done: f32,
+    work_target: f32,
 }
 
-impl<P> Task<P> {
-    pub fn new(position: Point2<i32>, payload: P) -> Self {
+impl Task {
+    pub fn new(position: Point2<i32>, object_class: ObjectClassId, work_target: f32) -> Self {
         Task {
             position,
+            object_class,
             assigned: false,
             unreachable: false,
-            done: false,
 
-            payload,
+            work_done: 0.0,
+            work_target,
         }
+    }
+
+    pub fn apply_work(&mut self, amount: f32) {
+        self.work_done += amount;
+    }
+
+    pub fn is_done(&self) -> bool {
+        self.work_done > self.work_target
     }
 }

@@ -4,13 +4,12 @@ use {
     slog::{Logger},
 
     mtk_tilegame::{
-        tasks::{TaskId, TaskQueue},
-        tiles::{Tiles}
+        tiles::{Tiles},
     },
 
     object_class::{ObjectClasses},
     pathfinding::{self, Walkable},
-    state::ship::{Tile, TaskPayload},
+    state::ship::{Tile, TaskId, TaskQueue},
     Error,
 };
 
@@ -39,7 +38,7 @@ impl Unit {
     pub fn update(
         &mut self, log: &Logger,
         object_classes: &ObjectClasses,
-        tiles: &mut Tiles<Tile>, task_queue: &mut TaskQueue<TaskPayload>,
+        tiles: &mut Tiles<Tile>, task_queue: &mut TaskQueue,
         delta: f32,
     ) -> Result<(), Error> {
         let result = {
@@ -76,7 +75,7 @@ impl Action {
         &mut self,
         log: &Logger,
         object_classes: &ObjectClasses,
-        tiles: &mut Tiles<Tile>, task_queue: &mut TaskQueue<TaskPayload>,
+        tiles: &mut Tiles<Tile>, task_queue: &mut TaskQueue,
         unit_position: &mut Point2<f32>, delta: f32,
     ) -> Result<ActionResult, Error> {
         let result = match *self {
@@ -99,13 +98,13 @@ impl Action {
                 if (task_center.x - unit_position.x).abs() < 1.1 &&
                    (task_center.y - unit_position.y).abs() < 1.1 {
                     // We're there, apply work
-                    task.done = task.payload.apply_work(delta);
+                    task.apply_work(delta);
 
                     // If the work's done, we can add an object to the tile
-                    if task.done {
+                    if task.is_done() {
                         tiles.get_mut(task.position).unwrap()
                             .object = Some(object_classes.create_object(
-                                task.payload.object_class
+                                task.object_class
                             )?);
                         tiles.changed.raise();
 

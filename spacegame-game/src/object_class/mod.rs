@@ -34,7 +34,7 @@ impl ObjectClasses {
 
     pub fn get(&self, id: ObjectClassId) -> Result<&ObjectClass, Error> {
         self.entries.get(id.id)
-            .ok_or(Error::ObjectClassNotFound(id))
+            .ok_or(Error::InvalidClassId(id))
     }
 
     pub fn create_object(&self, id: ObjectClassId) -> Result<Object, Error> {
