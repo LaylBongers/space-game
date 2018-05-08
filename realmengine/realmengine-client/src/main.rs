@@ -9,7 +9,6 @@ use {
         Context, GameResult, GameError,
         conf::{Conf, WindowMode, WindowSetup},
         event::{self, EventHandler, MouseButton, MouseState},
-        graphics::{Rect},
         timer,
     },
     slog::{Logger},

@@ -8,5 +8,3 @@ alga = "0.5"
 nalgebra = { version = "0.14", features = ["serde-serialize"] }
 serde = "1"
 serde_derive = "1"
-slog = "2"
-metrohash = "1"

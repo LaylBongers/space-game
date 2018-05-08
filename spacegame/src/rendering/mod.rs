@@ -20,7 +20,6 @@ use {
             ship::{Ship},
         },
     },
-    rendering::ship::{Bounds},
     ui::{UiSystem},
 };
 
@@ -104,7 +103,8 @@ pub fn draw_build_graphics(
 fn draw_grid(
     ctx: &mut Context, ship: &Ship, camera: &Camera,
 ) -> GameResult<()> {
-    let bounds = Bounds::calculate(ship, camera);
+    let world_bounds = camera.world_bounds();
+    let bounds = ship.tiles.bounds(world_bounds.0, world_bounds.1);
 
     // Draw a build grid
     let mut grid_builder = MeshBuilder::new();

@@ -89,15 +89,12 @@ impl Ship {
         Ok(if self.tiles_changed {
             // Find any tiles that ask for update events
             self.tiles_with_behaviors.clear();
-            for y in 0..self.tiles.size().y {
-                for x in 0..self.tiles.size().x {
-                    let position = Point2::new(x, y);
-                    let tile = self.tiles.get(position)?;
-                    if let Some(ref object) = tile.object {
-                        let class = object_classes.get(object.class)?;
-                        if class.behavior.is_some() {
-                            self.tiles_with_behaviors.push(position);
-                        }
+            for position in self.tiles.iter_pos() {
+                let tile = self.tiles.get(position)?;
+                if let Some(ref object) = tile.object {
+                    let class = object_classes.get(object.class)?;
+                    if class.behavior.is_some() {
+                        self.tiles_with_behaviors.push(position);
                     }
                 }
             }

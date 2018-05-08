@@ -11,27 +11,6 @@ use {
     },
 };
 
-pub struct Bounds {
-    pub start: Point2<i32>,
-    pub end: Point2<i32>,
-}
-
-impl Bounds {
-    pub fn calculate(ship: &Ship, camera: &Camera) -> Self {
-        let (start, end) = camera.world_bounds();
-        let size = ship.tiles.size();
-        let start_x = (start.x.floor() as i32).max(0);
-        let start_y = (start.y.floor() as i32).max(0);
-        let end_x = (end.x.ceil() as i32).min(size.x);
-        let end_y = (end.y.ceil() as i32).min(size.y);
-
-        Bounds {
-            start: Point2::new(start_x, start_y),
-            end: Point2::new(end_x, end_y),
-        }
-    }
-}
-
 pub fn draw_ship(
     ctx: &mut Context,
     object_classes: &ObjectClasses,
@@ -50,35 +29,33 @@ fn draw_tiles(
     ctx: &mut Context, ship: &Ship, camera: &Camera, object_classes: &ObjectClasses,
     tiles_batch: &mut SpriteBatch,
 ) -> GameResult<()> {
-    let bounds = Bounds::calculate(ship, camera);
+    let world_bounds = camera.world_bounds();
 
-    for y in bounds.start.y..bounds.end.y {
-        for x in bounds.start.x..bounds.end.x {
-            let tile = ship.tiles.get(Point2::new(x, y)).unwrap();
+    for position in ship.tiles.bounds(world_bounds.0, world_bounds.1).iter() {
+        let tile = ship.tiles.get(position).unwrap();
 
-            let (fx, fy) = (x as f32, y as f32);
+        let (fx, fy) = (position.x as f32, position.y as f32);
 
-            // Add graphic for the floor
-            if tile.floor {
-                tiles_batch.add(DrawParam {
-                    src: Rect::new(0.0, 0.5, 0.5, 0.5),
-                    dest: Point2::new(fx, fy + 1.0),
-                    scale: Point2::new(1.0 / 64.0, -1.0 / 64.0),
-                    .. Default::default()
-                });
-            }
+        // Add graphic for the floor
+        if tile.floor {
+            tiles_batch.add(DrawParam {
+                src: Rect::new(0.0, 0.5, 0.5, 0.5),
+                dest: Point2::new(fx, fy + 1.0),
+                scale: Point2::new(1.0 / 64.0, -1.0 / 64.0),
+                .. Default::default()
+            });
+        }
 
-            // Add graphic for objects
-            if let Some(ref object) = tile.object {
-                let uvs = object_classes.get(object.class).unwrap().uvs;
+        // Add graphic for objects
+        if let Some(ref object) = tile.object {
+            let uvs = object_classes.get(object.class).unwrap().uvs;
 
-                tiles_batch.add(DrawParam {
-                    src: uvs,
-                    dest: Point2::new(fx, fy + 1.0),
-                    scale: Point2::new(1.0 / 64.0, -1.0 / 64.0),
-                    .. Default::default()
-                });
-            }
+            tiles_batch.add(DrawParam {
+                src: uvs,
+                dest: Point2::new(fx, fy + 1.0),
+                scale: Point2::new(1.0 / 64.0, -1.0 / 64.0),
+                .. Default::default()
+            });
         }
     }
 
