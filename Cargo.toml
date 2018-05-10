@@ -1,7 +1,7 @@
 [workspace]
 members = [
-    "realmengine/realmengine-client",
-    "realmengine/realmengine-server",
+    "voxelgame/voxelgame-client",
+    "voxelgame/voxelgame-server",
     "mtk/mtk-tilegame",
     "rivr/rivr",
     "rivr/rivr-ggez",
