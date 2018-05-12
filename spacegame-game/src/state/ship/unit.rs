@@ -3,8 +3,8 @@ use {
     nalgebra::{Point2},
     slog::{Logger},
 
-    mtk_tilegame::{
-        tiles::{Tiles},
+    mtk::{
+        grid::{Tiles},
     },
 
     object_class::{ObjectClasses},

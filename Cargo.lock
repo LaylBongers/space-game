@@ -554,7 +554,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mtk-tilegame"
+name = "mtk"
 version = "0.1.0"
 dependencies = [
  "alga 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1046,7 +1046,7 @@ name = "spacegame"
 version = "0.1.0"
 dependencies = [
  "ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "mtk-tilegame 0.1.0",
+ "mtk 0.1.0",
  "nalgebra 0.14.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rivr 0.1.0",
  "rivr-ggez 0.1.0",
@@ -1064,7 +1064,7 @@ dependencies = [
  "alga 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "metrohash 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "mtk-tilegame 0.1.0",
+ "mtk 0.1.0",
  "nalgebra 0.14.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "pathfinding 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.52 (registry+https://github.com/rust-lang/crates.io-index)",

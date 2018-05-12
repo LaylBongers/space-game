@@ -1,5 +1,5 @@
 [package]
-name = "mtk-tilegame"
+name = "mtk"
 version = "0.1.0"
 authors = ["Layl <LaylConway@users.noreply.github.com>"]
 

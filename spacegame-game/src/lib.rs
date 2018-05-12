@@ -6,7 +6,7 @@ extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate pathfinding as pathfindingc;
 extern crate metrohash;
-extern crate mtk_tilegame;
+extern crate mtk;
 
 pub mod object_class;
 pub mod state;
@@ -21,11 +21,11 @@ use {
 pub enum Error {
     InvalidClassId(ObjectClassId),
     InvalidTaskId(TaskId),
-    Tiles(mtk_tilegame::tiles::Error),
+    Tiles(mtk::grid::Error),
 }
 
-impl From<mtk_tilegame::tiles::Error> for Error {
-    fn from(error: mtk_tilegame::tiles::Error) -> Self {
+impl From<mtk::grid::Error> for Error {
+    fn from(error: mtk::grid::Error) -> Self {
         Error::Tiles(error)
     }
 }

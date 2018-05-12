@@ -3,7 +3,7 @@ extern crate nalgebra;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 
-pub mod tiles;
+pub mod grid;
 
 mod event;
 

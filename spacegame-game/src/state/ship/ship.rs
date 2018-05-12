@@ -2,8 +2,8 @@ use {
     nalgebra::{Point2, Vector2},
     slog::{Logger},
 
-    mtk_tilegame::{
-        tiles::{Tiles}
+    mtk::{
+        grid::{Tiles}
     },
 
     object_class::{ObjectClasses},

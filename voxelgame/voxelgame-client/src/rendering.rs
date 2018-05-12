@@ -68,7 +68,6 @@ impl Renderer {
         let depth_view = graphics::get_depth_view(ctx);
         let factory = graphics::get_factory(ctx);
 
-        // Shaders.
         let vs =
 br#"#version 150 core
 

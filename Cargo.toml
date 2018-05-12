@@ -2,7 +2,7 @@
 members = [
     "voxelgame/voxelgame-client",
     "voxelgame/voxelgame-server",
-    "mtk/mtk-tilegame",
+    "mtk/mtk",
     "rivr/rivr",
     "rivr/rivr-ggez",
     "spacegame",
