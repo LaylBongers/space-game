@@ -2,9 +2,7 @@ use {
     nalgebra::{Point2, Vector2},
     slog::{Logger},
 
-    mtk::{
-        grid::{Tiles}
-    },
+    lagato::{grid::{Tiles}},
 
     object_class::{ObjectClasses},
     state::ship::{Unit, Tile, TaskQueue},

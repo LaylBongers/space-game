@@ -2,7 +2,7 @@ use {
     nalgebra::{Point2},
     pathfindingc::{astar},
 
-    mtk::{self, grid::{Tiles}},
+    lagato::{self, grid::{Tiles}},
 
     object_class::{ObjectClasses},
     state::ship::{Tile},
@@ -54,7 +54,7 @@ pub enum Walkable {
 
 impl Walkable {
     pub fn from_tile_res(
-        tile_res: Result<&Tile, mtk::grid::Error>, object_classes: &ObjectClasses
+        tile_res: Result<&Tile, lagato::grid::Error>, object_classes: &ObjectClasses
     ) -> Result<Walkable, Error> {
         if let Ok(tile) = tile_res {
             tile.walkable(object_classes)
@@ -126,7 +126,7 @@ fn neighbors(
 }
 
 fn is_walkable(
-    tile_res: Result<&Tile, mtk::grid::Error>, object_classes: &ObjectClasses
+    tile_res: Result<&Tile, lagato::grid::Error>, object_classes: &ObjectClasses
 ) -> Result<bool, Error> {
     Ok(Walkable::from_tile_res(tile_res, object_classes)? != Walkable::Never)
 }

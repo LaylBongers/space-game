@@ -4,7 +4,6 @@ extern crate nalgebra;
 extern crate sloggers;
 extern crate serde;
 extern crate rmp_serde;
-extern crate mtk;
 extern crate rivr;
 extern crate rivr_ggez;
 extern crate spacegame_game;

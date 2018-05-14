@@ -1,7 +1,7 @@
 use {
     nalgebra::{Point2},
 
-    grid::{Dim, Dim2},
+    grid::{Dim, Dim2, Bounds, IterBounds},
     Event,
 };
 
@@ -54,16 +54,16 @@ impl<Tile, D: Dim> Grid<Tile, D> {
         D::is_in_bounds(position, self.size)
     }
 
-    pub fn iter_pos(&self) -> IterPos<D> {
-        IterPos {
-            size: self.size,
-            next_position: Some(D::start()),
-        }
+    pub fn iter_pos(&self) -> IterBounds<D> {
+        Bounds {
+            start: D::start(),
+            end: D::end(self.size),
+        }.iter()
     }
 }
 
 impl<Tile> Grid<Tile, Dim2> {
-    pub fn bounds(&self, start: Point2<f32>, end: Point2<f32>) -> Bounds {
+    pub fn bounds(&self, start: Point2<f32>, end: Point2<f32>) -> Bounds<Dim2> {
         let start_x = (start.x.floor() as i32).max(0);
         let start_y = (start.y.floor() as i32).max(0);
         let end_x = (end.x.ceil() as i32).min(self.size.x);
@@ -81,62 +81,57 @@ pub enum Error {
     OutOfBounds,
 }
 
-pub struct IterPos<D: Dim> {
-    size: D::Vector,
-    next_position: Option<D::Point>,
-}
+#[cfg(test)]
+mod tests {
+    use {
+        nalgebra::{Vector2, Vector3},
 
-impl<D: Dim> Iterator for IterPos<D> {
-    type Item = D::Point;
+        grid::{Grid, Dim2, Dim3},
+    };
 
-    fn next(&mut self) -> Option<D::Point> {
-        let position = self.next_position;
+    #[test]
+    fn iter_goes_over_all_entries_dim2() {
+        let grid: Grid<bool, Dim2> = Grid::empty(Vector2::new(10, 10));
+        let mut got_min = false;
+        let mut got_max = false;
+        let mut amount_iterated = 0;
 
-        if let Some(position) = position {
-            self.next_position = D::next(position, self.size);
-        }
-
-        position
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct Bounds {
-    pub start: Point2<i32>,
-    pub end: Point2<i32>,
-}
-
-impl Bounds {
-    pub fn iter(self) -> IterBounds {
-        IterBounds {
-            bounds: self,
-            next_position: self.start,
-        }
-    }
-}
-
-pub struct IterBounds {
-    bounds: Bounds,
-    next_position: Point2<i32>,
-}
-
-impl Iterator for IterBounds {
-    type Item = Point2<i32>;
-
-    fn next(&mut self) -> Option<Point2<i32>> {
-        let position = self.next_position;
-
-        if position.y >= self.bounds.end.y {
-            None
-        } else {
-            // Increment for next
-            self.next_position.x += 1;
-            if self.next_position.x >= self.bounds.end.x {
-                self.next_position.x = self.bounds.start.x;
-                self.next_position.y += 1;
+        for pos in grid.iter_pos() {
+            if pos.x == 0 && pos.y == 0 {
+                got_min = true;
+            }
+            if pos.x == 9 && pos.y == 9 {
+                got_max = true;
             }
 
-            Some(position)
+            amount_iterated += 1;
         }
+
+        assert!(got_min);
+        assert!(got_max);
+        assert_eq!(amount_iterated, 10 * 10);
+    }
+
+    #[test]
+    fn iter_goes_over_all_entries_dim3() {
+        let grid: Grid<bool, Dim3> = Grid::empty(Vector3::new(10, 10, 10));
+        let mut got_min = false;
+        let mut got_max = false;
+        let mut amount_iterated = 0;
+
+        for pos in grid.iter_pos() {
+            if pos.x == 0 && pos.y == 0 && pos.z == 0 {
+                got_min = true;
+            }
+            if pos.x == 9 && pos.y == 9 && pos.z == 9 {
+                got_max = true;
+            }
+
+            amount_iterated += 1;
+        }
+
+        assert!(got_min);
+        assert!(got_max);
+        assert_eq!(amount_iterated, 10 * 10 * 10);
     }
 }

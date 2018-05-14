@@ -3,9 +3,7 @@ use {
     nalgebra::{Point2},
     slog::{Logger},
 
-    mtk::{
-        grid::{Tiles},
-    },
+    lagato::{grid::{Tiles}},
 
     object_class::{ObjectClasses},
     pathfinding::{self, Walkable},

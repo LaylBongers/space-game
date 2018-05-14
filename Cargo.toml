@@ -1,8 +1,9 @@
 [workspace]
 members = [
-    "voxelgame/voxelgame-client",
-    "voxelgame/voxelgame-server",
-    "mtk/mtk",
+    "blockengine",
+    "blockgame/blockgame-client",
+    "blockgame/blockgame-server",
+    "lagato",
     "rivr/rivr",
     "rivr/rivr-ggez",
     "spacegame",

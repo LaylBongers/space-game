@@ -6,7 +6,7 @@ extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate pathfinding as pathfindingc;
 extern crate metrohash;
-extern crate mtk;
+extern crate lagato;
 
 pub mod object_class;
 pub mod state;
@@ -21,11 +21,11 @@ use {
 pub enum Error {
     InvalidClassId(ObjectClassId),
     InvalidTaskId(TaskId),
-    Tiles(mtk::grid::Error),
+    Tiles(lagato::grid::Error),
 }
 
-impl From<mtk::grid::Error> for Error {
-    fn from(error: mtk::grid::Error) -> Self {
+impl From<lagato::grid::Error> for Error {
+    fn from(error: lagato::grid::Error) -> Self {
         Error::Tiles(error)
     }
 }

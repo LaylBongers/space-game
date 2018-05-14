@@ -36,10 +36,10 @@ pub fn main() {
         .. Default::default()
     };
     c.window_setup = WindowSetup {
-        title: "Space Game".into(),
+        title: "Block Game".into(),
         .. Default::default()
     };
-    let ctx = &mut Context::load_from_conf("spacegame", "carbidegames", c).unwrap();
+    let ctx = &mut Context::load_from_conf("blockgame", "carbidegames", c).unwrap();
 
     // Just add the local resources directory
     let path = path::PathBuf::from("./resources");

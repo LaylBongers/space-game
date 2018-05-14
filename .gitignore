@@ -2,5 +2,5 @@
 **/*.rs.bk
 Cargo.lock
 
-/realmengine/realmengine-client/SDL2.dll
+/blockgame/blockgame-client/SDL2.dll
 /spacegame/SDL2.dll

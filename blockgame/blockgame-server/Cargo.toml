@@ -1,5 +1,5 @@
 [package]
-name = "voxelgame-server"
+name = "blockgame-server"
 version = "0.1.0"
 authors = ["Layl <LaylConway@users.noreply.github.com>"]
 
