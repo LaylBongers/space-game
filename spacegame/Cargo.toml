@@ -7,9 +7,9 @@ authors = ["Layl <LaylConway@users.noreply.github.com>"]
 ggez = "0.4"
 nalgebra = { version = "0.14", features = ["serde-serialize"] }
 slog = "2"
-sloggers = "0.2"
 serde = "1"
 rmp-serde = "0.13"
-rivr = { path = "../rivr/rivr" }
-rivr-ggez = { path = "../rivr/rivr-ggez" }
+rivr = { path = "../common/rivr" }
+rivr-ggez = { path = "../common/rivr-ggez" }
+lagato-ggez = { path = "../common/lagato-ggez" }
 spacegame-game = { path = "../spacegame-game" }

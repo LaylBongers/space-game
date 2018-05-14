@@ -6,21 +6,21 @@ use {
 };
 
 #[derive(Deserialize, Serialize)]
-pub struct Grid<Tile, D: Dim> {
-    tiles: Vec<Tile>,
+pub struct Grid<Cell, D: Dim> {
+    cells: Vec<Cell>,
     size: D::Vector,
 
     pub changed: Event,
 }
 
-impl<Tile: Default, D: Dim> Grid<Tile, D> {
+impl<Cell: Default, D: Dim> Grid<Cell, D> {
     pub fn empty(size: D::Vector) -> Self {
         let amount = D::area(size);
-        let mut tiles = Vec::with_capacity(amount);
-        for _ in 0..amount { tiles.push(Tile::default()) }
+        let mut cells = Vec::with_capacity(amount);
+        for _ in 0..amount { cells.push(Cell::default()) }
 
         Grid {
-            tiles,
+            cells,
             size,
 
             changed: Event::new(),
@@ -28,23 +28,23 @@ impl<Tile: Default, D: Dim> Grid<Tile, D> {
     }
 }
 
-impl<Tile, D: Dim> Grid<Tile, D> {
+impl<Cell, D: Dim> Grid<Cell, D> {
     pub fn size(&self) -> D::Vector {
         self.size
     }
 
-    pub fn get(&self, position: D::Point) -> Result<&Tile, Error> {
+    pub fn get(&self, position: D::Point) -> Result<&Cell, Error> {
         if D::is_in_bounds(position, self.size) {
-            Ok(&self.tiles[D::index(position, self.size)])
+            Ok(&self.cells[D::index(position, self.size)])
         } else {
             Err(Error::OutOfBounds)
         }
     }
 
-    pub fn get_mut(&mut self, position: D::Point) -> Result<&mut Tile, Error> {
+    pub fn get_mut(&mut self, position: D::Point) -> Result<&mut Cell, Error> {
         if D::is_in_bounds(position, self.size) {
             let index = D::index(position, self.size);
-            Ok(&mut self.tiles[index])
+            Ok(&mut self.cells[index])
         } else {
             Err(Error::OutOfBounds)
         }
@@ -62,7 +62,7 @@ impl<Tile, D: Dim> Grid<Tile, D> {
     }
 }
 
-impl<Tile> Grid<Tile, Dim2> {
+impl<Cell> Grid<Cell, Dim2> {
     pub fn bounds(&self, start: Point2<f32>, end: Point2<f32>) -> Bounds<Dim2> {
         let start_x = (start.x.floor() as i32).max(0);
         let start_y = (start.y.floor() as i32).max(0);

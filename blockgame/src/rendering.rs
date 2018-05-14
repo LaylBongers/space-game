@@ -59,36 +59,6 @@ impl Renderer {
         let depth_view = graphics::get_depth_view(ctx);
         let factory = graphics::get_factory(ctx);
 
-        let vs =
-br#"#version 150 core
-
-in vec4 a_Pos;
-in vec2 a_TexCoord;
-out vec2 v_TexCoord;
-
-uniform Locals {
-    mat4 u_Transform;
-};
-
-void main() {
-    v_TexCoord = a_TexCoord;
-    gl_Position = u_Transform * a_Pos ;
-    gl_ClipDistance[0] = 1.0;
-}"#;
-        let fs =
-br#"#version 150 core
-
-in vec2 v_TexCoord;
-out vec4 Target0;
-
-uniform sampler2D t_Color;
-
-void main() {
-    vec4 tex = texture(t_Color, v_TexCoord);
-    float blend = dot(v_TexCoord-vec2(0.5,0.5), v_TexCoord-vec2(0.5,0.5));
-    Target0 = mix(tex, vec4(0.0,0.0,0.0,0.0), blend*1.0);
-}"#;
-
         // Add some cubes
         let mut vertices = Vec::new();
         for x in 0..10 {
@@ -113,6 +83,8 @@ void main() {
         let sinfo = SamplerInfo::new(FilterMethod::Bilinear, WrapMode::Clamp);
 
         // Create pipeline state object
+        let vs = include_bytes!("s_fragment.glsl");
+        let fs = include_bytes!("s_vertex.glsl");
         let set = factory.create_shader_set(vs, fs).unwrap();
         let pso = factory.create_pipeline_state(
             &set,

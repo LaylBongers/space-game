@@ -1,11 +1,11 @@
 [workspace]
 members = [
-    "blockengine",
-    "blockgame/blockgame-client",
-    "blockgame/blockgame-server",
-    "lagato",
-    "rivr/rivr",
-    "rivr/rivr-ggez",
+    "blockgame",
+    "common/blockengine",
+    "common/lagato",
+    "common/lagato-ggez",
+    "common/rivr",
+    "common/rivr-ggez",
     "spacegame",
     "spacegame-game",
 ]

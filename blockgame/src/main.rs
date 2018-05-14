@@ -3,61 +3,23 @@ extern crate ggez;
 extern crate gfx_device_gl;
 extern crate nalgebra;
 #[macro_use] extern crate slog;
-extern crate sloggers;
+extern crate lagato_ggez;
 
 mod rendering;
 
 use {
-    std::{path},
-
     ggez::{
-        Context, GameResult, GameError,
-        conf::{Conf, WindowMode, WindowSetup},
-        event::{self, EventHandler, MouseButton, MouseState},
+        event::{EventHandler, MouseButton, MouseState},
         timer,
+        Context, GameResult,
     },
     slog::{Logger},
-    sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}},
 
     rendering::{Renderer},
 };
 
-pub fn main() {
-    // Set up logging
-    let mut builder = TerminalLoggerBuilder::new();
-    builder.level(Severity::Debug);
-    let log = builder.build().unwrap();
-
-    // Set up the ggez context
-    let mut c = Conf::new();
-    c.window_mode = WindowMode {
-        width: 1280,
-        height: 720,
-        .. Default::default()
-    };
-    c.window_setup = WindowSetup {
-        title: "Block Game".into(),
-        .. Default::default()
-    };
-    let ctx = &mut Context::load_from_conf("blockgame", "carbidegames", c).unwrap();
-
-    // Just add the local resources directory
-    let path = path::PathBuf::from("./resources");
-    ctx.filesystem.mount(&path, true);
-
-    // Initialize and run the game
-    let result = MainState::new(ctx, log.clone())
-        .and_then(|mut s| event::run(ctx, &mut s));
-
-    // Check if it ran successfully
-    if let Err(e) = result {
-        match e {
-            GameError::UnknownError(text) => error!(log, "Fatal:\n{}", text),
-            e => error!(log, "Fatal: {}", e)
-        }
-    } else {
-        info!(log, "Game exited cleanly");
-    }
+pub fn main() -> GameResult<()> {
+    lagato_ggez::run_game("blockgame", "carbidegames", |ctx, log| MainState::new(ctx, log))
 }
 
 struct MainState {

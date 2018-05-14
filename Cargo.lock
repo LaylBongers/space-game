@@ -61,20 +61,16 @@ name = "blockengine"
 version = "0.1.0"
 
 [[package]]
-name = "blockgame-client"
+name = "blockgame"
 version = "0.1.0"
 dependencies = [
  "gfx 0.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx_device_gl 0.15.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lagato-ggez 0.1.0",
  "nalgebra 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "slog 2.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "sloggers 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
-
-[[package]]
-name = "blockgame-server"
-version = "0.1.0"
 
 [[package]]
 name = "byteorder"
@@ -474,6 +470,15 @@ dependencies = [
  "nalgebra 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.55 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.55 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "lagato-ggez"
+version = "0.1.0"
+dependencies = [
+ "ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "slog 2.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sloggers 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1060,13 +1065,13 @@ name = "spacegame"
 version = "0.1.0"
 dependencies = [
  "ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lagato-ggez 0.1.0",
  "nalgebra 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "rivr 0.1.0",
  "rivr-ggez 0.1.0",
  "rmp-serde 0.13.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.55 (registry+https://github.com/rust-lang/crates.io-index)",
  "slog 2.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "sloggers 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "spacegame-game 0.1.0",
 ]
 
