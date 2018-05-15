@@ -14,8 +14,9 @@ use {
     sloggers::{Build, terminal::{TerminalLoggerBuilder}, types::{Severity}},
 };
 
-pub fn run_game<F, S>(game_id: &'static str, author: &'static str, init: F) -> GameResult<()>
-where
+pub fn run_game<F, S>(
+    game_id: &'static str, author: &'static str, window_title: &str, init: F
+) -> GameResult<()> where
     F: FnOnce(&mut Context, Logger) -> GameResult<S>,
     S: EventHandler
 {
@@ -32,7 +33,7 @@ where
         .. Default::default()
     };
     c.window_setup = WindowSetup {
-        title: "Space Game".into(),
+        title: window_title.into(),
         .. Default::default()
     };
     let ctx = &mut Context::load_from_conf(game_id, author, c).unwrap();

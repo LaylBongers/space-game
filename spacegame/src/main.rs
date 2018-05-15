@@ -31,7 +31,10 @@ use {
 };
 
 pub fn main() -> GameResult<()> {
-    lagato_ggez::run_game("spacegame", "carbidegames", |ctx, log| MainState::new(ctx, log))
+    lagato_ggez::run_game(
+        "spacegame", "carbidegames", "Space Game",
+        |ctx, log| MainState::new(ctx, log),
+    )
 }
 
 struct MainState {

@@ -61,18 +61,6 @@ name = "blockengine"
 version = "0.1.0"
 
 [[package]]
-name = "blockgame"
-version = "0.1.0"
-dependencies = [
- "gfx 0.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "gfx_device_gl 0.15.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "lagato-ggez 0.1.0",
- "nalgebra 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "slog 2.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "byteorder"
 version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -255,6 +243,19 @@ version = "0.17.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "num-traits 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "factorygame"
+version = "0.1.0"
+dependencies = [
+ "gfx 0.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gfx_device_gl 0.15.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lagato 0.1.0",
+ "lagato-ggez 0.1.0",
+ "nalgebra 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "slog 2.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

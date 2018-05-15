@@ -9,3 +9,4 @@ pub use self::{
 };
 
 pub type Tiles<Tile> = Grid<Tile, Dim2>;
+pub type Voxels<Voxel> = Grid<Voxel, Dim3>;

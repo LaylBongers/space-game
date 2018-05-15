@@ -1,11 +1,11 @@
 [workspace]
 members = [
-    "blockgame",
     "common/blockengine",
     "common/lagato",
     "common/lagato-ggez",
     "common/rivr",
     "common/rivr-ggez",
+    "factorygame",
     "spacegame",
     "spacegame-game",
 ]

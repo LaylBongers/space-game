@@ -3,6 +3,7 @@ extern crate ggez;
 extern crate gfx_device_gl;
 extern crate nalgebra;
 #[macro_use] extern crate slog;
+extern crate lagato;
 extern crate lagato_ggez;
 
 mod rendering;
@@ -19,7 +20,10 @@ use {
 };
 
 pub fn main() -> GameResult<()> {
-    lagato_ggez::run_game("blockgame", "carbidegames", |ctx, log| MainState::new(ctx, log))
+    lagato_ggez::run_game(
+        "blockfactory", "carbidegames", "Factory Game",
+        |ctx, log| MainState::new(ctx, log),
+    )
 }
 
 struct MainState {
@@ -45,17 +49,17 @@ impl MainState {
 impl EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         const DESIRED_FPS: u32 = 60;
-        const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
+        const _DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            self.rotation += DELTA;
+            //self.rotation += DELTA;
         }
 
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        self.renderer.draw(ctx, self.rotation)?;
+        self.renderer.draw(ctx, self.rotation, 1.0)?;
 
         Ok(())
     }

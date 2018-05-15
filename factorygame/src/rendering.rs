@@ -19,32 +19,21 @@ type DepthFormat = gfx::format::DepthStencil;
 
 gfx_defines!{
     vertex Vertex {
-        pos: [f32; 4] = "a_Pos",
-        tex_coord: [f32; 2] = "a_TexCoord",
+        pos: [f32; 4] = "a_pos",
+        tex_coord: [f32; 2] = "a_tex_coord",
     }
 
     constant Locals {
-        transform: [[f32; 4]; 4] = "u_Transform",
+        transform: [[f32; 4]; 4] = "u_transform",
     }
 
     pipeline pipe {
         vbuf: VertexBuffer<Vertex> = (),
         locals: ConstantBuffer<Locals> = "Locals",
-        color: TextureSampler<[f32; 4]> = "t_Color",
-        out_color: RenderTarget<ColorFormat> = "Target0",
+        texture: TextureSampler<[f32; 4]> = "u_texture",
+        out_color: RenderTarget<ColorFormat> = "o_color",
         out_depth: DepthTarget<DepthFormat> = gfx::preset::depth::LESS_EQUAL_WRITE,
     }
-}
-
-fn default_view(height: f32) -> Isometry3<f32> {
-    Isometry3::look_at_rh(
-        // Eye location
-        &Point3::new(1.5f32, 3.0 + height, -5.0),
-        // Target location
-        &Point3::new(0f32, 0.0 + height, 0.0),
-        // Up Vector
-        &Vector3::y_axis(),
-    )
 }
 
 pub struct Renderer {
@@ -97,7 +86,7 @@ impl Renderer {
         let data = pipe::Data {
             vbuf,
             locals: factory.create_constant_buffer(1),
-            color: (texture_view, factory.create_sampler(sinfo)),
+            texture: (texture_view, factory.create_sampler(sinfo)),
             out_color: color_view,
             out_depth: depth_view,
         };
@@ -109,7 +98,9 @@ impl Renderer {
         }
     }
 
-    pub fn draw(&self, ctx: &mut Context, rotation: f32) -> GameResult<()> {
+    pub fn draw(
+        &self, ctx: &mut Context, camera_rotation: f32, camera_height: f32
+    ) -> GameResult<()> {
         graphics::set_background_color(ctx, (10, 10, 15).into());
         graphics::clear(ctx);
 
@@ -119,9 +110,22 @@ impl Renderer {
             encoder.clear(&self.data.out_color, [0.1, 0.1, 0.1, 1.0]);
 
             // Aspect ratio, FOV, znear, zfar
-            let proj = Perspective3::new(4.0 / 3.0, ::std::f32::consts::PI / 4.0, 1.0, 100.0);
-            let transform = proj.as_matrix() * default_view(5.0).to_homogeneous();
-            let transform = transform * Matrix4::from_scaled_axis(Vector3::y() * rotation);
+            let h_fov = ::std::f32::consts::PI / 2.0; // 90 deg
+            let ratio = 9.0/16.0;
+            let v_fov = 2.0 * ((h_fov/2.0).tan() * ratio).atan();
+
+            let proj = Perspective3::new(4.0 / 3.0, v_fov, 1.0, 100.0);
+            let isometry = Isometry3::look_at_rh(
+                // Eye location
+                &Point3::new(0.0, 3.0 + camera_height, -5.0),
+                // Target location
+                &Point3::new(0.0, 0.0 + camera_height, 0.0),
+                // Up Vector
+                &Vector3::y_axis(),
+            );
+            let transform = proj.as_matrix()
+                * isometry.to_homogeneous()
+                * Matrix4::from_scaled_axis(Vector3::y() * camera_rotation);
 
             let locals = Locals {
                 transform: transform.into(),

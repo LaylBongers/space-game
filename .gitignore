@@ -2,5 +2,5 @@
 **/*.rs.bk
 Cargo.lock
 
-/blockgame/SDL2.dll
+/factorygame/SDL2.dll
 /spacegame/SDL2.dll
