@@ -6,13 +6,17 @@ extern crate lagato_ggez;
 extern crate blockengine;
 
 use {
+    std::f32::consts::{PI},
+
     ggez::{
         event::{EventHandler, MouseButton, MouseState},
         timer,
         Context, GameResult,
     },
+    nalgebra::{Vector3, Point3, UnitQuaternion},
     slog::{Logger},
 
+    lagato::{camera::{OrbitingCamera}, grid::{Voxels}},
     blockengine::rendering::{Renderer},
 };
 
@@ -26,19 +30,34 @@ pub fn main() -> GameResult<()> {
 struct MainState {
     log: Logger,
     renderer: Renderer,
-    rotation: f32,
+
+    world: Voxels<bool>,
+    camera: OrbitingCamera,
 }
 
 impl MainState {
     fn new(ctx: &mut Context, log: Logger) -> GameResult<MainState> {
         info!(log, "Loading game");
 
-        let renderer = Renderer::new(ctx);
+        // Create and generate world
+        let size = Vector3::new(128, 32, 128);
+        let mut world = Voxels::empty(size);
+        for x in 0..size.x {
+            for z in 0..size.z {
+                *world.get_mut(Point3::new(x, 0, z)).unwrap() = true;
+            }
+        }
+
+        let renderer = Renderer::new(ctx, &world);
+
+        let camera = OrbitingCamera::new(Point3::new(0.0, 1.0, 0.0), PI * -0.25, PI * 1.25, 10.0);
 
         Ok(MainState {
             log,
             renderer,
-            rotation: 0.0,
+
+            world,
+            camera,
         })
     }
 }
@@ -56,7 +75,9 @@ impl EventHandler for MainState {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        self.renderer.draw(ctx, self.rotation, 1.0)?;
+        let render_camera = self.camera.to_render_camera();
+
+        self.renderer.draw(ctx, &render_camera)?;
 
         Ok(())
     }
