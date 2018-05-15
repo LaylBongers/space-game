@@ -8,12 +8,13 @@ extern crate blockengine;
 use {
     ggez::{
         event::{EventHandler, MouseButton, MouseState},
-        timer,
+        timer, mouse,
         Context, GameResult,
     },
-    nalgebra::{Point3, UnitQuaternion},
+    nalgebra::{Point3, Vector3, UnitQuaternion},
     slog::{Logger},
 
+    lagato::{camera::{PitchYawCamera}},
     blockengine::{rendering::{Renderer, RenderCamera}},
 };
 
@@ -27,7 +28,8 @@ pub fn main() -> GameResult<()> {
 struct MainState {
     log: Logger,
     renderer: Renderer,
-    rotation: f32,
+    camera: PitchYawCamera,
+    player_position: Point3<f32>,
 }
 
 impl MainState {
@@ -35,11 +37,15 @@ impl MainState {
         info!(log, "Loading game");
 
         let renderer = Renderer::new(ctx);
+        let camera = PitchYawCamera::new(0.0, 0.0);
+
+        mouse::set_relative_mode(ctx, true);
 
         Ok(MainState {
             log,
             renderer,
-            rotation: 0.0,
+            camera,
+            player_position: Point3::new(8.0, 1.0, 8.0),
         })
     }
 }
@@ -47,10 +53,10 @@ impl MainState {
 impl EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         const DESIRED_FPS: u32 = 60;
-        const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
+        const _DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            self.rotation += DELTA;
+            //self.camera.yaw += DELTA;
         }
 
         Ok(())
@@ -58,8 +64,8 @@ impl EventHandler for MainState {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         let render_camera = RenderCamera::new(
-            Point3::new(0.0, 2.0, 0.0),
-            UnitQuaternion::from_euler_angles(0.0, self.rotation, 0.0),
+            self.player_position + Vector3::new(0.0, 1.5, 0.0),
+            UnitQuaternion::from_euler_angles(self.camera.pitch, self.camera.yaw, 0.0),
         );
 
         self.renderer.draw(ctx, &render_camera)?;
@@ -81,8 +87,15 @@ impl EventHandler for MainState {
 
     fn mouse_motion_event(
         &mut self, _ctx: &mut Context,
-        _state: MouseState, _x: i32, _y: i32, _xrel: i32, _yrel: i32
+        _state: MouseState, _x: i32, _y: i32, xrel: i32, yrel: i32
     ) {
+        let sensitivity = 0.0025;
+
+        self.camera.yaw += xrel as f32 * -sensitivity;
+        self.camera.pitch += yrel as f32 * -sensitivity;
+
+        let limit = ::std::f32::consts::PI * 0.4;
+        self.camera.pitch = self.camera.pitch.max(-limit).min(limit);
     }
 
     fn quit_event(&mut self, _ctx: &mut Context) -> bool {

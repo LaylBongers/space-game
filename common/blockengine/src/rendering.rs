@@ -50,8 +50,8 @@ impl Renderer {
 
         // Add some cubes
         let mut vertices = Vec::new();
-        for x in 0..10 {
-            for z in 0..10 {
+        for x in 0..16 {
+            for z in 0..16 {
                 add_cube_vertices(&mut vertices, Vector3::new(x as f32, 0.0, z as f32));
             }
         }
@@ -116,7 +116,7 @@ impl Renderer {
 
             // Aspect ratio, FOV, znear, zfar
             let ratio = window_width as f32 / window_height as f32;
-            let projection = Perspective3::new(ratio, v_fov, 1.0, 100.0);
+            let projection = Perspective3::new(ratio, v_fov, 0.2, 100.0);
             let view = camera.view_matrix();
             let transform = projection.as_matrix() * view.try_inverse().unwrap();
 
