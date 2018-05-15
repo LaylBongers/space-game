@@ -11,9 +11,10 @@ use {
         timer,
         Context, GameResult,
     },
+    nalgebra::{Point3, UnitQuaternion},
     slog::{Logger},
 
-    blockengine::rendering::{Renderer},
+    blockengine::{rendering::{Renderer, RenderCamera}},
 };
 
 pub fn main() -> GameResult<()> {
@@ -46,17 +47,22 @@ impl MainState {
 impl EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         const DESIRED_FPS: u32 = 60;
-        const _DELTA: f32 = 1.0 / DESIRED_FPS as f32;
+        const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            //self.rotation += DELTA;
+            self.rotation += DELTA;
         }
 
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        self.renderer.draw(ctx, self.rotation, 1.0)?;
+        let render_camera = RenderCamera::new(
+            Point3::new(0.0, 2.0, 0.0),
+            UnitQuaternion::from_euler_angles(0.0, self.rotation, 0.0),
+        );
+
+        self.renderer.draw(ctx, &render_camera)?;
 
         Ok(())
     }

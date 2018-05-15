@@ -11,7 +11,7 @@ use {
     },
     gfx_device_gl::{Resources},
 
-    nalgebra::{Perspective3, Isometry3, Point3, Vector3, Matrix4},
+    nalgebra::{Perspective3, Point3, Vector3, Matrix4, UnitQuaternion},
 };
 
 type ColorFormat = gfx::format::Srgba8;
@@ -99,7 +99,7 @@ impl Renderer {
     }
 
     pub fn draw(
-        &self, ctx: &mut Context, camera_rotation: f32, camera_height: f32
+        &self, ctx: &mut Context, camera: &RenderCamera,
     ) -> GameResult<()> {
         graphics::set_background_color(ctx, (10, 10, 15).into());
         graphics::clear(ctx);
@@ -116,18 +116,9 @@ impl Renderer {
 
             // Aspect ratio, FOV, znear, zfar
             let ratio = window_width as f32 / window_height as f32;
-            let proj = Perspective3::new(ratio, v_fov, 1.0, 100.0);
-            let isometry = Isometry3::look_at_rh(
-                // Eye location
-                &Point3::new(0.0, 3.0 + camera_height, -5.0),
-                // Target location
-                &Point3::new(0.0, 0.0 + camera_height, 0.0),
-                // Up Vector
-                &Vector3::y_axis(),
-            );
-            let transform = proj.as_matrix()
-                * isometry.to_homogeneous()
-                * Matrix4::from_scaled_axis(Vector3::y() * camera_rotation);
+            let projection = Perspective3::new(ratio, v_fov, 1.0, 100.0);
+            let view = camera.view_matrix();
+            let transform = projection.as_matrix() * view.try_inverse().unwrap();
 
             let locals = Locals {
                 transform: transform.into(),
@@ -215,4 +206,23 @@ fn add_plane_vertices(
 
 fn nvtp(v: Point3<f32>) -> [f32; 4] {
     [v.x, v.y, v.z, 1.0]
+}
+
+pub struct RenderCamera {
+    position: Point3<f32>,
+    rotation: UnitQuaternion<f32>,
+}
+
+impl RenderCamera {
+    pub fn new(position: Point3<f32>, rotation: UnitQuaternion<f32>) -> Self {
+        RenderCamera {
+            position,
+            rotation,
+        }
+    }
+
+    pub fn view_matrix(&self) -> Matrix4<f32> {
+        Matrix4::new_translation(&self.position.coords)
+        * self.rotation.to_homogeneous()
+    }
 }

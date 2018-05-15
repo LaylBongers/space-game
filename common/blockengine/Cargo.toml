@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Layl <LaylConway@users.noreply.github.com>"]
 
 [dependencies]
+alga = "0.5"
 ggez = "0.4"
 gfx = "0.17"
 gfx_device_gl = "0.15"
