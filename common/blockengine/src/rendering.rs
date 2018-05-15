@@ -10,8 +10,9 @@ use {
         RenderTarget, DepthTarget,
     },
     gfx_device_gl::{Resources},
-
     nalgebra::{Perspective3, Point3, Vector3, Matrix4, UnitQuaternion},
+
+    lagato::grid::{Voxels},
 };
 
 type ColorFormat = gfx::format::Srgba8;
@@ -43,16 +44,19 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context, voxels: &Voxels<bool>) -> Self {
         let color_view = graphics::get_screen_render_target(ctx);
         let depth_view = graphics::get_depth_view(ctx);
         let factory = graphics::get_factory(ctx);
 
         // Add some cubes
         let mut vertices = Vec::new();
-        for x in 0..16 {
-            for z in 0..16 {
-                add_cube_vertices(&mut vertices, Vector3::new(x as f32, 0.0, z as f32));
+        for position in voxels.iter_pos() {
+            if *voxels.get(position).unwrap() {
+                add_cube_vertices(
+                    &mut vertices,
+                    Vector3::new(position.x as f32, position.y as f32, position.z as f32)
+                );
             }
         }
 
@@ -116,7 +120,7 @@ impl Renderer {
 
             // Aspect ratio, FOV, znear, zfar
             let ratio = window_width as f32 / window_height as f32;
-            let projection = Perspective3::new(ratio, v_fov, 0.2, 100.0);
+            let projection = Perspective3::new(ratio, v_fov, 0.2, 1000.0);
             let view = camera.view_matrix();
             let transform = projection.as_matrix() * view.try_inverse().unwrap();
 

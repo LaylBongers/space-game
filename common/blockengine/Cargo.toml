@@ -9,3 +9,4 @@ ggez = "0.4"
 gfx = "0.17"
 gfx_device_gl = "0.15"
 nalgebra = { version = "0.14", features = ["serde-serialize"] }
+lagato = { path = "../lagato" }
