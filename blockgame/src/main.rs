@@ -18,7 +18,7 @@ use {
 
 pub fn main() -> GameResult<()> {
     lagato_ggez::run_game(
-        "factorygame", "carbidegames", "Factory Game",
+        "blockgame", "carbidegames", "Block Game",
         |ctx, log| MainState::new(ctx, log),
     )
 }

@@ -103,18 +103,20 @@ impl Renderer {
     ) -> GameResult<()> {
         graphics::set_background_color(ctx, (10, 10, 15).into());
         graphics::clear(ctx);
+        let (window_width, window_height) = graphics::get_size(ctx);
 
         {
             let (_factory, device, encoder, _depthview, _colorview) =
                 graphics::get_gfx_objects(ctx);
             encoder.clear(&self.data.out_color, [0.1, 0.1, 0.1, 1.0]);
 
-            // Aspect ratio, FOV, znear, zfar
             let h_fov = ::std::f32::consts::PI / 2.0; // 90 deg
-            let ratio = 9.0/16.0;
-            let v_fov = 2.0 * ((h_fov/2.0).tan() * ratio).atan();
+            let fov_ratio = window_height as f32 / window_width as f32;
+            let v_fov = 2.0 * ((h_fov/2.0).tan() * fov_ratio).atan();
 
-            let proj = Perspective3::new(4.0 / 3.0, v_fov, 1.0, 100.0);
+            // Aspect ratio, FOV, znear, zfar
+            let ratio = window_width as f32 / window_height as f32;
+            let proj = Perspective3::new(ratio, v_fov, 1.0, 100.0);
             let isometry = Isometry3::look_at_rh(
                 // Eye location
                 &Point3::new(0.0, 3.0 + camera_height, -5.0),
