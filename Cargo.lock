@@ -69,7 +69,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "blockgame"
+name = "blockgame-client"
 version = "0.1.0"
 dependencies = [
  "blockengine 0.1.0",
@@ -80,6 +80,10 @@ dependencies = [
  "noise 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "slog 2.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "blockgame-server"
+version = "0.1.0"
 
 [[package]]
 name = "byteorder"
