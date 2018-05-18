@@ -13,11 +13,11 @@ use {
         timer,
         Context, GameResult,
     },
-    nalgebra::{Vector3, Point3, UnitQuaternion},
+    nalgebra::{Vector2, Vector3, Point3},
     slog::{Logger},
 
     lagato::{camera::{OrbitingCamera}, grid::{Voxels}},
-    blockengine::rendering::{Renderer},
+    blockengine::{Chunk, rendering::{Renderer, VoxelsMesh}},
 };
 
 pub fn main() -> GameResult<()> {
@@ -31,7 +31,7 @@ struct MainState {
     log: Logger,
     renderer: Renderer,
 
-    world: Voxels<bool>,
+    chunks: Vec<Chunk>,
     camera: OrbitingCamera,
 }
 
@@ -39,16 +39,30 @@ impl MainState {
     fn new(ctx: &mut Context, log: Logger) -> GameResult<MainState> {
         info!(log, "Loading game");
 
+        let renderer = Renderer::new(ctx);
+
         // Create and generate world
-        let size = Vector3::new(128, 32, 128);
-        let mut world = Voxels::empty(size);
-        for x in 0..size.x {
-            for z in 0..size.z {
-                *world.get_mut(Point3::new(x, 0, z)).unwrap() = true;
+        let chunk_size = Vector3::new(16, 16, 16);
+
+        let mut chunks = Vec::new();
+        // TODO: Restructure bounds to any kind of cell range
+        for chunk_x in -3..4 {
+            for chunk_z in -3..4 {
+                let mut chunk_voxels = Voxels::empty(chunk_size);
+                for x in 0..chunk_size.x {
+                    for z in 0..chunk_size.z {
+                        *chunk_voxels.get_mut(Point3::new(x, 0, z)).unwrap() = true;
+                    }
+                }
+
+                let mesh = VoxelsMesh::triangulate(ctx, &chunk_voxels);
+                chunks.push(Chunk {
+                    position: Vector2::new(chunk_x, chunk_z),
+                    voxels: chunk_voxels,
+                    mesh,
+                });
             }
         }
-
-        let renderer = Renderer::new(ctx, &world);
 
         let camera = OrbitingCamera::new(Point3::new(0.0, 1.0, 0.0), PI * -0.25, PI * 1.25, 10.0);
 
@@ -56,7 +70,7 @@ impl MainState {
             log,
             renderer,
 
-            world,
+            chunks,
             camera,
         })
     }
@@ -77,7 +91,7 @@ impl EventHandler for MainState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         let render_camera = self.camera.to_render_camera();
 
-        self.renderer.draw(ctx, &render_camera)?;
+        self.renderer.draw(ctx, &render_camera, &self.chunks)?;
 
         Ok(())
     }
