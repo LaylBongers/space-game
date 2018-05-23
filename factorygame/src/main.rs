@@ -4,6 +4,7 @@ extern crate nalgebra;
 extern crate lagato;
 extern crate lagato_ggez;
 extern crate blockengine;
+extern crate blockengine_rendering;
 
 use {
     std::f32::consts::{PI},
@@ -13,11 +14,12 @@ use {
         timer,
         Context, GameResult,
     },
-    nalgebra::{Vector2, Vector3, Point3},
+    nalgebra::{Vector3, Point3},
     slog::{Logger},
 
-    lagato::{camera::{OrbitingCamera}, grid::{Voxels}},
-    blockengine::{Chunk, rendering::{Renderer, VoxelsMesh}},
+    lagato::{camera::{OrbitingCamera}, grid::{Voxels, Range}},
+    blockengine::{Chunk},
+    blockengine_rendering::{Renderer, Mesh, Object, triangulate_voxels},
 };
 
 pub fn main() -> GameResult<()> {
@@ -32,6 +34,7 @@ struct MainState {
     renderer: Renderer,
 
     chunks: Vec<Chunk>,
+    objects: Vec<Object>,
     camera: OrbitingCamera,
 }
 
@@ -45,32 +48,35 @@ impl MainState {
         let chunk_size = Vector3::new(16, 16, 16);
 
         let mut chunks = Vec::new();
-        // TODO: Restructure bounds to any kind of cell range
-        for chunk_x in -3..4 {
-            for chunk_z in -3..4 {
-                let mut chunk_voxels = Voxels::empty(chunk_size);
-                for x in 0..chunk_size.x {
-                    for z in 0..chunk_size.z {
-                        *chunk_voxels.get_mut(Point3::new(x, 0, z)).unwrap() = true;
-                    }
-                }
-
-                let mesh = VoxelsMesh::triangulate(ctx, &chunk_voxels);
-                chunks.push(Chunk {
-                    position: Vector2::new(chunk_x, chunk_z),
-                    voxels: chunk_voxels,
-                    mesh,
-                });
+        let mut objects = Vec::new();
+        for chunk_position in Range::new_dim2(-2, -2, 1, 1).iter() {
+            let mut chunk_voxels = Voxels::empty(chunk_size);
+            for local_position in Range::new_dim2(0, 0, chunk_size.x-1, chunk_size.z-1).iter() {
+                let voxel_position = Point3::new(local_position.x, 0, local_position.y);
+                *chunk_voxels.get_mut(voxel_position).unwrap() = true;
             }
+
+            let mesh = Mesh::new(ctx, &triangulate_voxels(&chunk_voxels));
+            chunks.push(Chunk {
+                position: Point3::new(chunk_position.x, 0, chunk_position.y),
+                voxels: chunk_voxels,
+            });
+            objects.push(Object {
+                position: Point3::new(
+                    (chunk_position.x * 16) as f32, 0.0, (chunk_position.y * 16) as f32,
+                ),
+                mesh,
+            });
         }
 
-        let camera = OrbitingCamera::new(Point3::new(0.0, 1.0, 0.0), PI * -0.25, PI * 1.25, 10.0);
+        let camera = OrbitingCamera::new(Point3::new(0.0, 1.0, 0.0), PI * -0.25, PI * 1.25, 25.0);
 
         Ok(MainState {
             log,
             renderer,
 
             chunks,
+            objects,
             camera,
         })
     }
@@ -91,7 +97,7 @@ impl EventHandler for MainState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         let render_camera = self.camera.to_render_camera();
 
-        self.renderer.draw(ctx, &render_camera, &self.chunks)?;
+        self.renderer.draw(ctx, &render_camera, &self.objects)?;
 
         Ok(())
     }

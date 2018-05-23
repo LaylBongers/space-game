@@ -3,6 +3,7 @@ members = [
     "blockgame/client",
     "blockgame/server",
     "common/blockengine",
+    "common/blockengine-rendering",
     "common/lagato",
     "common/lagato-ggez",
     "common/rivr",
