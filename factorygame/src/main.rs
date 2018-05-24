@@ -10,14 +10,14 @@ use {
     std::f32::consts::{PI},
 
     ggez::{
-        event::{EventHandler, MouseButton, MouseState},
+        event::{EventHandler, MouseButton, MouseState, Keycode, Mod},
         timer,
         Context, GameResult,
     },
     nalgebra::{Vector3, Point3},
     slog::{Logger},
 
-    lagato::{camera::{OrbitingCamera}, grid::{Voxels, Range}},
+    lagato::{camera::{OrbitingCamera}, grid::{Voxels, Range}, DirectionalInput, rotate_vector},
     blockengine::{Chunk},
     blockengine_rendering::{Renderer, Mesh, Object, triangulate_voxels},
 };
@@ -32,6 +32,7 @@ pub fn main() -> GameResult<()> {
 struct MainState {
     log: Logger,
     renderer: Renderer,
+    input: DirectionalInput,
 
     chunks: Vec<Chunk>,
     objects: Vec<Object>,
@@ -43,6 +44,7 @@ impl MainState {
         info!(log, "Loading game");
 
         let renderer = Renderer::new(ctx);
+        let input = DirectionalInput::new();
 
         // Create and generate world
         let chunk_size = Vector3::new(16, 16, 16);
@@ -74,6 +76,7 @@ impl MainState {
         Ok(MainState {
             log,
             renderer,
+            input,
 
             chunks,
             objects,
@@ -85,10 +88,18 @@ impl MainState {
 impl EventHandler for MainState {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         const DESIRED_FPS: u32 = 60;
-        const _DELTA: f32 = 1.0 / DESIRED_FPS as f32;
+        const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            //self.rotation += DELTA;
+            let mut input = self.input.to_vector();
+            rotate_vector(&mut input, -self.camera.yaw);
+
+            if input.x != 0.0 || input.y != 0.0 {
+                input = input.normalize();
+            }
+
+            const SPEED: f32 = 10.0;
+            self.camera.focus += Vector3::new(input.x, 0.0, input.y) * DELTA * SPEED;
         }
 
         Ok(())
@@ -100,6 +111,31 @@ impl EventHandler for MainState {
         self.renderer.draw(ctx, &render_camera, &self.objects)?;
 
         Ok(())
+    }
+
+    fn key_down_event(
+        &mut self, ctx: &mut Context, keycode: Keycode, _keymod: Mod, _repeat: bool
+    ) {
+        match keycode {
+            Keycode::S => self.input.backward = true,
+            Keycode::W => self.input.forward = true,
+            Keycode::A => self.input.left = true,
+            Keycode::D => self.input.right = true,
+            Keycode::Escape => ctx.quit().unwrap(),
+            _ => {}
+        }
+    }
+
+    fn key_up_event(
+        &mut self, _ctx: &mut Context, keycode: Keycode, _keymod: Mod, _repeat: bool
+    ) {
+        match keycode {
+            Keycode::S => self.input.backward = false,
+            Keycode::W => self.input.forward = false,
+            Keycode::A => self.input.left = false,
+            Keycode::D => self.input.right = false,
+            _ => {}
+        }
     }
 
     fn mouse_button_down_event(
