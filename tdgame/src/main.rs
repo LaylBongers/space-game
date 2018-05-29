@@ -18,8 +18,7 @@ use {
     slog::{Logger},
 
     lagato::{camera::{OrbitingCamera}, grid::{Voxels, Range}, DirectionalInput, rotate_vector},
-    blockengine::{Chunk},
-    blockengine_rendering::{Renderer, Mesh, Object, triangulate_voxels},
+    blockengine_rendering::{Renderer, Texture, Mesh, Object, triangulate_voxels},
 };
 
 pub fn main() -> GameResult<()> {
@@ -34,7 +33,7 @@ struct MainState {
     renderer: Renderer,
     input: DirectionalInput,
 
-    chunks: Vec<Chunk>,
+    world: Voxels<bool>,
     objects: Vec<Object>,
     camera: OrbitingCamera,
 }
@@ -43,33 +42,24 @@ impl MainState {
     fn new(ctx: &mut Context, log: Logger) -> GameResult<MainState> {
         info!(log, "Loading game");
 
-        let renderer = Renderer::new(ctx);
+        let block_texture = Texture::load(ctx, "/greystone.png")?;
+        let renderer = Renderer::new(ctx, &block_texture);
         let input = DirectionalInput::new();
 
         // Create and generate world
-        let chunk_size = Vector3::new(16, 16, 16);
-
-        let mut chunks = Vec::new();
         let mut objects = Vec::new();
-        for chunk_position in Range::new_dim2(-2, -2, 1, 1).iter() {
-            let mut chunk_voxels = Voxels::empty(chunk_size);
-            for local_position in Range::new_dim2(0, 0, chunk_size.x-1, chunk_size.z-1).iter() {
-                let voxel_position = Point3::new(local_position.x, 0, local_position.y);
-                *chunk_voxels.get_mut(voxel_position).unwrap() = true;
-            }
-
-            let mesh = Mesh::new(ctx, &triangulate_voxels(&chunk_voxels));
-            chunks.push(Chunk {
-                position: Point3::new(chunk_position.x, 0, chunk_position.y),
-                voxels: chunk_voxels,
-            });
-            objects.push(Object {
-                position: Point3::new(
-                    (chunk_position.x * 16) as f32, 0.0, (chunk_position.y * 16) as f32,
-                ),
-                mesh,
-            });
+        let world_size = Vector3::new(32, 32, 32);
+        let mut world = Voxels::empty(world_size);
+        for local_position in Range::new_dim2(0, 0, world_size.x-1, world_size.z-1).iter() {
+            let voxel_position = Point3::new(local_position.x, 0, local_position.y);
+            *world.get_mut(voxel_position).unwrap() = true;
         }
+
+        let mesh = Mesh::new(ctx, &triangulate_voxels(&world));
+        objects.push(Object {
+            position: Point3::new(0.0, 0.0, 0.0),
+            mesh,
+        });
 
         let camera = OrbitingCamera::new(Point3::new(0.0, 1.0, 0.0), PI * -0.25, PI * 1.25, 25.0);
 
@@ -78,7 +68,7 @@ impl MainState {
             renderer,
             input,
 
-            chunks,
+            world,
             objects,
             camera,
         })
@@ -92,7 +82,7 @@ impl EventHandler for MainState {
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
             let mut input = self.input.to_vector();
-            rotate_vector(&mut input, -self.camera.yaw);
+            input = rotate_vector(input, -self.camera.yaw);
 
             if input.x != 0.0 || input.y != 0.0 {
                 input = input.normalize();

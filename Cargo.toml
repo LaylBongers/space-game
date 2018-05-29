@@ -9,9 +9,9 @@ members = [
     "common/rivr",
     "common/rivr-ggez",
     "common/udpcon",
-    "factorygame",
     "spacegame",
     "spacegame-game",
+    "tdgame",
 ]
 
 # Debug mode performance without any optimizations is way too slow for games
