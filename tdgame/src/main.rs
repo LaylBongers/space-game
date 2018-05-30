@@ -1,4 +1,5 @@
 extern crate ggez;
+extern crate alga;
 extern crate nalgebra;
 #[macro_use] extern crate slog;
 extern crate lagato;
@@ -11,13 +12,18 @@ use {
 
     ggez::{
         event::{EventHandler, MouseButton, MouseState, Keycode, Mod},
-        timer,
+        timer, graphics,
         Context, GameResult,
     },
-    nalgebra::{Vector3, Point3},
+    alga::linear::{Transformation},
+    nalgebra::{Vector2, Vector3, Point3},
     slog::{Logger},
 
-    lagato::{camera::{OrbitingCamera}, grid::{Voxels, Range}, DirectionalInput, rotate_vector},
+    lagato::{
+        camera::{OrbitingCamera, RenderCamera},
+        grid::{Voxels, Range},
+        DirectionalInput, rotate_vector
+    },
     blockengine::{cast_ray},
     blockengine_rendering::{Renderer, Texture, Mesh, Object, triangulate_voxels},
 };
@@ -33,11 +39,13 @@ struct MainState {
     log: Logger,
     renderer: Renderer,
     input: DirectionalInput,
+    cursor_position: Vector2<i32>,
 
     world: Voxels<bool>,
     objects: Vec<Object>,
     pointer_object: usize,
     camera: OrbitingCamera,
+    last_camera: RenderCamera,
 }
 
 impl MainState {
@@ -73,16 +81,19 @@ impl MainState {
         let camera = OrbitingCamera::new(
             Point3::new(16.0, 1.0, 16.0), PI * -0.30, PI * 1.25, 15.0
         );
+        let last_camera = camera.to_render_camera();
 
         Ok(MainState {
             log,
             renderer,
             input,
+            cursor_position: Vector2::new(0, 0),
 
             world,
             objects,
             pointer_object,
             camera,
+            last_camera,
         })
     }
 }
@@ -93,9 +104,29 @@ impl EventHandler for MainState {
         const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            let (origin, rotation) = self.camera.to_position_rotation();
-            let direction = rotation * Vector3::new(0.0, 0.0, -1.0);
-            let result = cast_ray(origin, direction, 1000.0, &self.world);
+            let (window_width, window_height) = graphics::get_size(ctx);
+            let window_size = Vector2::new(window_width, window_height);
+
+            let position = self.last_camera.position;
+            let proj = self.last_camera.view_to_clip_matrix(window_size).try_inverse().unwrap();
+            let view = self.last_camera.view_to_world_matrix();
+
+            // Get the clip position of the cursor
+            let ray_clip = Vector3::new(
+                (self.cursor_position.x as f32 / window_width as f32) * 2.0 - 1.0,
+                1.0 - (self.cursor_position.y as f32 / window_height as f32) * 2.0,
+                -1.0,
+            );
+
+            // Convert clip cursor to view cursor
+            let mut ray_eye = proj.transform_vector(&ray_clip);
+            ray_eye = Vector3::new(ray_eye.x, ray_eye.y, -1.0);
+
+            // Convert view cursor to world cursor
+            let mut ray_world = view.transform_vector(&ray_eye);
+            ray_world = ray_world.normalize();
+
+            let result = cast_ray(position, ray_world, 1000.0, &self.world);
             if let Some((position, normal)) = result {
                 let place_position = Point3::new(
                     position.x as f32,
@@ -125,6 +156,7 @@ impl EventHandler for MainState {
 
         self.renderer.draw(ctx, &render_camera, &self.objects)?;
 
+        self.last_camera = render_camera;
         Ok(())
     }
 
@@ -167,8 +199,9 @@ impl EventHandler for MainState {
 
     fn mouse_motion_event(
         &mut self, _ctx: &mut Context,
-        _state: MouseState, _x: i32, _y: i32, _xrel: i32, _yrel: i32
+        _state: MouseState, x: i32, y: i32, _xrel: i32, _yrel: i32
     ) {
+        self.cursor_position = Vector2::new(x, y);
     }
 
     fn quit_event(&mut self, _ctx: &mut Context) -> bool {
