@@ -18,12 +18,13 @@ use {
     slog::{Logger},
 
     lagato::{camera::{OrbitingCamera}, grid::{Voxels, Range}, DirectionalInput, rotate_vector},
+    blockengine::{cast_ray},
     blockengine_rendering::{Renderer, Texture, Mesh, Object, triangulate_voxels},
 };
 
 pub fn main() -> GameResult<()> {
     lagato_ggez::run_game(
-        "factorygame", "carbidegames", "Factory Game",
+        "factorygame", "carbidegames", "Tower Defense Game",
         |ctx, log| MainState::new(ctx, log),
     )
 }
@@ -35,6 +36,7 @@ struct MainState {
 
     world: Voxels<bool>,
     objects: Vec<Object>,
+    pointer_object: usize,
     camera: OrbitingCamera,
 }
 
@@ -61,7 +63,16 @@ impl MainState {
             mesh,
         });
 
-        let camera = OrbitingCamera::new(Point3::new(0.0, 1.0, 0.0), PI * -0.25, PI * 1.25, 25.0);
+        // Create the object we'll use to show where the cursor is pointing
+        objects.push(Object {
+            position: Point3::new(0.0, 0.0, 0.0),
+            mesh: Mesh::cube(ctx),
+        });
+        let pointer_object = objects.len() - 1;
+
+        let camera = OrbitingCamera::new(
+            Point3::new(16.0, 1.0, 16.0), PI * -0.30, PI * 1.25, 15.0
+        );
 
         Ok(MainState {
             log,
@@ -70,6 +81,7 @@ impl MainState {
 
             world,
             objects,
+            pointer_object,
             camera,
         })
     }
@@ -81,6 +93,19 @@ impl EventHandler for MainState {
         const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
+            let (origin, rotation) = self.camera.to_position_rotation();
+            let direction = rotation * Vector3::new(0.0, 0.0, -1.0);
+            let result = cast_ray(origin, direction, 1000.0, &self.world);
+            if let Some((position, normal)) = result {
+                let place_position = Point3::new(
+                    position.x as f32,
+                    position.y as f32,
+                    position.z as f32,
+                ) + normal;
+                self.objects[self.pointer_object].position = place_position;
+            }
+
+            // Calculate which direction we need to move based on the current input
             let mut input = self.input.to_vector();
             input = rotate_vector(input, -self.camera.yaw);
 
