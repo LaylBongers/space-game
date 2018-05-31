@@ -7,7 +7,7 @@ extern crate blockengine;
 extern crate blockengine_rendering;
 
 use {
-    cgmath::{Vector2, Vector3, Point3, SquareMatrix, Transform, InnerSpace, Rad, Angle},
+    cgmath::{Point2, Vector2, Vector3, Point3, InnerSpace, Rad, Angle},
     ggez::{
         event::{EventHandler, MouseButton, MouseState, Keycode, Mod},
         timer, graphics,
@@ -35,7 +35,7 @@ struct MainState {
     log: Logger,
     renderer: Renderer,
     input: DirectionalInput,
-    cursor_position: Vector2<i32>,
+    cursor_position: Point2<i32>,
 
     world: Voxels<bool>,
     objects: Vec<Object>,
@@ -75,7 +75,7 @@ impl MainState {
         let pointer_object = objects.len() - 1;
 
         let camera = OrbitingCamera::new(
-            Point3::new(16.0, 1.0, 16.0), Rad::full_turn() * -0.15, Rad::full_turn() * 0.625, 15.0
+            Point3::new(16.0, 1.0, 16.0), Rad::full_turn() * -0.15, Rad::full_turn() * 0.625, 10.0
         );
         let last_camera = camera.to_render_camera();
 
@@ -83,7 +83,7 @@ impl MainState {
             log,
             renderer,
             input,
-            cursor_position: Vector2::new(0, 0),
+            cursor_position: Point2::new(0, 0),
 
             world,
             objects,
@@ -103,32 +103,10 @@ impl EventHandler for MainState {
             let (window_width, window_height) = graphics::get_size(ctx);
             let window_size = Vector2::new(window_width, window_height);
 
-            let position = self.last_camera.position;
-            let proj = self.last_camera.projection_matrix(window_size).invert().unwrap();
-            let view = self.last_camera.view_matrix_inverse();
-
-            // Get the clip position of the cursor
-            let ray_clip = Vector3::new(
-                (self.cursor_position.x as f32 / window_width as f32) * 2.0 - 1.0,
-                1.0 - (self.cursor_position.y as f32 / window_height as f32) * 2.0,
-                -1.0,
-            );
-
-            // Convert clip cursor to view cursor
-            let mut ray_eye = proj.transform_vector(ray_clip);
-            ray_eye = Vector3::new(ray_eye.x, ray_eye.y, -1.0);
-
-            // Convert view cursor to world cursor
-            let mut ray_world = view.transform_vector(ray_eye);
-            ray_world = ray_world.normalize();
-
-            let result = cast_ray(position, ray_world, 1000.0, &self.world);
+            let ray = self.last_camera.pixel_to_ray(self.cursor_position, window_size);
+            let result = cast_ray(&ray, 1000.0, &self.world);
             if let Some((position, normal)) = result {
-                let place_position = Point3::new(
-                    position.x as f32,
-                    position.y as f32,
-                    position.z as f32,
-                ) + normal;
+                let place_position = position.cast().unwrap() + normal;
                 self.objects[self.pointer_object].position = place_position;
             }
 
@@ -197,7 +175,7 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         _state: MouseState, x: i32, y: i32, _xrel: i32, _yrel: i32
     ) {
-        self.cursor_position = Vector2::new(x, y);
+        self.cursor_position = Point2::new(x, y);
     }
 
     fn quit_event(&mut self, _ctx: &mut Context) -> bool {
