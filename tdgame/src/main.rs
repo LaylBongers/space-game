@@ -1,6 +1,5 @@
+extern crate cgmath;
 extern crate ggez;
-extern crate alga;
-extern crate nalgebra;
 #[macro_use] extern crate slog;
 extern crate lagato;
 extern crate lagato_ggez;
@@ -8,15 +7,12 @@ extern crate blockengine;
 extern crate blockengine_rendering;
 
 use {
-    std::f32::consts::{PI},
-
+    cgmath::{Vector2, Vector3, Point3, SquareMatrix, Transform, InnerSpace, Rad, Angle},
     ggez::{
         event::{EventHandler, MouseButton, MouseState, Keycode, Mod},
         timer, graphics,
         Context, GameResult,
     },
-    alga::linear::{Transformation},
-    nalgebra::{Vector2, Vector3, Point3},
     slog::{Logger},
 
     lagato::{
@@ -79,7 +75,7 @@ impl MainState {
         let pointer_object = objects.len() - 1;
 
         let camera = OrbitingCamera::new(
-            Point3::new(16.0, 1.0, 16.0), PI * -0.30, PI * 1.25, 15.0
+            Point3::new(16.0, 1.0, 16.0), Rad::full_turn() * -0.15, Rad::full_turn() * 0.625, 15.0
         );
         let last_camera = camera.to_render_camera();
 
@@ -108,8 +104,8 @@ impl EventHandler for MainState {
             let window_size = Vector2::new(window_width, window_height);
 
             let position = self.last_camera.position;
-            let proj = self.last_camera.view_to_clip_matrix(window_size).try_inverse().unwrap();
-            let view = self.last_camera.view_to_world_matrix();
+            let proj = self.last_camera.projection_matrix(window_size).invert().unwrap();
+            let view = self.last_camera.view_matrix_inverse();
 
             // Get the clip position of the cursor
             let ray_clip = Vector3::new(
@@ -119,11 +115,11 @@ impl EventHandler for MainState {
             );
 
             // Convert clip cursor to view cursor
-            let mut ray_eye = proj.transform_vector(&ray_clip);
+            let mut ray_eye = proj.transform_vector(ray_clip);
             ray_eye = Vector3::new(ray_eye.x, ray_eye.y, -1.0);
 
             // Convert view cursor to world cursor
-            let mut ray_world = view.transform_vector(&ray_eye);
+            let mut ray_world = view.transform_vector(ray_eye);
             ray_world = ray_world.normalize();
 
             let result = cast_ray(position, ray_world, 1000.0, &self.world);

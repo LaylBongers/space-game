@@ -1,6 +1,5 @@
 use {
-    alga::linear::{EuclideanSpace},
-    nalgebra::{Point2},
+    cgmath::{Point2, MetricSpace},
     slog::{Logger},
 
     lagato::{grid::{Tiles}},
@@ -134,7 +133,7 @@ impl Action {
                 let target = Point2::new(target.x as f32 + 0.5, target.y as f32 + 0.5);
 
                 // Calculate how far away we are and how far we can travel
-                let distance = unit_position.distance(&target);
+                let distance = unit_position.distance(target);
                 let distance_possible = UNIT_SPEED * delta;
 
                 // If we're within our travel distance, just arrive

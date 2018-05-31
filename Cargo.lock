@@ -69,23 +69,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "blockengine"
 version = "0.1.0"
 dependencies = [
- "alga 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cgmath 0.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "lagato 0.1.0",
- "nalgebra 0.14.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "blockengine-rendering"
 version = "0.1.0"
 dependencies = [
- "alga 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "blockengine 0.1.0",
+ "cgmath 0.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx 0.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "gfx_device_gl 0.15.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gfx_device_gl 0.15.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lagato 0.1.0",
- "nalgebra 0.14.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -169,6 +167,17 @@ dependencies = [
  "approx 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.22 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "cgmath"
+version = "0.16.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "approx 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num-traits 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.64 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -368,7 +377,7 @@ dependencies = [
 
 [[package]]
 name = "gfx_device_gl"
-version = "0.15.2"
+version = "0.15.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gfx_core 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -391,7 +400,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gfx 0.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx_core 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "gfx_device_gl 0.15.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gfx_device_gl 0.15.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.31.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -403,7 +412,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "app_dirs2 2.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx 0.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "gfx_device_gl 0.15.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gfx_device_gl 0.15.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx_window_sdl 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.18.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lyon 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -567,8 +576,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "lagato"
 version = "0.1.0"
 dependencies = [
- "alga 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "nalgebra 0.14.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cgmath 0.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.64 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.64 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -1131,6 +1139,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "serde"
 version = "1.0.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "serde_derive 1.0.64 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "serde_derive"
@@ -1260,11 +1271,10 @@ dependencies = [
 name = "spacegame-game"
 version = "0.1.0"
 dependencies = [
- "alga 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cgmath 0.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lagato 0.1.0",
  "metrohash 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "nalgebra 0.14.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "pathfinding 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.64 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.64 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1330,13 +1340,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "tdgame"
 version = "0.1.0"
 dependencies = [
- "alga 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "blockengine 0.1.0",
  "blockengine-rendering 0.1.0",
+ "cgmath 0.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lagato 0.1.0",
  "lagato-ggez 0.1.0",
- "nalgebra 0.14.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "slog 2.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -1508,6 +1517,7 @@ dependencies = [
 "checksum cc 1.0.17 (registry+https://github.com/rust-lang/crates.io-index)" = "49ec142f5768efb5b7622aebc3fdbdbb8950a4b9ba996393cb76ef7466e8747d"
 "checksum cfg-if 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "405216fd8fe65f718daa7102ea808a946b6ce40c742998fbfd3463645552de18"
 "checksum cgmath 0.14.1 (registry+https://github.com/rust-lang/crates.io-index)" = "87f025a17ad3f30d49015c787903976d5f9cd6115ece1eb7f4d6ffe06b8c4080"
+"checksum cgmath 0.16.1 (registry+https://github.com/rust-lang/crates.io-index)" = "64a4b57c8f4e3a2e9ac07e0f6abc9c24b6fc9e1b54c3478cfb598f3d0023e51c"
 "checksum chrono 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "1cce36c92cb605414e9b824f866f5babe0a0368e39ea07393b9b63cf3844c0e6"
 "checksum claxon 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "84d1237389598ada39533a0015b2d04a9e21cae771c1ab9327fb87520c9e84c7"
 "checksum color_quant 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a475fc4af42d83d28adf72968d9bcfaf035a1a9381642d8e85d8a04957767b0d"
@@ -1531,7 +1541,7 @@ dependencies = [
 "checksum generic-array 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)" = "fceb69994e330afed50c93524be68c42fa898c2d9fd4ee8da03bd7363acd26f2"
 "checksum gfx 0.17.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7d7ce0c1f747245342a73453fdb098ea0764c430421fbc4d98cdc8ef8ede4834"
 "checksum gfx_core 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)" = "d85039b7bda0348fee728e6787876138839ced69650129ab65aee7ee58fc6367"
-"checksum gfx_device_gl 0.15.2 (registry+https://github.com/rust-lang/crates.io-index)" = "28db9b21971721a57ab0f7a751a58dc8c50bede80c914533ad94fd664377925d"
+"checksum gfx_device_gl 0.15.3 (registry+https://github.com/rust-lang/crates.io-index)" = "5afb3bc6017229804c4a814972581eb16d7b8f2568fda9daf9d0ef6e78198305"
 "checksum gfx_gl 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3e8a920f8f6c1025a7ddf9dd25502bf059506fd3cd765dfbe8dba0b56b7eeecb"
 "checksum gfx_window_sdl 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f0d36e50e6620804c7613d1fd95f816b4f1c6e0ece0ccb8b155016a9404344f1"
 "checksum ggez 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "aadc283f5808d96f5ab805c144ddbce7622dda3be15587b20a2188ac1a2af5ad"

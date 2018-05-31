@@ -1,5 +1,5 @@
 use {
-    nalgebra::{Point2, Vector2},
+    cgmath::{Point2, Vector2},
     slog::{Logger},
 
     lagato::{grid::{Tiles}},

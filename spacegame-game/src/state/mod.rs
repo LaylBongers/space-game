@@ -8,7 +8,7 @@ pub use self::{
 };
 
 use {
-    nalgebra::{Vector2, Point2},
+    cgmath::{Vector2, Point2},
     slog::{Logger},
 
     object_class::{ObjectClasses},

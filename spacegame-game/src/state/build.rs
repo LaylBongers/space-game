@@ -1,5 +1,5 @@
 use {
-    nalgebra::{Point2},
+    cgmath::{Point2},
     object_class::{ObjectClassId},
 };
 

@@ -1,6 +1,5 @@
 use {
-    alga::linear::{EuclideanSpace},
-    nalgebra::{Point2},
+    cgmath::{Point2, MetricSpace},
     metrohash::{MetroHashMap},
     slog::{Logger},
 
@@ -76,7 +75,7 @@ impl TaskQueue {
                 task.position.x as f32 + 0.5,
                 task.position.y as f32 + 0.5
             );
-            let distance_squared = closest_to.distance_squared(&task_center);
+            let distance_squared = closest_to.distance2(task_center);
             if distance_squared < found_distance_squared {
                 found_distance_squared = distance_squared;
                 found_task = Some(*key)

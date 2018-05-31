@@ -1,5 +1,4 @@
-use alga::linear::{Transformation};
-use nalgebra::{Vector2, Point2, Point3, Matrix4};
+use cgmath::{Vector2, Point2, Point3, Matrix4, Ortho, SquareMatrix, Transform};
 
 #[derive(Deserialize, Serialize)]
 pub struct Camera {
@@ -35,13 +34,15 @@ impl Camera {
 
     pub fn projection(&self) -> Matrix4<f32> {
         let half_world_size = self.half_world_size();
-        Matrix4::new_orthographic(
-            self.position.x - half_world_size.x,
-            self.position.x + half_world_size.x,
-            self.position.y - half_world_size.y,
-            self.position.y + half_world_size.y,
-            -1.0, 1.0,
-        )
+        let ortho = Ortho {
+            left: self.position.x - half_world_size.x,
+            right: self.position.x + half_world_size.x,
+            bottom: self.position.y - half_world_size.y,
+            top: self.position.y + half_world_size.y,
+            near: -1.0,
+            far: 1.0,
+        };
+        ortho.into()
     }
 
     /// Calculates the start and end bounds of the camera in world space
@@ -61,7 +62,8 @@ impl Camera {
         );
 
         // Do the actual conversion
-        let world = self.projection().try_inverse().unwrap().transform_point(&clip);
+        let matrix = self.projection().invert().unwrap();
+        let world = matrix.transform_point(clip);
 
         Point2::new(world.x, world.y)
     }
