@@ -66,6 +66,7 @@ impl MainState {
         let mesh = Mesh::new(ctx, &triangulate_voxels(&world));
         objects.push(Object {
             position: Point3::new(0.0, 0.0, 0.0),
+            visible: true,
             mesh,
         });
 

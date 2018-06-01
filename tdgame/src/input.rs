@@ -25,6 +25,8 @@ impl InputHandler {
         // Create the object we'll use to show where the cursor is pointing
         objects.push(Object {
             position: Point3::new(0.0, 0.0, 0.0),
+            visible: false,
+
             mesh: Mesh::cube(ctx),
         });
         let pointer_object = objects.len() - 1;
@@ -46,7 +48,11 @@ impl InputHandler {
         let result = cast_ray(&ray, 1000.0, &world);
         if let Some((position, normal)) = result {
             let place_position = position.cast().unwrap() + normal;
-            objects[self.pointer_object].position = place_position;
+            let obj = &mut objects[self.pointer_object];
+            obj.position = place_position;
+            obj.visible = true;
+        } else {
+            objects[self.pointer_object].visible = false;
         }
 
         // Calculate which direction we need to move based on the current input
