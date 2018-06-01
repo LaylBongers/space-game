@@ -9,8 +9,6 @@ members = [
     "common/rivr",
     "common/rivr-ggez",
     "common/udpcon",
-    "spacegame",
-    "spacegame-game",
     "tdgame",
 ]
 
