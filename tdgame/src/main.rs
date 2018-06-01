@@ -6,8 +6,10 @@ extern crate lagato_ggez;
 extern crate blockengine;
 extern crate blockengine_rendering;
 
+mod input;
+
 use {
-    cgmath::{Point2, Vector2, Vector3, Point3, InnerSpace, Rad, Angle},
+    cgmath::{Vector3, Point3, Rad, Angle},
     ggez::{
         event::{EventHandler, MouseButton, MouseState, Keycode, Mod},
         timer, graphics,
@@ -18,10 +20,10 @@ use {
     lagato::{
         camera::{OrbitingCamera, RenderCamera},
         grid::{Voxels, Range},
-        DirectionalInput, rotate_vector
     },
-    blockengine::{cast_ray},
     blockengine_rendering::{Renderer, Texture, Mesh, Object, triangulate_voxels},
+
+    input::{InputHandler},
 };
 
 pub fn main() -> GameResult<()> {
@@ -34,12 +36,11 @@ pub fn main() -> GameResult<()> {
 struct MainState {
     log: Logger,
     renderer: Renderer,
-    input: DirectionalInput,
-    cursor_position: Point2<i32>,
+    input: InputHandler,
 
     world: Voxels<bool>,
     objects: Vec<Object>,
-    pointer_object: usize,
+
     camera: OrbitingCamera,
     last_camera: RenderCamera,
 }
@@ -48,12 +49,13 @@ impl MainState {
     fn new(ctx: &mut Context, log: Logger) -> GameResult<MainState> {
         info!(log, "Loading game");
 
+        let mut objects = Vec::new();
+
         let block_texture = Texture::load(ctx, "/greystone.png")?;
         let renderer = Renderer::new(ctx, &block_texture);
-        let input = DirectionalInput::new();
+        let input = InputHandler::new(ctx, &mut objects);
 
         // Create and generate world
-        let mut objects = Vec::new();
         let world_size = Vector3::new(32, 32, 32);
         let mut world = Voxels::empty(world_size);
         for local_position in Range::new_dim2(0, 0, world_size.x-1, world_size.z-1).iter() {
@@ -67,27 +69,19 @@ impl MainState {
             mesh,
         });
 
-        // Create the object we'll use to show where the cursor is pointing
-        objects.push(Object {
-            position: Point3::new(0.0, 0.0, 0.0),
-            mesh: Mesh::cube(ctx),
-        });
-        let pointer_object = objects.len() - 1;
-
         let camera = OrbitingCamera::new(
             Point3::new(16.0, 1.0, 16.0), Rad::full_turn() * -0.15, Rad::full_turn() * 0.625, 10.0
         );
-        let last_camera = camera.to_render_camera();
+        let last_camera = camera.to_render_camera(graphics::get_size(ctx).into());
 
         Ok(MainState {
             log,
             renderer,
             input,
-            cursor_position: Point2::new(0, 0),
 
             world,
             objects,
-            pointer_object,
+
             camera,
             last_camera,
         })
@@ -100,33 +94,16 @@ impl EventHandler for MainState {
         const DELTA: f32 = 1.0 / DESIRED_FPS as f32;
 
         while timer::check_update_time(ctx, DESIRED_FPS) {
-            let (window_width, window_height) = graphics::get_size(ctx);
-            let window_size = Vector2::new(window_width, window_height);
-
-            let ray = self.last_camera.pixel_to_ray(self.cursor_position, window_size);
-            let result = cast_ray(&ray, 1000.0, &self.world);
-            if let Some((position, normal)) = result {
-                let place_position = position.cast().unwrap() + normal;
-                self.objects[self.pointer_object].position = place_position;
-            }
-
-            // Calculate which direction we need to move based on the current input
-            let mut input = self.input.to_vector();
-            input = rotate_vector(input, -self.camera.yaw);
-
-            if input.x != 0.0 || input.y != 0.0 {
-                input = input.normalize();
-            }
-
-            const SPEED: f32 = 10.0;
-            self.camera.focus += Vector3::new(input.x, 0.0, input.y) * DELTA * SPEED;
+            self.input.update(
+                &self.world, &mut self.objects, &mut self.camera, &self.last_camera, DELTA,
+            );
         }
 
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        let render_camera = self.camera.to_render_camera();
+        let render_camera = self.camera.to_render_camera(graphics::get_size(ctx).into());
 
         self.renderer.draw(ctx, &render_camera, &self.objects)?;
 
@@ -137,11 +114,8 @@ impl EventHandler for MainState {
     fn key_down_event(
         &mut self, ctx: &mut Context, keycode: Keycode, _keymod: Mod, _repeat: bool
     ) {
+        self.input.key_down_event(keycode);
         match keycode {
-            Keycode::S => self.input.backward = true,
-            Keycode::W => self.input.forward = true,
-            Keycode::A => self.input.left = true,
-            Keycode::D => self.input.right = true,
             Keycode::Escape => ctx.quit().unwrap(),
             _ => {}
         }
@@ -150,13 +124,7 @@ impl EventHandler for MainState {
     fn key_up_event(
         &mut self, _ctx: &mut Context, keycode: Keycode, _keymod: Mod, _repeat: bool
     ) {
-        match keycode {
-            Keycode::S => self.input.backward = false,
-            Keycode::W => self.input.forward = false,
-            Keycode::A => self.input.left = false,
-            Keycode::D => self.input.right = false,
-            _ => {}
-        }
+        self.input.key_up_event(keycode);
     }
 
     fn mouse_button_down_event(
@@ -175,7 +143,7 @@ impl EventHandler for MainState {
         &mut self, _ctx: &mut Context,
         _state: MouseState, x: i32, y: i32, _xrel: i32, _yrel: i32
     ) {
-        self.cursor_position = Point2::new(x, y);
+        self.input.mouse_motion_event(x, y);
     }
 
     fn quit_event(&mut self, _ctx: &mut Context) -> bool {
