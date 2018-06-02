@@ -52,8 +52,8 @@ impl MainState {
         let mut objects = Vec::new();
 
         let block_texture = Texture::load(ctx, "/greystone.png")?;
-        let renderer = Renderer::new(ctx, &block_texture);
-        let input = InputHandler::new(ctx, &mut objects);
+        let renderer = Renderer::new(ctx);
+        let input = InputHandler::new(ctx, &mut objects)?;
 
         // Create and generate world
         let world_size = Vector3::new(32, 32, 32);
@@ -67,7 +67,9 @@ impl MainState {
         objects.push(Object {
             position: Point3::new(0.0, 0.0, 0.0),
             visible: true,
+
             mesh,
+            texture: block_texture.clone(),
         });
 
         let camera = OrbitingCamera::new(

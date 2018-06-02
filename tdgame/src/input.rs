@@ -2,7 +2,7 @@ use {
     cgmath::{Point2, Vector3, Point3, InnerSpace},
     ggez::{
         event::{Keycode},
-        Context,
+        Context, GameResult,
     },
 
     lagato::{
@@ -11,7 +11,7 @@ use {
         DirectionalInput, rotate_vector
     },
     blockengine::{cast_ray},
-    blockengine_rendering::{Mesh, Object},
+    blockengine_rendering::{Mesh, Object, Texture},
 };
 
 pub struct InputHandler {
@@ -21,21 +21,22 @@ pub struct InputHandler {
 }
 
 impl InputHandler {
-    pub fn new(ctx: &mut Context, objects: &mut Vec<Object>) -> Self {
+    pub fn new(ctx: &mut Context, objects: &mut Vec<Object>) -> GameResult<Self> {
         // Create the object we'll use to show where the cursor is pointing
         objects.push(Object {
             position: Point3::new(0.0, 0.0, 0.0),
             visible: false,
 
             mesh: Mesh::cube(ctx),
+            texture: Texture::load(ctx, "/pointer.png")?,
         });
         let pointer_object = objects.len() - 1;
 
-        InputHandler {
+        Ok(InputHandler {
             directional: DirectionalInput::new(),
             cursor_position: Point2::new(0, 0),
             pointer_object,
-        }
+        })
     }
 
     pub fn update(
