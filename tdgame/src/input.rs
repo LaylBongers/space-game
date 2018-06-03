@@ -1,23 +1,27 @@
 use {
     cgmath::{Point2, Vector3, Point3, InnerSpace},
     ggez::{
-        event::{Keycode},
+        event::{Keycode, MouseButton},
         Context, GameResult,
     },
 
     lagato::{
         camera::{OrbitingCamera, RenderCamera},
-        grid::{Voxels},
         DirectionalInput, rotate_vector
     },
     blockengine::{cast_ray},
-    blockengine_rendering::{Mesh, Object, Texture},
+    blockengine_rendering::{Mesh, Object, Texture, triangulate_voxels},
+
+    World,
 };
 
 pub struct InputHandler {
     directional: DirectionalInput,
     cursor_position: Point2<i32>,
     pointer_object: usize,
+
+    pointer_position: Option<Point3<i32>>,
+    pointer_position_with_normal: Option<Point3<i32>>,
 }
 
 impl InputHandler {
@@ -36,23 +40,31 @@ impl InputHandler {
             directional: DirectionalInput::new(),
             cursor_position: Point2::new(0, 0),
             pointer_object,
+
+            pointer_position: None,
+            pointer_position_with_normal: None,
         })
     }
 
     pub fn update(
         &mut self,
-        world: &Voxels<bool>, objects: &mut Vec<Object>,
+        world: &World, objects: &mut Vec<Object>,
         camera: &mut OrbitingCamera, last_camera: &RenderCamera,
         delta: f32,
     ) {
         let ray = last_camera.pixel_to_ray(self.cursor_position);
-        let result = cast_ray(&ray, 1000.0, &world);
+        let result = cast_ray(&ray, 1000.0, &world.voxels);
         if let Some((position, normal)) = result {
-            let place_position = position.cast().unwrap() + normal;
+            self.pointer_position = Some(position);
+            self.pointer_position_with_normal = Some(position + normal);
+
+            let place_position = position.cast().unwrap() + normal.cast().unwrap();
             let obj = &mut objects[self.pointer_object];
             obj.position = place_position;
             obj.visible = true;
         } else {
+            self.pointer_position = None;
+            self.pointer_position_with_normal = None;
             objects[self.pointer_object].visible = false;
         }
 
@@ -88,7 +100,42 @@ impl InputHandler {
         }
     }
 
-    pub fn mouse_motion_event(&mut self, x: i32, y: i32) {
-        self.cursor_position = Point2::new(x, y);
+    pub fn mouse_button_down_event(&mut self, _button: MouseButton) {
+    }
+
+    pub fn mouse_button_up_event(
+        &mut self, ctx: &mut Context,
+        button: MouseButton, world: &mut World, objects: &mut Vec<Object>
+    ) {
+        let mut world_changed = false;
+
+        match button {
+            MouseButton::Left => {
+                if let Some(pointer_position) = self.pointer_position_with_normal {
+                    if let Ok(voxel) = world.voxels.get_mut(pointer_position) {
+                        *voxel = true;
+                        world_changed = true;
+                    }
+                }
+            },
+            MouseButton::Right => {
+                if let Some(pointer_position) = self.pointer_position {
+                    if let Ok(voxel) = world.voxels.get_mut(pointer_position) {
+                        *voxel = false;
+                        world_changed = true;
+                    }
+                }
+            },
+            _ => {},
+        }
+
+        if world_changed {
+            objects[world.object].mesh =
+                Mesh::new(ctx, &triangulate_voxels(&world.voxels));
+        }
+    }
+
+    pub fn mouse_motion_event(&mut self, position: Point2<i32>) {
+        self.cursor_position = position;
     }
 }

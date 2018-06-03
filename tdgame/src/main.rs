@@ -9,7 +9,7 @@ extern crate blockengine_rendering;
 mod input;
 
 use {
-    cgmath::{Vector3, Point3, Rad, Angle},
+    cgmath::{Point2, Vector3, Point3, Rad, Angle},
     ggez::{
         event::{EventHandler, MouseButton, MouseState, Keycode, Mod},
         timer, graphics,
@@ -38,7 +38,7 @@ struct MainState {
     renderer: Renderer,
     input: InputHandler,
 
-    world: Voxels<bool>,
+    world: World,
     objects: Vec<Object>,
 
     camera: OrbitingCamera,
@@ -57,13 +57,13 @@ impl MainState {
 
         // Create and generate world
         let world_size = Vector3::new(32, 32, 32);
-        let mut world = Voxels::empty(world_size);
+        let mut voxels = Voxels::empty(world_size);
         for local_position in Range::new_dim2(0, 0, world_size.x-1, world_size.z-1).iter() {
             let voxel_position = Point3::new(local_position.x, 0, local_position.y);
-            *world.get_mut(voxel_position).unwrap() = true;
+            *voxels.get_mut(voxel_position).unwrap() = true;
         }
 
-        let mesh = Mesh::new(ctx, &triangulate_voxels(&world));
+        let mesh = Mesh::new(ctx, &triangulate_voxels(&voxels));
         objects.push(Object {
             position: Point3::new(0.0, 0.0, 0.0),
             visible: true,
@@ -71,6 +71,12 @@ impl MainState {
             mesh,
             texture: block_texture.clone(),
         });
+        let world_object = objects.len() - 1;
+
+        let world = World {
+            voxels,
+            object: world_object,
+        };
 
         let camera = OrbitingCamera::new(
             Point3::new(16.0, 1.0, 16.0), Rad::full_turn() * -0.15, Rad::full_turn() * 0.625, 10.0
@@ -132,25 +138,32 @@ impl EventHandler for MainState {
 
     fn mouse_button_down_event(
         &mut self, _ctx: &mut Context,
-        _button: MouseButton, _x: i32, _y: i32
+        button: MouseButton, _x: i32, _y: i32
     ) {
+        self.input.mouse_button_down_event(button);
     }
 
     fn mouse_button_up_event(
-        &mut self, _ctx: &mut Context,
-        _button: MouseButton, _x: i32, _y: i32
+        &mut self, ctx: &mut Context,
+        button: MouseButton, _x: i32, _y: i32
     ) {
+        self.input.mouse_button_up_event(ctx, button, &mut self.world, &mut self.objects);
     }
 
     fn mouse_motion_event(
         &mut self, _ctx: &mut Context,
         _state: MouseState, x: i32, y: i32, _xrel: i32, _yrel: i32
     ) {
-        self.input.mouse_motion_event(x, y);
+        self.input.mouse_motion_event(Point2::new(x, y));
     }
 
     fn quit_event(&mut self, _ctx: &mut Context) -> bool {
         info!(self.log, "quit_event() callback called, quitting");
         false
     }
+}
+
+pub struct World {
+    pub voxels: Voxels<bool>,
+    pub object: usize,
 }
